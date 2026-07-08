@@ -1,9 +1,11 @@
 from datetime import UTC, datetime
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from app.core.config import settings
 from app.core.logging import logger
+from app.dependencies.llm import get_openai_provider
+from app.providers.openai_provider import OpenAIProvider
 
 router = APIRouter(tags=["Health"])
 
@@ -31,21 +33,21 @@ async def liveness():
 
 
 @router.get("/ready")
-async def readiness():
+async def readiness(
+    provider: OpenAIProvider = Depends(get_openai_provider),
+):
 
     logger.info("Readiness probe")
 
     #
-    # Later we'll verify:
-    #
-    # - PostgreSQL
-    # - Redis
-    # - OpenAI
-    # - Vector Database
+    # We don't call OpenAI yet.
+    # We simply verify that the provider
+    # can be constructed successfully.
     #
 
     return {
         "status": "ready",
+        "provider": provider.__class__.__name__,
     }
 
 
