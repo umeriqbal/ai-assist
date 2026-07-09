@@ -14,15 +14,29 @@ class OpenAIProvider(LLMProvider):
             api_key=settings.openai_api_key,
         )
 
-    @property
-    def client(self) -> AsyncOpenAI:
-        return self._client
-
     async def health_check(self) -> bool:
         """
         For now, simply verify the client exists.
 
         Later we'll make a lightweight API request.
         """
-
         return self._client is not None
+
+    async def chat(
+        self,
+        prompt: str,
+    ) -> str:
+        """
+        Generate a chat response using OpenAI.
+
+        This is intentionally simple.
+        We'll add streaming, tools, structured outputs,
+        and conversation history in later sprints.
+        """
+
+        response = await self._client.responses.create(
+            model=settings.openai_chat_model,
+            input=prompt,
+        )
+
+        return response.output_text

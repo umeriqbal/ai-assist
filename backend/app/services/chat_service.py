@@ -10,14 +10,26 @@ class ChatService:
         self,
         provider: LLMProvider,
     ) -> None:
-
         self._provider = provider
 
     async def health_check(self) -> str:
-
         healthy = await self._provider.health_check()
 
-        if healthy:
-            return "Chat service is ready."
+        return (
+            "Chat service is ready."
+            if healthy
+            else "Chat service is unavailable."
+        )
 
-        return "Chat service is unavailable."
+    async def chat(
+        self,
+        prompt: str,
+    ) -> str:
+        """
+        Generate a chat response.
+
+        The service delegates the LLM interaction
+        to the provider.
+        """
+
+        return await self._provider.chat(prompt)
