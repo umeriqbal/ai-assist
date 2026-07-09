@@ -1,15 +1,12 @@
 from openai import AsyncOpenAI
 
 from app.core.config import settings
+from app.providers.base import LLMProvider
 
 
-class OpenAIProvider:
+class OpenAIProvider(LLMProvider):
     """
-    Wrapper around the OpenAI client.
-
-    This class owns the SDK client.
-    Higher-level services will use this provider
-    instead of talking directly to the SDK.
+    OpenAI implementation of the LLM provider interface.
     """
 
     def __init__(self) -> None:
@@ -20,3 +17,12 @@ class OpenAIProvider:
     @property
     def client(self) -> AsyncOpenAI:
         return self._client
+
+    async def health_check(self) -> bool:
+        """
+        For now, simply verify the client exists.
+
+        Later we'll make a lightweight API request.
+        """
+
+        return self._client is not None

@@ -1,4 +1,4 @@
-from app.providers.openai_provider import OpenAIProvider
+from app.providers.base import LLMProvider
 
 
 class ChatService:
@@ -8,17 +8,16 @@ class ChatService:
 
     def __init__(
         self,
-        provider: OpenAIProvider,
+        provider: LLMProvider,
     ) -> None:
 
         self._provider = provider
 
     async def health_check(self) -> str:
-        """
-        Simple method proving the service works.
 
-        Later this class will generate chat
-        completions and stream responses.
-        """
+        healthy = await self._provider.health_check()
 
-        return "Chat service is ready."
+        if healthy:
+            return "Chat service is ready."
+
+        return "Chat service is unavailable."
