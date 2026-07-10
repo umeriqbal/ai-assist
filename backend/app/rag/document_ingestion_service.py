@@ -2,40 +2,31 @@ from pathlib import Path
 
 from langchain_core.documents import Document
 
-from app.rag.loaders.pdf_loader import PDFLoader
+from app.rag.loaders.loader_factory import (
+    DocumentLoaderFactory,
+)
 
 
 class DocumentIngestionService:
     """
-    Coordinates the ingestion of documents into the RAG pipeline.
+    Coordinates document ingestion.
 
-    This service is responsible for selecting the appropriate
-    loader and returning LangChain Documents.
-
-    At the current stage only PDF files are supported.
+    This service delegates file loading to the appropriate
+    document loader selected by the factory.
     """
 
     def __init__(
         self,
-        pdf_loader: PDFLoader | None = None,
+        loader_factory: DocumentLoaderFactory | None = None,
     ) -> None:
-        self._pdf_loader = pdf_loader or PDFLoader()
+        self._loader_factory = (
+            loader_factory or DocumentLoaderFactory()
+        )
 
     async def ingest(
         self,
         file_path: str | Path,
     ) -> list[Document]:
-        """
-        Ingest a document.
-
-        Args:
-            file_path:
-                Path to the document.
-
-        Returns:
-            A list of LangChain Document objects.
-        """
-
         path = Path(file_path)
 
         if not path.exists():
@@ -43,9 +34,6 @@ class DocumentIngestionService:
                 f"File not found: {path}"
             )
 
-        if path.suffix.lower() != ".pdf":
-            raise ValueError(
-                f"Unsupported file type: {path.suffix}"
-            )
+        loader = self._loader_factory.get_loader(path)
 
-        return await self._pdf_loader.load(path)
+        return await loader.load(path)
