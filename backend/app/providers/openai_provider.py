@@ -1,3 +1,5 @@
+from collections.abc import AsyncIterator
+
 from openai import AsyncOpenAI
 
 from app.core.config import settings
@@ -15,24 +17,12 @@ class OpenAIProvider(LLMProvider):
         )
 
     async def health_check(self) -> bool:
-        """
-        For now, simply verify the client exists.
-
-        Later we'll make a lightweight API request.
-        """
         return self._client is not None
 
     async def chat(
         self,
         prompt: str,
     ) -> str:
-        """
-        Generate a chat response using OpenAI.
-
-        This is intentionally simple.
-        We'll add streaming, tools, structured outputs,
-        and conversation history in later sprints.
-        """
 
         response = await self._client.responses.create(
             model=settings.openai_chat_model,
@@ -40,3 +30,21 @@ class OpenAIProvider(LLMProvider):
         )
 
         return response.output_text
+
+    async def stream_chat(
+        self,
+        prompt: str,
+    ) -> AsyncIterator[str]:
+        """
+        Stream tokens from the OpenAI Responses API.
+        """
+
+        stream = await self._client.responses.create(
+            model=settings.openai_chat_model,
+            input=prompt,
+            stream=True,
+        )
+
+        async for event in stream:
+            if event.type == "response.output_text.delta":
+                yield event.delta

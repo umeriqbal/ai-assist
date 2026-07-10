@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
 
 
 class LLMProvider(ABC):
@@ -8,9 +9,6 @@ class LLMProvider(ABC):
 
     @abstractmethod
     async def health_check(self) -> bool:
-        """
-        Verify the provider is available.
-        """
         raise NotImplementedError
 
     @abstractmethod
@@ -18,7 +16,14 @@ class LLMProvider(ABC):
         self,
         prompt: str,
     ) -> str:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def stream_chat(
+        self,
+        prompt: str,
+    ) -> AsyncIterator[str]:
         """
-        Generate a chat response.
+        Stream a response token-by-token.
         """
         raise NotImplementedError
