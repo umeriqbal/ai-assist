@@ -50,10 +50,14 @@ class Settings(BaseSettings):
         alias="OPENAI_CHAT_MODEL",
     )
 
-    openai_embedding_model: str = Field(
+    embedding_model: str = Field(
         default="text-embedding-3-small",
         alias="OPENAI_EMBEDDING_MODEL",
     )
+
+    # Chroma
+
+    chroma_persist_directory: str = "./storage/chroma"
 
     #
     # Server

@@ -9,7 +9,7 @@ class VectorStore(ABC):
     """
 
     @abstractmethod
-    async def add_documents(
+    def add_documents(
         self,
         documents: list[Document],
     ) -> None:
@@ -19,7 +19,7 @@ class VectorStore(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def similarity_search(
+    def similarity_search(
         self,
         query: str,
         k: int = 5,
