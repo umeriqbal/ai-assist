@@ -3,18 +3,21 @@ from abc import ABC, abstractmethod
 
 class EmbeddingProvider(ABC):
     """
-    Abstract interface for embedding providers.
+    Abstract interface implemented by embedding providers.
     """
 
     @abstractmethod
-    async def embed_text(self, text: str) -> list[float]:
+    async def embed(
+        self,
+        text: str,
+    ) -> list[float]:
         """
         Generate an embedding for a single piece of text.
         """
         raise NotImplementedError
 
     @abstractmethod
-    async def embed_texts(
+    async def embed_batch(
         self,
         texts: list[str],
     ) -> list[list[float]]:

@@ -6,7 +6,7 @@ from app.providers.embedding_provider import EmbeddingProvider
 
 class OpenAIEmbeddingProvider(EmbeddingProvider):
     """
-    OpenAI implementation of the EmbeddingProvider.
+    OpenAI implementation of the EmbeddingProvider interface.
     """
 
     def __init__(self) -> None:
@@ -14,25 +14,23 @@ class OpenAIEmbeddingProvider(EmbeddingProvider):
             api_key=settings.openai_api_key,
         )
 
-        self._model = "text-embedding-3-small"
-
-    async def embed_text(
+    async def embed(
         self,
         text: str,
     ) -> list[float]:
         response = await self._client.embeddings.create(
-            model=self._model,
+            model=settings.openai_embedding_model,
             input=text,
         )
 
         return response.data[0].embedding
 
-    async def embed_texts(
+    async def embed_batch(
         self,
         texts: list[str],
     ) -> list[list[float]]:
         response = await self._client.embeddings.create(
-            model=self._model,
+            model=settings.openai_embedding_model,
             input=texts,
         )
 
