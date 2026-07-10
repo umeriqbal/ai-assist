@@ -24,7 +24,7 @@ class DocumentLoaderFactory:
         extension = Path(file_path).suffix.lower()
 
         for loader in self._loaders:
-            if extension in loader.supported_extensions:
+            if extension in loader.SUPPORTED_EXTENSIONS:
                 return loader
 
         raise ValueError(

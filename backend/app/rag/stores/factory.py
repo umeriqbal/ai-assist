@@ -1,4 +1,4 @@
-from app.rag.stores.chroma_store import ChromaStore
+from app.rag.stores.chroma_store import ChromaVectorStore
 from app.rag.stores.vector_store import VectorStore
 
 
@@ -9,4 +9,4 @@ class VectorStoreFactory:
 
     @staticmethod
     def create() -> VectorStore:
-        return ChromaStore()
+        return ChromaVectorStore()
