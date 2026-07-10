@@ -1,0 +1,562 @@
+# AI Engineer Interview Notes
+
+> This document is a living interview preparation guide based entirely on concepts implemented during the Enterprise AI Assistant project.
+
+The goal is not to memorise answers, but to understand the engineering decisions behind them.
+
+---
+
+# Module 1 — LLM Fundamentals
+
+## Q1. What is a Large Language Model?
+
+### Answer
+
+A Large Language Model (LLM) is a neural network trained to predict the next token in a sequence of text. During inference, it uses the provided context to generate the most probable continuation.
+
+Examples:
+
+- GPT-4.1
+- Claude
+- Gemini
+- Llama
+
+---
+
+## Q2. What is a token?
+
+### Answer
+
+A token is the unit of text processed by an LLM.
+
+Tokens may represent:
+
+- Whole words
+- Parts of words
+- Punctuation
+- Whitespace
+
+Tokens determine:
+
+- API cost
+- Context window usage
+- Processing time
+
+---
+
+## Q3. What is a context window?
+
+### Answer
+
+The context window is the maximum number of tokens an LLM can process in a single request.
+
+It includes:
+
+- System prompt
+- User prompt
+- Conversation history
+- Retrieved documents
+- Tool outputs
+
+---
+
+## Q4. What causes hallucinations?
+
+### Answer
+
+Hallucinations occur when the model generates information that is not supported by its training data or provided context.
+
+Ways to reduce hallucinations:
+
+- Better prompts
+- RAG
+- Grounding with documents
+- Structured outputs
+- Evaluation
+
+---
+
+# Module 2 — Prompt Engineering
+
+## Q5. What makes a good prompt?
+
+### Answer
+
+A good prompt includes:
+
+- Role
+- Task
+- Context
+- Constraints
+- Output format
+
+---
+
+## Q6. Why use structured outputs?
+
+### Answer
+
+Structured outputs make AI responses easier to validate and consume programmatically.
+
+Benefits:
+
+- Reliable parsing
+- Type safety
+- Validation
+- Better API integration
+
+---
+
+## Q7. Why validate AI output with Pydantic?
+
+### Answer
+
+Pydantic ensures responses match an expected schema.
+
+Benefits:
+
+- Detect malformed responses
+- Prevent runtime errors
+- Improve reliability
+
+---
+
+# Module 3 — Semantic Search
+
+## Q8. What is an embedding?
+
+### Answer
+
+An embedding is a numerical vector representing the semantic meaning of text.
+
+Similar text produces similar vectors.
+
+---
+
+## Q9. What is semantic search?
+
+### Answer
+
+Semantic search retrieves information based on meaning rather than exact keyword matching.
+
+---
+
+## Q10. What is cosine similarity?
+
+### Answer
+
+Cosine similarity measures the angle between two vectors to determine semantic similarity.
+
+Higher values indicate greater similarity.
+
+---
+
+## Q11. Why do documents need chunking?
+
+### Answer
+
+Large documents exceed model context limits.
+
+Chunking improves:
+
+- Retrieval quality
+- Embedding accuracy
+- Context relevance
+
+---
+
+## Q12. What is chunk overlap?
+
+### Answer
+
+Chunk overlap repeats part of one chunk in the next to preserve context across chunk boundaries.
+
+---
+
+# Module 4 — Enterprise AI Platform
+
+## Q13. Why use Layered Architecture?
+
+### Answer
+
+Layered Architecture separates concerns.
+
+```
+API
+
+↓
+
+Services
+
+↓
+
+Providers
+
+↓
+
+External Systems
+```
+
+Benefits:
+
+- Maintainability
+- Testability
+- Scalability
+
+---
+
+## Q14. Why keep routers thin?
+
+### Answer
+
+Routers should only handle HTTP concerns.
+
+Business logic belongs in services.
+
+Benefits:
+
+- Easier testing
+- Cleaner code
+- Better separation of concerns
+
+---
+
+## Q15. What is the Provider Pattern?
+
+### Answer
+
+Providers encapsulate external SDKs.
+
+Example
+
+```
+ChatService
+
+↓
+
+LLMProvider
+
+↓
+
+OpenAIProvider
+```
+
+This reduces coupling to third-party libraries.
+
+---
+
+## Q16. What is Dependency Injection?
+
+### Answer
+
+Dependency Injection supplies objects from outside instead of creating them inside classes.
+
+Benefits:
+
+- Loose coupling
+- Easier testing
+- Better maintainability
+
+---
+
+## Q17. Why use an Application Factory?
+
+### Answer
+
+An Application Factory centralises application creation.
+
+Benefits:
+
+- Easier testing
+- Configurable startup
+- Cleaner architecture
+
+---
+
+## Q18. Why use async programming?
+
+### Answer
+
+Async allows the application to handle many concurrent I/O operations efficiently.
+
+Useful for:
+
+- OpenAI requests
+- Databases
+- Streaming
+- File operations
+
+---
+
+## Q19. Why stream AI responses?
+
+### Answer
+
+Streaming reduces perceived latency by returning tokens as they are generated.
+
+Benefits:
+
+- Better UX
+- Faster feedback
+- Improved responsiveness
+
+---
+
+# Module 5 — Enterprise RAG
+
+## Q20. What is RAG?
+
+### Answer
+
+Retrieval Augmented Generation combines document retrieval with an LLM.
+
+Pipeline
+
+```
+Question
+
+↓
+
+Retriever
+
+↓
+
+Relevant Documents
+
+↓
+
+Prompt
+
+↓
+
+LLM
+
+↓
+
+Answer
+```
+
+---
+
+## Q21. Why use RAG instead of fine-tuning?
+
+### Answer
+
+RAG is preferred when knowledge changes frequently.
+
+Advantages:
+
+- Up-to-date information
+- No model retraining
+- Lower cost
+- Easier maintenance
+
+---
+
+## Q22. What is a LangChain Document?
+
+### Answer
+
+A `Document` is a standard container holding:
+
+- Page content
+- Metadata
+
+It provides a consistent representation for downstream processing.
+
+---
+
+## Q23. Why preserve metadata?
+
+### Answer
+
+Metadata enables:
+
+- Citations
+- Filtering
+- Source tracking
+- Page references
+
+---
+
+## Q24. Why use RecursiveCharacterTextSplitter?
+
+### Answer
+
+It attempts to split documents at natural boundaries before falling back to smaller separators.
+
+This preserves semantic meaning better than fixed-length splitting.
+
+---
+
+## Q25. Why use embeddings?
+
+### Answer
+
+Embeddings convert text into vectors that can be compared mathematically for semantic similarity.
+
+---
+
+## Q26. What is a vector store?
+
+### Answer
+
+A vector store stores embeddings and supports similarity search.
+
+Examples:
+
+- pgvector
+- Pinecone
+- Weaviate
+- Chroma
+
+---
+
+## Q27. Why choose PostgreSQL + pgvector?
+
+### Answer
+
+Benefits:
+
+- Mature database
+- Lower operational complexity
+- SQL support
+- ACID compliance
+- Good performance for many enterprise workloads
+
+---
+
+# AI Agents
+
+## Q28. What is an AI Agent?
+
+### Answer
+
+An AI Agent is an LLM capable of planning and executing multi-step tasks using memory and tools.
+
+---
+
+## Q29. What is the difference between a chatbot and an agent?
+
+### Answer
+
+A chatbot responds to prompts.
+
+An agent can:
+
+- Plan
+- Use tools
+- Make decisions
+- Execute workflows
+- Reflect on results
+
+---
+
+# Model Context Protocol (MCP)
+
+## Q30. What is MCP?
+
+### Answer
+
+Model Context Protocol is an open standard for connecting AI models with external tools and resources.
+
+Benefits:
+
+- Standardised integrations
+- Tool discovery
+- Reusable ecosystem
+
+---
+
+# System Design Questions
+
+## Q31. How would you design an enterprise AI assistant?
+
+### Talking Points
+
+- Layered architecture
+- Provider abstraction
+- RAG
+- Vector database
+- Agents
+- Tool calling
+- Evaluation
+- Monitoring
+- Deployment
+
+---
+
+## Q32. How do you reduce hallucinations?
+
+### Talking Points
+
+- Better prompts
+- RAG
+- Citations
+- Evaluation
+- Context management
+- Grounding
+
+---
+
+## Q33. How would you support multiple LLM providers?
+
+### Answer
+
+Introduce an abstraction.
+
+```
+LLMProvider
+
+├── OpenAIProvider
+
+├── AnthropicProvider
+
+├── BedrockProvider
+```
+
+Business logic depends only on the interface.
+
+---
+
+## Q34. What would you monitor in production?
+
+### Metrics
+
+- Request latency
+- Token usage
+- API cost
+- Error rate
+- Retrieval quality
+- Hallucination rate
+- Model availability
+
+---
+
+# Practical Questions
+
+You should be able to explain the architecture you built during this bootcamp, including:
+
+- Why routers are thin
+- Why services contain business logic
+- Why providers wrap SDKs
+- Why LangChain is isolated in the RAG layer
+- Why PostgreSQL + pgvector was selected
+- How streaming works
+- How dependency injection is implemented
+- How RAG improves answer quality
+
+---
+
+# Interview Advice
+
+Interviewers are usually more interested in **why** you made an engineering decision than whether you used a particular library.
+
+When discussing this project:
+
+- Explain the problem.
+- Explain the trade-offs considered.
+- Explain why the chosen solution fits the requirements.
+- Be prepared to discuss how the architecture could evolve as the system grows.
+
+A clear explanation of your design decisions often demonstrates more engineering maturity than simply listing technologies.
