@@ -10,9 +10,11 @@ class ChatService:
         self,
         provider: LLMProvider,
     ) -> None:
+
         self._provider = provider
 
     async def health_check(self) -> str:
+
         healthy = await self._provider.health_check()
 
         return (
@@ -25,11 +27,9 @@ class ChatService:
         self,
         prompt: str,
     ) -> str:
-        """
-        Generate a chat response.
 
-        The service delegates the LLM interaction
-        to the provider.
-        """
+        prompt = prompt.strip()
 
-        return await self._provider.chat(prompt)
+        return await self._provider.chat(
+            prompt=prompt,
+        )
