@@ -12,6 +12,28 @@ The format follows the principles of Keep a Changelog.
 
 **Status:** 🚧 In Progress
 
+### Added — Sprint 7: Citations (Complete)
+
+- `Citation` dataclass (`source`, `score`, `snippet`) — score explicitly documented as a relevance signal, not a measure of answer correctness
+- `AnswerResult.sources: list[str]` replaced with `citations: list[Citation]`, one per chunk actually used (not deduplicated by source, so multiple passages from the same document each get their own citation)
+- `_snippet()` truncator (200 chars, ellipsis) for readable citation previews
+- `AskResponse.citations` — breaking change from the old flat `sources` field (no compatibility shim; nothing else depended on the old shape)
+- Unit tests for citation content and snippet truncation
+- Live-verified against the real OpenAI API: citation carried a real similarity score and a correctly truncated snippet
+
+### Fixed — PDF Upload Pipeline (Out of Sequence)
+
+Pulled forward from the Medium Priority backlog ("PDF Loader") so real files could be tested end-to-end, ahead of Sprint 8.
+
+- `PDFLoader` now properly implements the `DocumentLoader` interface — it previously didn't inherit it at all and exposed the wrong attribute name (`SUPPORTED_EXTENSIONS` instead of `supported_extensions`); `loader_factory.py` had been silently patched at some point to check the wrong name rather than the loader being fixed
+- Fixed the sync/async mismatch that made `DocumentIngestionService.ingest()` raise `TypeError` on every real (non-empty) PDF; `PDFLoader.load()` is now async, using `asyncio.to_thread` for the blocking parse
+- `ChunkingService.chunk_documents()` and `VectorStoreService.index_documents()` (new) — generalized indexing to accept pre-loaded `Document`s, not just raw text, reusable by future DOCX/HTML/Markdown loaders
+- `DocumentUploadService` (new) — ingests a file, stamps `source`/`created_at`, indexes it, while preserving PyPDFLoader's own `page`/`total_pages` metadata (unlocks page-level citations later)
+- `POST /documents/upload` — real multipart file upload endpoint, testable directly through Swagger's auto-generated file picker
+- Installed and declared the missing `python-multipart` dependency (required by FastAPI for file uploads)
+- Unit tests using a hand-crafted minimal PDF fixture (no new test dependency required)
+- Live-verified via real HTTP multipart upload: a real PDF uploaded, ingested, indexed, and successfully queried through `/ask`
+
 ### Added — Sprint 6: Question Answering (Complete)
 
 - `PromptBuilder` (new, `app/rag/prompts/prompt_builder.py`) — pure formatting: grounding instruction, source-labeled context, and question, no network calls
@@ -64,7 +86,8 @@ The format follows the principles of Keep a Changelog.
 
 ### Planned
 
-- Structured source citations (score, snippet)
+- Retrieval evaluation (recall, precision)
+- Answer faithfulness / hallucination detection
 
 ---
 
@@ -230,11 +253,10 @@ Enterprise RAG
 
 Expected features
 
-- PDF upload
 - DOCX upload
 - HTML ingestion
 - Markdown ingestion
-- Structured source citations
+- Retrieval and answer evaluation
 
 ---
 

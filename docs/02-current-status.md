@@ -40,7 +40,7 @@ Status:
 
 # Current Sprint
 
-**Sprint 7 – Citations**
+**Sprint 8 – Evaluation**
 
 Status:
 
@@ -50,15 +50,57 @@ Ready to begin.
 
 # Current Increment
 
-**Increment 1 – Structured Citations**
+**Increment 1 – Retrieval Metrics (Recall & Precision)**
 
 Objective:
 
-Replace the flat `sources: list[str]` on `AskResponse` with structured citation objects (source, similarity score, snippet) so every answer carries traceable evidence back to the chunks that produced it.
+Build a small evaluation harness that measures whether retrieval actually returns the right chunks for a labeled set of questions, before moving on to faithfulness/hallucination checks on generated answers.
 
 ---
 
 # Last Completed Sprint
+
+## Module 5 / Sprint 7 – Citations
+
+Completed Features
+
+- `Citation` dataclass (`source`, `score`, `snippet`) — `score` explicitly documented as a relevance signal, not answer correctness
+- `AnswerResult.sources: list[str]` replaced with `citations: list[Citation]`, one per chunk actually used (not deduplicated by source)
+- `_snippet()` truncator (200 chars, ellipsis) so citations stay readable
+- `AskResponse.citations` (breaking change from the old flat `sources` field — no compatibility shim, nothing else depended on the old shape)
+- Unit tests for citation content and snippet truncation
+- Live-verified against the real OpenAI API: citation carried a real similarity score and a correctly truncated snippet
+
+Status
+
+✅ Complete
+
+---
+
+# Additional Completed Work (Out of Sequence)
+
+## PDF Upload Pipeline
+
+Not a numbered sprint — a backlog fix (Medium Priority: "PDF Loader") pulled forward so real files could be tested end-to-end.
+
+Completed Features
+
+- Fixed `PDFLoader`: now properly implements the `DocumentLoader` interface (was previously not inheriting it at all, and exposed the wrong attribute name — `loader_factory.py` had been silently patched to check the wrong name instead of the loader being fixed)
+- Fixed the sync/async mismatch that made `DocumentIngestionService.ingest()` crash on every real (non-empty) PDF; `PDFLoader.load()` is now properly async, using `asyncio.to_thread` for the blocking parse
+- `ChunkingService.chunk_documents()` / `VectorStoreService.index_documents()` — generalized indexing to accept pre-loaded `Document`s (multi-page PDFs), not just raw text
+- `DocumentUploadService` (new) — ingests a file, stamps `source`/`created_at`, indexes it; keeps PyPDFLoader's own `page`/`total_pages` metadata (unlocks page-level citations later)
+- `POST /documents/upload` — real multipart file upload, testable directly through Swagger's auto-generated file picker
+- Installed and declared the missing `python-multipart` dependency (required by FastAPI for file uploads)
+- Unit tests using a hand-crafted minimal PDF fixture (no new test dependency)
+- Live-verified via real HTTP multipart upload: a real PDF uploaded, ingested, indexed, and successfully queried through `/ask`
+
+Status
+
+✅ Complete
+
+---
+
+# Previously Completed Sprint
 
 ## Module 5 / Sprint 6 – Question Answering
 
@@ -70,25 +112,6 @@ Completed Features
 - `FakeLLMProvider` test double added alongside `FakeEmbeddingModel` — no real API calls in the automated suite
 - Unit tests for prompt formatting and full answer orchestration (including the no-context short-circuit)
 - Live-verified: a real indexed policy question answered correctly and grounded; an unrelated question correctly refused instead of guessed
-
-Status
-
-✅ Complete
-
----
-
-# Previously Completed Sprint
-
-## Module 5 / Sprint 5 – Retrieval
-
-Completed Features
-
-- `VectorStore.similarity_search` gained `metadata_filter`, applied before ranking (not post-hoc), so filtered top-k is always correct
-- `InMemoryVectorStore` filters candidates by metadata match prior to computing similarity
-- `RetrievalService` (new) — owns the read path: validates query, embeds it, applies the filter
-- `VectorStoreService` trimmed to indexing-only (`search()` removed — single responsibility restored)
-- `POST /documents/search` gained an optional `source` filter (same endpoint, extended request)
-- Unit tests for filter correctness (excludes non-matching, filters before ranking) and full retrieval orchestration
 
 Status
 
@@ -192,6 +215,7 @@ LangChain will remain isolated within the RAG layer.
 | POST /documents/embeddings | ✅ |
 | POST /documents/index | ✅ |
 | POST /documents/search | ✅ |
+| POST /documents/upload | ✅ |
 | POST /ask | ✅ |
 
 ---
@@ -259,13 +283,13 @@ The project follows these principles throughout the codebase.
 
 ## High Priority
 
-- Structured Source Citations (score, snippet)
+- Retrieval evaluation (recall, precision)
+- Faithfulness / hallucination detection
 
 ---
 
 ## Medium Priority
 
-- PDF Loader
 - DOCX Loader
 - HTML Loader
 - Markdown Loader
@@ -317,17 +341,17 @@ v0.4.0
 
 Module 5
 
-Sprint 7
+Sprint 8
 
 Increment 1
 
 Title:
 
-**Structured Citations**
+**Retrieval Metrics (Recall & Precision)**
 
 Goal:
 
-Replace `AskResponse.sources: list[str]` with a list of `Citation` objects (source, similarity score, content snippet) built from the same `ScoredChunk`s already used to answer, so the response is independently verifiable rather than just naming sources.
+Build a small evaluation harness: a labeled set of (question, expected source) pairs, run each through `RetrievalService`, and compute recall/precision — did retrieval return the expected source within top-k? This establishes the measurement foundation before tackling the harder faithfulness/hallucination checks later in the sprint.
 
 ---
 
@@ -335,11 +359,11 @@ Replace `AskResponse.sources: list[str]` with a list of `Citation` objects (sour
 
 The next increment will be complete when:
 
-- `AskResponse` returns one citation per chunk actually used in the answer, each carrying its source, score, and a snippet.
-- Citation data is derived from existing `ScoredChunk` results — no second retrieval call.
-- Page-level attribution is deferred until the PDF loader (Medium Priority backlog) is wired up, since plain-text ingestion has no page concept.
+- A small labeled evaluation set exists (question → expected source) covering the currently indexed test content.
+- An `EvaluationService` (or similar) runs retrieval against each labeled case and reports recall/precision.
+- The evaluation harness itself is testable without depending on live OpenAI calls (the embedding call can be faked, since recall/precision only care about which source came back, not the exact vector).
 - Existing architecture remains unchanged.
-- The behaviour is covered by automated tests (with the embedding and chat calls faked, not live).
+- Results are presented in a way that's easy to re-run as the pipeline evolves (not a one-off script).
 
 ---
 
@@ -352,4 +376,4 @@ If continuing this project in a new ChatGPT conversation:
 3. Read this document (`02-current-status.md`)
 4. Continue with:
 
-**Module 5 → Sprint 7 → Increment 1 → Structured Citations**
+**Module 5 → Sprint 8 → Increment 1 → Retrieval Metrics (Recall & Precision)**

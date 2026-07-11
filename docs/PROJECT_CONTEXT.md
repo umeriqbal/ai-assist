@@ -23,15 +23,15 @@ Module 5 – Enterprise RAG
 
 Current Sprint:
 
-Sprint 7 – Citations
+Sprint 8 – Evaluation
 
 Current Increment:
 
-Increment 1 – Structured Citations
+Increment 1 – Retrieval Metrics (Recall & Precision)
 
 Status:
 
-Sprint 6 (Question Answering) complete. Ready to begin citations.
+Sprint 7 (Citations) complete. PDF upload pipeline fixed out of sequence. Ready to begin evaluation.
 
 ---
 
@@ -242,6 +242,21 @@ Question Answering (Module 5, Sprint 6)
 - `FakeLLMProvider` test double, no real API calls in the suite
 - Unit tests including the no-context short-circuit; live-verified against real OpenAI (grounded answer + correct refusal on an unrelated question)
 
+Citations (Module 5, Sprint 7)
+
+- `Citation` dataclass (source, score, snippet) — one per chunk used, not deduplicated by source
+- `AskResponse.sources` replaced with `AskResponse.citations` (breaking change, no compatibility shim)
+- `_snippet()` truncator; score explicitly documented as relevance, not correctness
+- Live-verified: real similarity score and correctly truncated snippet in the API response
+
+PDF Upload Pipeline (Out of Sequence — Medium Priority backlog fix)
+
+- Fixed `PDFLoader` to properly implement `DocumentLoader` (previously didn't inherit it and used the wrong attribute name)
+- Fixed the sync/async mismatch that crashed ingestion on every real PDF
+- `ChunkingService.chunk_documents()` / `VectorStoreService.index_documents()` — indexing generalized to accept pre-loaded Documents, not just raw text
+- `DocumentUploadService` (new) + `POST /documents/upload` — real multipart upload, testable via Swagger's file picker
+- Live-verified: real PDF uploaded via HTTP, ingested, indexed, and successfully queried through `/ask`
+
 ---
 
 # Design Decisions
@@ -266,9 +281,9 @@ No framework-specific code inside routers.
 
 # Current Objective
 
-Continue Module 5, Sprint 7.
+Continue Module 5, Sprint 8.
 
-Implement structured citations: replace `AskResponse.sources: list[str]` with per-chunk `Citation` objects (source, score, snippet), derived from the same `ScoredChunk`s already used to answer.
+Implement evaluation: start with a small retrieval evaluation harness (recall/precision against labeled question→source pairs), then extend to answer faithfulness and hallucination detection.
 
 ---
 
@@ -280,10 +295,10 @@ Implement structured citations: replace `AskResponse.sources: list[str]` with pe
 4. ~~Vector Store~~ ✅ Complete
 5. ~~Retriever~~ ✅ Complete
 6. ~~Question Answering~~ ✅ Complete
-7. Source Citations ← current
-8. PostgreSQL + pgvector
-9. Hybrid Search
-10. Evaluation
+7. ~~Source Citations~~ ✅ Complete
+8. Evaluation ← current
+9. PostgreSQL + pgvector
+10. Hybrid Search
 
 ---
 

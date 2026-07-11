@@ -34,9 +34,9 @@ This project follows real software engineering practices including:
 | Item | Value |
 |------|-------|
 | Current Module | Module 5 – Enterprise RAG |
-| Current Sprint | Sprint 7 – Citations |
-| Current Increment | Increment 1 – Structured Citations |
-| Status | Sprint 6 Complete. Ready to Begin Sprint 7 |
+| Current Sprint | Sprint 8 – Evaluation |
+| Current Increment | Increment 1 – Retrieval Metrics (Recall & Precision) |
+| Status | Sprint 7 Complete. PDF Upload Fixed (Out of Sequence). Ready to Begin Sprint 8 |
 
 ---
 
@@ -289,22 +289,21 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 Module 5
 
-Sprint 7
+Sprint 8
 
 Increment 1
 
 Objective:
 
-Replace the flat source list on /ask responses with structured Citation objects (source, score, snippet) built from the chunks already used to answer.
+Build a retrieval evaluation harness (recall/precision against labeled question→source pairs), then extend to answer faithfulness and hallucination detection.
 
 ---
 
 # Next Milestones
 
-- Source Citations
+- Evaluation
 - PostgreSQL + pgvector
 - Hybrid Search
-- Evaluation
 
 ---
 
