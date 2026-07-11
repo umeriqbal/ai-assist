@@ -33,10 +33,10 @@ This project follows real software engineering practices including:
 
 | Item | Value |
 |------|-------|
-| Current Module | Module 5 – Enterprise RAG |
-| Current Sprint | Sprint 8 – Evaluation |
-| Current Increment | Increment 1 – Retrieval Metrics (Recall & Precision) |
-| Status | Sprint 7 Complete. PDF Upload Fixed (Out of Sequence). Ready to Begin Sprint 8 |
+| Current Module | Module 6 – AI Agents |
+| Current Sprint | Not yet defined |
+| Current Increment | Not yet defined |
+| Status | Module 5 (Enterprise RAG) Complete. Module 6 not yet scoped into sprints |
 
 ---
 
@@ -86,8 +86,8 @@ The completed application will include:
 | module-02.md | Complete |
 | module-03.md | Complete |
 | module-04.md | Complete |
-| module-05.md | Current |
-| module-06.md | Pending |
+| module-05.md | Complete |
+| module-06.md | Current |
 | module-07.md | Pending |
 | module-08.md | Pending |
 | module-09.md | Pending |
@@ -182,18 +182,22 @@ Complete
 
 Enterprise RAG
 
-Current Topics
+Completed Topics
 
 - LangChain Documents
 - Text Splitters
 - Embeddings
 - Vector Stores
-- Retrieval
+- Retrieval (with metadata filtering)
+- Question Answering (grounded, verified against hallucination)
 - Source Citations
+- Evaluation (recall/precision, faithfulness/hallucination detection)
+
+Also fixed out of sequence: the PDF upload pipeline (loader was broken since before Module 5 began), so real files can be ingested, not just raw text.
 
 Status
 
-In Progress
+Complete
 
 ---
 
@@ -287,23 +291,21 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 # Current Milestone
 
-Module 5
+Module 6 – AI Agents
 
-Sprint 8
-
-Increment 1
-
-Objective:
-
-Build a retrieval evaluation harness (recall/precision against labeled question→source pairs), then extend to answer faithfulness and hallucination detection.
+Not yet scoped into sprints. First step when work resumes: a concept walkthrough and a concrete plan for Sprint 1, same approach used to start Module 5.
 
 ---
 
 # Next Milestones
 
-- Evaluation
-- PostgreSQL + pgvector
-- Hybrid Search
+- AI Agents (Agent Architecture, Planning, Reflection, Memory, Multi-Agent Collaboration, LangGraph, State Management)
+- Model Context Protocol (MCP)
+- Production Infrastructure (Docker, PostgreSQL, pgvector, Terraform, AWS, CI/CD)
+- Evaluation & Observability (cost/latency/prompt versioning — system-wide, distinct from Module 5's RAG-quality evaluation)
+- Enterprise AI Assistant (final integration)
+
+Also still open, non-blocking: DOCX/HTML/Markdown loaders (Medium Priority backlog carried over from Module 5).
 
 ---
 

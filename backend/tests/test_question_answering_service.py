@@ -59,6 +59,8 @@ def test_answer_returns_llm_response_when_context_is_found():
     assert citation.snippet == "Employees get 25 days of paid vacation per year."
     assert isinstance(citation.score, float)
 
+    assert result.context == ["Employees get 25 days of paid vacation per year."]
+
 
 def test_answer_does_not_call_llm_when_nothing_indexed():
     _, qa_service, llm_provider = _services()
@@ -67,6 +69,7 @@ def test_answer_does_not_call_llm_when_nothing_indexed():
 
     assert result.chunks_used == 0
     assert result.citations == []
+    assert result.context == []
     assert llm_provider.chat_calls == []
 
 

@@ -37,11 +37,17 @@ class Citation:
 class AnswerResult:
     """
     The result of a grounded question-answering request.
+
+    `context` holds the full, untruncated text of every chunk used to
+    produce the answer — for internal use (e.g. faithfulness
+    evaluation), since `citations` only carries a truncated snippet
+    meant for display.
     """
 
     answer: str
     citations: list[Citation]
     chunks_used: int
+    context: list[str]
 
 
 class QuestionAnsweringService:
@@ -79,6 +85,7 @@ class QuestionAnsweringService:
                 answer=_NO_CONTEXT_ANSWER,
                 citations=[],
                 chunks_used=0,
+                context=[],
             )
 
         documents = [result.document for result in results]
@@ -103,4 +110,5 @@ class QuestionAnsweringService:
             answer=answer_text,
             citations=citations,
             chunks_used=len(results),
+            context=[document.page_content for document in documents],
         )

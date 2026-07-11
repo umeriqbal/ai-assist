@@ -6,11 +6,20 @@ The format follows the principles of Keep a Changelog.
 
 ---
 
-# [0.5.0] - Current Development
+# [0.5.0] - Enterprise RAG
 
-## Module 5 - Enterprise RAG
+**Status:** ✅ Complete
 
-**Status:** 🚧 In Progress
+### Added — Sprint 8: Evaluation (Complete)
+
+- `EvaluationService.evaluate_retrieval()` — recall/precision against labeled (question, expected source) pairs, run through `RetrievalService` with no retrieval logic duplicated
+- `POST /evaluate/retrieval` endpoint
+- `AnswerResult.context` (new) — full untruncated chunk text kept alongside the truncated display citations, needed for faithfulness judging without risking false negatives from truncation
+- `FaithfulnessPromptBuilder` (new, `app/rag/prompts/`) — pure formatting, instructs an LLM judge to respond with strict JSON
+- `FaithfulnessService.evaluate()` — LLM-as-judge hallucination detection; reuses `QuestionAnsweringService`'s no-context short-circuit (trivially faithful when the LLM was never called); defensive JSON parsing (strips code fences, reports `is_faithful: null` rather than guessing on malformed output — an explicitly documented limitation, not a guaranteed schema)
+- `POST /evaluate/faithfulness` endpoint
+- Unit tests: perfect/missed/noisy retrieval scoring, mean aggregation, zero-division edge case; faithful/unfaithful/malformed/code-fenced judge responses, no-context short-circuit
+- Live-verified: real retrieval evaluation correctly flagged a deliberately mislabeled test case (not just confirmed correct ones); real faithfulness judging correctly passed a genuinely grounded answer end to end
 
 ### Added — Sprint 7: Citations (Complete)
 
@@ -84,10 +93,10 @@ Pulled forward from the Medium Priority backlog ("PDF Loader") so real files cou
 - `POST /documents` endpoint (thin router, converts `ValueError` to `400`)
 - Unit tests for `DocumentService` (valid text, whitespace stripping, empty-text rejection) — first test suite in the repository
 
-### Planned
+### Not Included
 
-- Retrieval evaluation (recall, precision)
-- Answer faithfulness / hallucination detection
+- DOCX/HTML/Markdown loaders (Medium Priority backlog, never built — only PDF and raw text ingestion work)
+- PostgreSQL + pgvector (the in-memory vector store remains process-local and non-persistent by design; deferred to a later milestone per Decision 015)
 
 ---
 
@@ -249,14 +258,23 @@ Built the first OpenAI-powered application.
 
 ### Planned
 
-Enterprise RAG
+AI Agents (not yet scoped into sprints)
 
 Expected features
+
+- Agent architecture
+- Planning
+- Reflection
+- Memory
+- Multi-agent collaboration
+- LangGraph
+- State management
+
+### Carried over from 0.5.0 (not blocking)
 
 - DOCX upload
 - HTML ingestion
 - Markdown ingestion
-- Retrieval and answer evaluation
 
 ---
 
@@ -264,23 +282,7 @@ Expected features
 
 ### Planned
 
-AI Agents
-
-Expected features
-
-- Planning
-- Reflection
-- Memory
-- Multi-agent workflows
-- LangGraph
-
----
-
-## Version 0.8.0
-
-### Planned
-
-MCP
+Model Context Protocol (MCP)
 
 Expected features
 
@@ -291,7 +293,7 @@ Expected features
 
 ---
 
-## Version 0.9.0
+## Version 0.8.0
 
 ### Planned
 
@@ -305,6 +307,23 @@ Expected features
 - Terraform
 - AWS deployment
 - CI/CD
+
+---
+
+## Version 0.9.0
+
+### Planned
+
+Evaluation & Observability
+
+Expected features
+
+- Offline/online evaluation
+- Cost tracking
+- Latency monitoring
+- Token usage
+- Prompt versioning
+- Model comparison
 
 ---
 
@@ -335,7 +354,7 @@ Expected features
 | 0.2.0 | Prompt Engineering | ✅ |
 | 0.3.0 | Semantic Search | ✅ |
 | 0.4.0 | Enterprise AI Platform | ✅ |
-| 0.5.0 | Enterprise RAG | 🚧 |
+| 0.5.0 | Enterprise RAG | ✅ |
 | 0.6.0 | AI Agents | ⏳ |
 | 0.7.0 | MCP | ⏳ |
 | 0.8.0 | Infrastructure | ⏳ |
@@ -348,8 +367,8 @@ Expected features
 
 Current Status
 
-- Modules Completed: 4 / 10
-- Current Module: 5
+- Modules Completed: 5 / 10
+- Current Module: 6 (not yet scoped)
 - Architecture: Stable
 - Documentation: Complete
 - Production Readiness: Strong foundation established

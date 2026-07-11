@@ -12,6 +12,8 @@ from app.services.chunking_service import ChunkingService
 from app.services.document_service import DocumentService
 from app.services.document_upload_service import DocumentUploadService
 from app.services.embedding_service import EmbeddingService
+from app.services.evaluation_service import EvaluationService
+from app.services.faithfulness_service import FaithfulnessService
 from app.services.question_answering_service import QuestionAnsweringService
 from app.services.retrieval_service import RetrievalService
 from app.services.streaming_service import StreamingService
@@ -88,4 +90,19 @@ def get_document_upload_service() -> DocumentUploadService:
     return DocumentUploadService(
         ingestion_service=get_document_ingestion_service(),
         vector_store_service=get_vector_store_service(),
+    )
+
+
+@lru_cache
+def get_evaluation_service() -> EvaluationService:
+    return EvaluationService(
+        retrieval_service=get_retrieval_service(),
+    )
+
+
+@lru_cache
+def get_faithfulness_service() -> FaithfulnessService:
+    return FaithfulnessService(
+        question_answering_service=get_question_answering_service(),
+        llm_provider=get_openai_provider(),
     )

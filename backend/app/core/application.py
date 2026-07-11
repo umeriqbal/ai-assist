@@ -2,6 +2,7 @@ from fastapi import FastAPI
 
 from app.api.routers.chat import router as chat_router
 from app.api.routers.document import router as document_router
+from app.api.routers.evaluation import router as evaluation_router
 from app.api.routers.health import router as health_router
 from app.api.routers.qa import router as qa_router
 from app.core.config import settings
@@ -32,6 +33,10 @@ def create_app() -> FastAPI:
 
     app.include_router(
         qa_router,
+    )
+
+    app.include_router(
+        evaluation_router,
     )
 
     return app

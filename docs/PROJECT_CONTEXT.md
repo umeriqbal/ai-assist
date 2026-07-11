@@ -19,19 +19,15 @@ The completed project should demonstrate the skills expected of an AI Engineer.
 
 Current Module:
 
-Module 5 – Enterprise RAG
+Module 6 – AI Agents
 
 Current Sprint:
 
-Sprint 8 – Evaluation
-
-Current Increment:
-
-Increment 1 – Retrieval Metrics (Recall & Precision)
+Not yet defined — Module 6 has not been broken into sprints yet.
 
 Status:
 
-Sprint 7 (Citations) complete. PDF upload pipeline fixed out of sequence. Ready to begin evaluation.
+Module 5 (Enterprise RAG) is complete: all 8 sprints delivered, unit-tested, and live-verified against the real OpenAI API. Module 6 scoping (into sprints/increments, the same way Module 5 was) has not started.
 
 ---
 
@@ -43,8 +39,8 @@ Sprint 7 (Citations) complete. PDF upload pipeline fixed out of sequence. Ready 
 | Module 2 - Prompt Engineering | Complete |
 | Module 3 - Semantic Search | Complete |
 | Module 4 - Enterprise AI Platform | Complete |
-| Module 5 - Enterprise RAG | Current |
-| Module 6 - AI Agents | Pending |
+| Module 5 - Enterprise RAG | Complete |
+| Module 6 - AI Agents | Current |
 | Module 7 - Model Context Protocol (MCP) | Pending |
 | Module 8 - Production Infrastructure | Pending |
 | Module 9 - Evaluation & Observability | Pending |
@@ -257,6 +253,14 @@ PDF Upload Pipeline (Out of Sequence — Medium Priority backlog fix)
 - `DocumentUploadService` (new) + `POST /documents/upload` — real multipart upload, testable via Swagger's file picker
 - Live-verified: real PDF uploaded via HTTP, ingested, indexed, and successfully queried through `/ask`
 
+Evaluation (Module 5, Sprint 8 — final sprint of Module 5)
+
+- `EvaluationService.evaluate_retrieval()` — recall/precision against labeled (question, expected source) pairs, `POST /evaluate/retrieval`
+- `AnswerResult.context` (new) — full untruncated chunk text kept alongside the truncated display citations, needed for faithfulness judging
+- `FaithfulnessPromptBuilder` + `FaithfulnessService.evaluate()` — LLM-as-judge hallucination detection, `POST /evaluate/faithfulness`; reuses `QuestionAnsweringService`'s no-context short-circuit (trivially faithful if the LLM was never called)
+- Defensive JSON parsing of the judge's verdict (strips code fences; reports `is_faithful: null` rather than guessing on malformed output) — an explicitly documented limitation, not a guaranteed schema
+- Live-verified: real retrieval evaluation correctly flagged a deliberately mislabeled test case; real faithfulness judging correctly passed a genuinely grounded answer
+
 ---
 
 # Design Decisions
@@ -281,24 +285,36 @@ No framework-specific code inside routers.
 
 # Current Objective
 
-Continue Module 5, Sprint 8.
+Begin Module 6 – AI Agents.
 
-Implement evaluation: start with a small retrieval evaluation harness (recall/precision against labeled question→source pairs), then extend to answer faithfulness and hallucination detection.
+First step: scope Module 6 into sprints the same way Module 5 was — a concept walkthrough and a concrete plan for Sprint 1 before any code changes. Topics per the roadmap: Agent Architecture, Planning, Reflection, Memory, Multi-Agent Collaboration, LangGraph, State Management.
+
+Not yet decided: whether to close out the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first.
 
 ---
 
 # Upcoming Milestones
 
-1. ~~LangChain Documents~~ ✅ Complete
-2. ~~Recursive Text Splitter~~ ✅ Complete
-3. ~~Embeddings~~ ✅ Complete
-4. ~~Vector Store~~ ✅ Complete
-5. ~~Retriever~~ ✅ Complete
-6. ~~Question Answering~~ ✅ Complete
-7. ~~Source Citations~~ ✅ Complete
-8. Evaluation ← current
-9. PostgreSQL + pgvector
-10. Hybrid Search
+## Module 5 (Complete)
+
+1. ~~LangChain Documents~~ ✅
+2. ~~Recursive Text Splitter~~ ✅
+3. ~~Embeddings~~ ✅
+4. ~~Vector Store~~ ✅
+5. ~~Retriever~~ ✅
+6. ~~Question Answering~~ ✅
+7. ~~Source Citations~~ ✅
+8. ~~Evaluation~~ ✅
+
+## Module 6 (Current — not yet scoped)
+
+- Agent Architecture
+- Planning
+- Reflection
+- Memory
+- Multi-Agent Collaboration
+- LangGraph
+- State Management
 
 ---
 

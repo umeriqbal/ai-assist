@@ -19,7 +19,7 @@ Enterprise AI Assistant
 | Project Setup | ✅ Complete |
 | Architecture | ✅ Complete |
 | AI Platform | ✅ Complete |
-| Enterprise RAG | 🚧 In Progress |
+| Enterprise RAG | ✅ Complete |
 | AI Agents | ⏳ Pending |
 | MCP | ⏳ Pending |
 | Infrastructure | ⏳ Pending |
@@ -30,96 +30,47 @@ Enterprise AI Assistant
 
 # Current Module
 
-**Module 5 – Enterprise RAG**
+**Module 6 – AI Agents**
 
 Status:
 
-🚧 In Progress
+⏳ Not Started
 
 ---
 
 # Current Sprint
 
-**Sprint 8 – Evaluation**
+Not yet defined.
 
-Status:
-
-Ready to begin.
-
----
-
-# Current Increment
-
-**Increment 1 – Retrieval Metrics (Recall & Precision)**
-
-Objective:
-
-Build a small evaluation harness that measures whether retrieval actually returns the right chunks for a labeled set of questions, before moving on to faithfulness/hallucination checks on generated answers.
-
----
-
-# Last Completed Sprint
-
-## Module 5 / Sprint 7 – Citations
-
-Completed Features
-
-- `Citation` dataclass (`source`, `score`, `snippet`) — `score` explicitly documented as a relevance signal, not answer correctness
-- `AnswerResult.sources: list[str]` replaced with `citations: list[Citation]`, one per chunk actually used (not deduplicated by source)
-- `_snippet()` truncator (200 chars, ellipsis) so citations stay readable
-- `AskResponse.citations` (breaking change from the old flat `sources` field — no compatibility shim, nothing else depended on the old shape)
-- Unit tests for citation content and snippet truncation
-- Live-verified against the real OpenAI API: citation carried a real similarity score and a correctly truncated snippet
-
-Status
-
-✅ Complete
-
----
-
-# Additional Completed Work (Out of Sequence)
-
-## PDF Upload Pipeline
-
-Not a numbered sprint — a backlog fix (Medium Priority: "PDF Loader") pulled forward so real files could be tested end-to-end.
-
-Completed Features
-
-- Fixed `PDFLoader`: now properly implements the `DocumentLoader` interface (was previously not inheriting it at all, and exposed the wrong attribute name — `loader_factory.py` had been silently patched to check the wrong name instead of the loader being fixed)
-- Fixed the sync/async mismatch that made `DocumentIngestionService.ingest()` crash on every real (non-empty) PDF; `PDFLoader.load()` is now properly async, using `asyncio.to_thread` for the blocking parse
-- `ChunkingService.chunk_documents()` / `VectorStoreService.index_documents()` — generalized indexing to accept pre-loaded `Document`s (multi-page PDFs), not just raw text
-- `DocumentUploadService` (new) — ingests a file, stamps `source`/`created_at`, indexes it; keeps PyPDFLoader's own `page`/`total_pages` metadata (unlocks page-level citations later)
-- `POST /documents/upload` — real multipart file upload, testable directly through Swagger's auto-generated file picker
-- Installed and declared the missing `python-multipart` dependency (required by FastAPI for file uploads)
-- Unit tests using a hand-crafted minimal PDF fixture (no new test dependency)
-- Live-verified via real HTTP multipart upload: a real PDF uploaded, ingested, indexed, and successfully queried through `/ask`
-
-Status
-
-✅ Complete
-
----
-
-# Previously Completed Sprint
-
-## Module 5 / Sprint 6 – Question Answering
-
-Completed Features
-
-- `PromptBuilder` (new, `app/rag/prompts/`) — pure formatting: grounding instruction + source-labeled context + question, no network calls
-- `QuestionAnsweringService` (`answer`) — retrieves via `RetrievalService`, applies optional `min_score` filtering, skips the LLM call entirely when nothing qualifies (verified: no hallucinated answers on out-of-context questions)
-- `POST /ask` endpoint
-- `FakeLLMProvider` test double added alongside `FakeEmbeddingModel` — no real API calls in the automated suite
-- Unit tests for prompt formatting and full answer orchestration (including the no-context short-circuit)
-- Live-verified: a real indexed policy question answered correctly and grounded; an unrelated question correctly refused instead of guessed
-
-Status
-
-✅ Complete
+Module 6 hasn't been broken into sprints yet — that scoping happens the same way Module 5's did, at the start of the module rather than in advance. Per the roadmap, Module 6's topics are: Agent Architecture, Planning, Reflection, Memory, Multi-Agent Collaboration, LangGraph, State Management.
 
 ---
 
 # Last Completed Module
+
+## Module 5 – Enterprise RAG
+
+Completed Features
+
+- **Sprint 1 – LangChain Foundations:** `DocumentFactory`, `DocumentService`, `POST /documents`
+- **Sprint 2 – Chunking:** `RecursiveDocumentSplitter`, `ChunkingService`, `POST /documents/chunks`
+- **Sprint 3 – Embeddings:** `OpenAIEmbeddingModel`, `EmbeddingService`, `POST /documents/embeddings`
+- **Sprint 4 – Vector Storage:** `InMemoryVectorStore`, `VectorStoreService`, `POST /documents/index`, `POST /documents/search`
+- **Sprint 5 – Retrieval:** metadata-filtered search (filtered before ranking), `RetrievalService`
+- **Sprint 6 – Question Answering:** `PromptBuilder`, `QuestionAnsweringService`, `POST /ask` — verified to refuse out-of-context questions rather than hallucinate
+- **Sprint 7 – Citations:** structured `Citation` objects (source, score, snippet) replacing the flat source list
+- **Sprint 8 – Evaluation:** `EvaluationService` (recall/precision against labeled cases), `FaithfulnessService` (LLM-as-judge hallucination detection), `POST /evaluate/retrieval`, `POST /evaluate/faithfulness`
+- **Out of sequence:** fixed the long-broken PDF loader and wired a real file-upload pipeline (`POST /documents/upload`), tested via a real HTTP multipart request and Swagger's file picker
+
+Every increment above was unit-tested (with external calls faked) and additionally live-verified against the real OpenAI API. Still open, non-blocking: DOCX/HTML/Markdown loaders (Medium Priority backlog, never built).
+
+Status
+
+✅ Complete
+
+---
+
+# Previously Completed Module
 
 ## Module 4 – Enterprise AI Platform
 
@@ -217,6 +168,8 @@ LangChain will remain isolated within the RAG layer.
 | POST /documents/search | ✅ |
 | POST /documents/upload | ✅ |
 | POST /ask | ✅ |
+| POST /evaluate/retrieval | ✅ |
+| POST /evaluate/faithfulness | ✅ |
 
 ---
 
@@ -283,8 +236,7 @@ The project follows these principles throughout the codebase.
 
 ## High Priority
 
-- Retrieval evaluation (recall, precision)
-- Faithfulness / hallucination detection
+- Agent Architecture (Module 6, Sprint scoping not yet started)
 
 ---
 
@@ -302,9 +254,8 @@ The project follows these principles throughout the codebase.
 - pgvector
 - Hybrid Search
 - Reranking
-- Evaluation
-- Agents
 - MCP
+- Production Infrastructure
 
 ---
 
@@ -318,6 +269,8 @@ Planned improvements include:
 - Request-scoped logging.
 - Unified exception handling (currently handled per-router, e.g. `document.py` catches `ValueError`).
 - `InMemoryVectorStore` is process-local and non-persistent by design — will be replaced by a `PostgreSQL` + `pgvector` implementation behind the same `VectorStore` interface once the RAG pipeline is otherwise proven out.
+- `FaithfulnessService` parses the LLM judge's verdict from prompt-instructed JSON text, not a guaranteed schema (OpenAI's structured outputs / function calling would be more robust). Malformed responses are reported as `is_faithful: null` rather than silently misreported, but this is best-effort parsing, not a guaranteed contract.
+- DOCX/HTML/Markdown loaders are not implemented — only PDF and raw text ingestion currently work.
 
 These are intentional future enhancements rather than defects.
 
@@ -327,43 +280,34 @@ These are intentional future enhancements rather than defects.
 
 Latest Completed Milestone
 
-Module 4 – Enterprise AI Platform
+Module 5 – Enterprise RAG
 
 Recommended Tag
 
 ```
-v0.4.0
+v0.5.0
 ```
 
 ---
 
 # Next Development Task
 
-Module 5
+Module 6 – AI Agents
 
-Sprint 8
+Not yet broken into sprints/increments.
 
-Increment 1
+Goal (module-level, per the roadmap):
 
-Title:
-
-**Retrieval Metrics (Recall & Precision)**
-
-Goal:
-
-Build a small evaluation harness: a labeled set of (question, expected source) pairs, run each through `RetrievalService`, and compute recall/precision — did retrieval return the expected source within top-k? This establishes the measurement foundation before tackling the harder faithfulness/hallucination checks later in the sprint.
+Build a modular multi-agent system covering agent architecture, planning, reflection, memory, multi-agent collaboration, and state management, using LangGraph. The first step when this resumes is scoping Module 6 into sprints the same way Module 5 was — starting with a concept walkthrough and a plan for Sprint 1, before any code changes.
 
 ---
 
 # Success Criteria
 
-The next increment will be complete when:
+Module 6 is ready to scope when:
 
-- A small labeled evaluation set exists (question → expected source) covering the currently indexed test content.
-- An `EvaluationService` (or similar) runs retrieval against each labeled case and reports recall/precision.
-- The evaluation harness itself is testable without depending on live OpenAI calls (the embedding call can be faked, since recall/precision only care about which source came back, not the exact vector).
-- Existing architecture remains unchanged.
-- Results are presented in a way that's easy to re-run as the pipeline evolves (not a one-off script).
+- Module 5's full pipeline is confirmed stable (it is — 52/52 tests passing, every increment live-verified).
+- A decision is made on whether to first close out the Medium Priority backlog (DOCX/HTML/Markdown loaders) or move straight into agents.
 
 ---
 
@@ -376,4 +320,4 @@ If continuing this project in a new ChatGPT conversation:
 3. Read this document (`02-current-status.md`)
 4. Continue with:
 
-**Module 5 → Sprint 8 → Increment 1 → Retrieval Metrics (Recall & Precision)**
+**Module 6 – AI Agents → scope Sprint 1 (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.
