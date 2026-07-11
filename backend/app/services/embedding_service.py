@@ -31,3 +31,10 @@ class EmbeddingService:
             EmbeddedChunk(document=chunk, vector=vector)
             for chunk, vector in zip(chunks, vectors)
         ]
+
+    async def embed_query(
+        self,
+        text: str,
+    ) -> list[float]:
+
+        return await self._embedding_model.embed_query(text)

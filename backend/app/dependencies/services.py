@@ -1,11 +1,16 @@
 from functools import lru_cache
 
-from app.dependencies.llm import get_embedding_model, get_openai_provider
+from app.dependencies.llm import (
+    get_embedding_model,
+    get_openai_provider,
+    get_vector_store,
+)
 from app.services.chat_service import ChatService
 from app.services.chunking_service import ChunkingService
 from app.services.document_service import DocumentService
 from app.services.embedding_service import EmbeddingService
 from app.services.streaming_service import StreamingService
+from app.services.vector_store_service import VectorStoreService
 
 
 @lru_cache
@@ -38,4 +43,13 @@ def get_chunking_service() -> ChunkingService:
 def get_embedding_service() -> EmbeddingService:
     return EmbeddingService(
         embedding_model=get_embedding_model(),
+    )
+
+
+@lru_cache
+def get_vector_store_service() -> VectorStoreService:
+    return VectorStoreService(
+        chunking_service=get_chunking_service(),
+        embedding_service=get_embedding_service(),
+        vector_store=get_vector_store(),
     )

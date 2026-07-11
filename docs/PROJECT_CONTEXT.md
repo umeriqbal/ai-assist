@@ -23,15 +23,15 @@ Module 5 – Enterprise RAG
 
 Current Sprint:
 
-Sprint 3 – Embeddings
+Sprint 5 – Retrieval
 
 Current Increment:
 
-Increment 1 – OpenAI Embeddings
+Increment 1 – Retrieval Service
 
 Status:
 
-Sprint 2 (Chunking) complete. Ready to begin embeddings.
+Sprint 4 (Vector Storage) complete. Ready to begin retrieval.
 
 ---
 
@@ -129,11 +129,11 @@ Backend
 - FastAPI
 - Pydantic
 - OpenAI SDK
+- LangChain (confined to `app/rag/`)
 - Structlog
 
 Future
 
-- LangChain
 - LangGraph
 - PostgreSQL
 - pgvector
@@ -208,6 +208,23 @@ Chunking Service (Module 5, Sprint 2)
 - `POST /documents/chunks` (configurable `chunk_size` / `chunk_overlap`)
 - Unit tests
 
+Embedding Service (Module 5, Sprint 3)
+
+- `EmbeddingModel` interface (plain-Python async methods, no LangChain leak)
+- `OpenAIEmbeddingModel`, batches all chunk texts into a single API call
+- `EmbeddingService` (`embed_chunks`, `embed_query`), injected via `Depends`
+- `POST /documents/embeddings`
+- Unit tests using a fake embedding model (no live API calls in the suite)
+
+Vector Storage (Module 5, Sprint 4)
+
+- `VectorStore` interface operating on `EmbeddedChunk` / query vectors, returning `ScoredChunk`
+- `InMemoryVectorStore` — brute-force cosine similarity, no new dependency
+- `VectorStoreService` (`index_text`, `search`), injected via `Depends`
+- `POST /documents/index`, `POST /documents/search`
+- Removed the broken, docs-contradicting Chroma implementation and dependency
+- Unit tests for similarity correctness and index→search orchestration
+
 ---
 
 # Design Decisions
@@ -232,9 +249,9 @@ No framework-specific code inside routers.
 
 # Current Objective
 
-Continue Module 5, Sprint 3.
+Continue Module 5, Sprint 5.
 
-Implement embeddings: convert chunked `Document` objects into vectors via the OpenAI embeddings API, wired through a tested `EmbeddingService`.
+Implement retrieval: a `RetrievalService` on top of `VectorStoreService.search`, adding metadata filtering and a result shape ready for citations.
 
 ---
 
@@ -242,9 +259,9 @@ Implement embeddings: convert chunked `Document` objects into vectors via the Op
 
 1. ~~LangChain Documents~~ ✅ Complete
 2. ~~Recursive Text Splitter~~ ✅ Complete
-3. Embeddings ← current
-4. Vector Store
-5. Retriever
+3. ~~Embeddings~~ ✅ Complete
+4. ~~Vector Store~~ ✅ Complete
+5. Retriever ← current
 6. Question Answering
 7. Source Citations
 8. PostgreSQL + pgvector

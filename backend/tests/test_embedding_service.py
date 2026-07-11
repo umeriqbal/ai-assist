@@ -2,25 +2,8 @@ import asyncio
 
 from langchain_core.documents import Document
 
-from app.rag.embeddings.embedding_model import EmbeddingModel
 from app.services.embedding_service import EmbeddingService
-
-
-class FakeEmbeddingModel(EmbeddingModel):
-    """
-    Deterministic, network-free stand-in for OpenAIEmbeddingModel.
-    """
-
-    def __init__(self, dimensions: int = 8) -> None:
-        self.dimensions = dimensions
-        self.embed_documents_calls: list[list[str]] = []
-
-    async def embed_documents(self, texts: list[str]) -> list[list[float]]:
-        self.embed_documents_calls.append(texts)
-        return [[float(len(text))] * self.dimensions for text in texts]
-
-    async def embed_query(self, text: str) -> list[float]:
-        return [float(len(text))] * self.dimensions
+from tests.conftest import FakeEmbeddingModel
 
 
 def test_embed_chunks_returns_one_vector_per_chunk():
@@ -63,3 +46,12 @@ def test_embed_chunks_returns_empty_list_for_no_chunks():
     embedded = asyncio.run(service.embed_chunks([]))
 
     assert embedded == []
+
+
+def test_embed_query_returns_a_single_vector():
+    model = FakeEmbeddingModel(dimensions=8)
+    service = EmbeddingService(embedding_model=model)
+
+    vector = asyncio.run(service.embed_query("hello"))
+
+    assert len(vector) == 8

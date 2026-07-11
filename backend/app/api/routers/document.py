@@ -4,6 +4,7 @@ from app.dependencies.services import (
     get_chunking_service,
     get_document_service,
     get_embedding_service,
+    get_vector_store_service,
 )
 from app.schemas.document import (
     ChunkRequest,
@@ -13,10 +14,16 @@ from app.schemas.document import (
     EmbedRequest,
     EmbeddedChunkResponse,
     EmbedResponse,
+    IndexRequest,
+    IndexResponse,
+    SearchRequest,
+    SearchResponse,
+    SearchResultResponse,
 )
 from app.services.chunking_service import ChunkingService
 from app.services.document_service import DocumentService
 from app.services.embedding_service import EmbeddingService
+from app.services.vector_store_service import VectorStoreService
 
 router = APIRouter(
     prefix="/documents",
@@ -111,4 +118,56 @@ async def embed_document(
             for embedded_chunk in embedded_chunks
         ],
         chunk_count=len(embedded_chunks),
+    )
+
+
+@router.post(
+    "/index",
+    response_model=IndexResponse,
+)
+async def index_document(
+    request: IndexRequest,
+    service: VectorStoreService = Depends(get_vector_store_service),
+) -> IndexResponse:
+
+    try:
+        chunk_count = await service.index_text(
+            text=request.text,
+            source=request.source,
+            chunk_size=request.chunk_size,
+            chunk_overlap=request.chunk_overlap,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return IndexResponse(chunk_count=chunk_count)
+
+
+@router.post(
+    "/search",
+    response_model=SearchResponse,
+)
+async def search_documents(
+    request: SearchRequest,
+    service: VectorStoreService = Depends(get_vector_store_service),
+) -> SearchResponse:
+
+    try:
+        results = await service.search(
+            query=request.query,
+            k=request.k,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return SearchResponse(
+        results=[
+            SearchResultResponse(
+                content=result.document.page_content,
+                metadata=result.document.metadata,
+                score=result.score,
+            )
+            for result in results
+        ],
+        result_count=len(results),
     )

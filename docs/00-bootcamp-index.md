@@ -34,9 +34,9 @@ This project follows real software engineering practices including:
 | Item | Value |
 |------|-------|
 | Current Module | Module 5 – Enterprise RAG |
-| Current Sprint | Sprint 3 – Embeddings |
-| Current Increment | Increment 1 – OpenAI Embeddings |
-| Status | Sprint 2 Complete. Ready to Begin Sprint 3 |
+| Current Sprint | Sprint 5 – Retrieval |
+| Current Increment | Increment 1 – Retrieval Service |
+| Status | Sprint 4 Complete. Ready to Begin Sprint 5 |
 
 ---
 
@@ -289,20 +289,18 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 Module 5
 
-Sprint 3
+Sprint 5
 
 Increment 1
 
 Objective:
 
-Convert chunked LangChain Documents into vector embeddings using the OpenAI embeddings API, integrated into the existing layered architecture.
+Build a Retrieval Service on top of the Sprint 4 vector store search, adding metadata filtering, integrated into the existing layered architecture.
 
 ---
 
 # Next Milestones
 
-- OpenAI Embeddings
-- Vector Store
 - Semantic Retrieval
 - Question Answering
 - Source Citations

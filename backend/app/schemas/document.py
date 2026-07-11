@@ -89,3 +89,54 @@ class EmbedResponse(BaseModel):
 
     chunks: list[EmbeddedChunkResponse]
     chunk_count: int
+
+
+class IndexRequest(ChunkRequest):
+    """
+    Incoming request to create, chunk, embed, and store a Document.
+    """
+
+
+class IndexResponse(BaseModel):
+    """
+    Confirmation that a Document was indexed.
+    """
+
+    chunk_count: int
+
+
+class SearchRequest(BaseModel):
+    """
+    Incoming semantic search query.
+    """
+
+    query: str = Field(
+        ...,
+        min_length=1,
+        max_length=2000,
+    )
+
+    k: int = Field(
+        default=4,
+        ge=1,
+        le=20,
+    )
+
+
+class SearchResultResponse(BaseModel):
+    """
+    A single search result returned to the client.
+    """
+
+    content: str
+    metadata: dict
+    score: float
+
+
+class SearchResponse(BaseModel):
+    """
+    Search results returned to the client.
+    """
+
+    results: list[SearchResultResponse]
+    result_count: int

@@ -12,6 +12,23 @@ The format follows the principles of Keep a Changelog.
 
 **Status:** 🚧 In Progress
 
+### Added — Sprint 4: Vector Storage (Complete)
+
+- `VectorStore` interface reworked to operate on `EmbeddedChunk` / query vectors, returning `ScoredChunk` (`app/rag/stores/vector_store.py`)
+- `InMemoryVectorStore` — brute-force cosine similarity search, pure Python, no new dependency
+- `VectorStoreService` (`index_text`, `search`), reusing `ChunkingService` and `EmbeddingService`
+- `POST /documents/index` and `POST /documents/search` endpoints
+- Removed the broken, docs-contradicting `ChromaVectorStore` and the `langchain-chroma` dependency (Decision 015 reaffirmed: no dedicated vector DB, pgvector later)
+- Unit tests for cosine similarity correctness (identical/orthogonal vectors, top-k ordering) and full index→search orchestration
+
+### Added — Sprint 3: Embeddings (Complete)
+
+- `EmbeddingModel` interface redefined as plain-Python async methods, so no LangChain type leaks out of `app/rag/`
+- `OpenAIEmbeddingModel` (fixed from a broken, misnamed draft — `OpenAIEmbeddingProvider` didn't match what its own factory imported), batches all chunk texts into a single API call
+- `EmbeddingService` (`embed_chunks`, `embed_query`), wired into Dependency Injection
+- `POST /documents/embeddings` endpoint
+- Unit tests using a fake embedding model — no real API calls in the automated suite
+
 ### Added — Sprint 2: Chunking (Complete)
 
 - `RecursiveDocumentSplitter` extended with `add_start_index` and `chunk_index` / `chunk_count` metadata (`app/rag/splitters/recursive_splitter.py`)
@@ -30,9 +47,7 @@ The format follows the principles of Keep a Changelog.
 
 ### Planned
 
-- OpenAI embeddings
-- Vector storage
-- Semantic retrieval
+- Retrieval service with metadata filtering
 - Question answering
 - Source citations
 
@@ -204,8 +219,7 @@ Expected features
 - DOCX upload
 - HTML ingestion
 - Markdown ingestion
-- Embeddings
-- Retrieval
+- Retrieval (metadata filtering)
 - Source citations
 
 ---

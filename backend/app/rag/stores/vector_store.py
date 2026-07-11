@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
-from langchain_core.documents import Document
+from app.rag.embeddings.embedded_chunk import EmbeddedChunk
+from app.rag.stores.scored_chunk import ScoredChunk
 
 
 class VectorStore(ABC):
@@ -9,22 +10,30 @@ class VectorStore(ABC):
     """
 
     @abstractmethod
-    def add_documents(
+    async def add_documents(
         self,
-        documents: list[Document],
+        embedded_chunks: list[EmbeddedChunk],
     ) -> None:
         """
-        Index documents.
+        Index embedded chunks.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def similarity_search(
+    async def similarity_search(
         self,
-        query: str,
+        query_vector: list[float],
         k: int = 5,
-    ) -> list[Document]:
+    ) -> list[ScoredChunk]:
         """
-        Search for similar documents.
+        Return the k chunks most similar to a query vector,
+        ranked by descending similarity score.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def document_count(self) -> int:
+        """
+        Return the number of indexed chunks.
         """
         raise NotImplementedError
