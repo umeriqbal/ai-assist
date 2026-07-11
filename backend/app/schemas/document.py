@@ -63,3 +63,29 @@ class ChunkResponse(BaseModel):
 
     chunks: list[DocumentResponse]
     chunk_count: int
+
+
+class EmbedRequest(ChunkRequest):
+    """
+    Incoming request to create, chunk, and embed a Document.
+    """
+
+
+class EmbeddedChunkResponse(BaseModel):
+    """
+    A single embedded chunk returned to the client.
+    """
+
+    content: str
+    metadata: dict
+    embedding: list[float]
+    embedding_dimensions: int
+
+
+class EmbedResponse(BaseModel):
+    """
+    Embedded chunks returned to the client.
+    """
+
+    chunks: list[EmbeddedChunkResponse]
+    chunk_count: int

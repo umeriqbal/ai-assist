@@ -1,14 +1,22 @@
 from fastapi import APIRouter, Depends, HTTPException
 
-from app.dependencies.services import get_chunking_service, get_document_service
+from app.dependencies.services import (
+    get_chunking_service,
+    get_document_service,
+    get_embedding_service,
+)
 from app.schemas.document import (
     ChunkRequest,
     ChunkResponse,
     DocumentCreateRequest,
     DocumentResponse,
+    EmbedRequest,
+    EmbeddedChunkResponse,
+    EmbedResponse,
 )
 from app.services.chunking_service import ChunkingService
 from app.services.document_service import DocumentService
+from app.services.embedding_service import EmbeddingService
 
 router = APIRouter(
     prefix="/documents",
@@ -67,4 +75,40 @@ async def chunk_document(
             for chunk in chunks
         ],
         chunk_count=len(chunks),
+    )
+
+
+@router.post(
+    "/embeddings",
+    response_model=EmbedResponse,
+)
+async def embed_document(
+    request: EmbedRequest,
+    chunking_service: ChunkingService = Depends(get_chunking_service),
+    embedding_service: EmbeddingService = Depends(get_embedding_service),
+) -> EmbedResponse:
+
+    try:
+        chunks = await chunking_service.chunk_text(
+            text=request.text,
+            source=request.source,
+            chunk_size=request.chunk_size,
+            chunk_overlap=request.chunk_overlap,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    embedded_chunks = await embedding_service.embed_chunks(chunks)
+
+    return EmbedResponse(
+        chunks=[
+            EmbeddedChunkResponse(
+                content=embedded_chunk.document.page_content,
+                metadata=embedded_chunk.document.metadata,
+                embedding=embedded_chunk.vector,
+                embedding_dimensions=len(embedded_chunk.vector),
+            )
+            for embedded_chunk in embedded_chunks
+        ],
+        chunk_count=len(embedded_chunks),
     )

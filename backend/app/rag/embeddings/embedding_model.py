@@ -1,16 +1,30 @@
 from abc import ABC, abstractmethod
 
-from langchain_core.embeddings import Embeddings
-
 
 class EmbeddingModel(ABC):
     """
     Base interface for embedding model providers.
+
+    Implementations wrap whatever SDK/framework is used to compute
+    embeddings, so callers only ever see plain Python types.
     """
 
     @abstractmethod
-    def get_embeddings(self) -> Embeddings:
+    async def embed_documents(
+        self,
+        texts: list[str],
+    ) -> list[list[float]]:
         """
-        Return a LangChain Embeddings implementation.
+        Embed a batch of texts in a single call.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def embed_query(
+        self,
+        text: str,
+    ) -> list[float]:
+        """
+        Embed a single query string.
         """
         raise NotImplementedError

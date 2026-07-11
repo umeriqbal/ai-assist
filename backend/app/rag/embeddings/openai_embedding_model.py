@@ -5,7 +5,8 @@ Provides a configured OpenAI embedding model for the RAG pipeline.
 
 Responsibilities:
 - Create and configure the embedding model.
-- Expose the embedding instance to the vector store.
+- Call the OpenAI embeddings API (via LangChain) and return plain
+  Python vectors.
 
 Does NOT:
 - Load documents
@@ -17,11 +18,12 @@ Does NOT:
 from langchain_openai import OpenAIEmbeddings
 
 from app.core.config import settings
+from app.rag.embeddings.embedding_model import EmbeddingModel
 
 
-class OpenAIEmbeddingProvider:
+class OpenAIEmbeddingModel(EmbeddingModel):
     """
-    Factory for the OpenAI embedding model.
+    OpenAI implementation of the embedding model interface.
     """
 
     def __init__(self) -> None:
@@ -30,9 +32,14 @@ class OpenAIEmbeddingProvider:
             model=settings.embedding_model,
         )
 
-    @property
-    def embeddings(self) -> OpenAIEmbeddings:
-        """
-        Return the configured embedding model.
-        """
-        return self._embeddings
+    async def embed_documents(
+        self,
+        texts: list[str],
+    ) -> list[list[float]]:
+        return await self._embeddings.aembed_documents(texts)
+
+    async def embed_query(
+        self,
+        text: str,
+    ) -> list[float]:
+        return await self._embeddings.aembed_query(text)
