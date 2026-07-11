@@ -40,7 +40,7 @@ Status:
 
 # Current Sprint
 
-**Sprint 5 – Retrieval**
+**Sprint 6 – Question Answering**
 
 Status:
 
@@ -50,26 +50,26 @@ Ready to begin.
 
 # Current Increment
 
-**Increment 1 – Retrieval Service**
+**Increment 1 – Grounded Answers**
 
 Objective:
 
-Formalize query → search into a dedicated `RetrievalService` with metadata filtering, built on top of the Sprint 4 `VectorStoreService`, in preparation for grounded question answering.
+Build a `QuestionAnsweringService` that retrieves relevant chunks via `RetrievalService`, injects them into a prompt, and asks the `LLMProvider` to answer grounded only in that context.
 
 ---
 
 # Last Completed Sprint
 
-## Module 5 / Sprint 4 – Vector Storage
+## Module 5 / Sprint 5 – Retrieval
 
 Completed Features
 
-- `VectorStore` interface reworked to operate on `EmbeddedChunk` / query vectors, returning `ScoredChunk`
-- `InMemoryVectorStore` — brute-force cosine similarity search, pure Python, no new dependency
-- `VectorStoreService` (`index_text`, `search`), reusing `ChunkingService` and `EmbeddingService`
-- `POST /documents/index` and `POST /documents/search` endpoints
-- Removed the broken, docs-contradicting `ChromaVectorStore` and the `langchain-chroma` dependency
-- Unit tests for cosine similarity correctness and full index→search orchestration
+- `VectorStore.similarity_search` gained `metadata_filter`, applied before ranking (not post-hoc), so filtered top-k is always correct
+- `InMemoryVectorStore` filters candidates by metadata match prior to computing similarity
+- `RetrievalService` (new) — owns the read path: validates query, embeds it, applies the filter
+- `VectorStoreService` trimmed to indexing-only (`search()` removed — single responsibility restored)
+- `POST /documents/search` gained an optional `source` filter (same endpoint, extended request)
+- Unit tests for filter correctness (excludes non-matching, filters before ranking) and full retrieval orchestration
 
 Status
 
@@ -79,15 +79,16 @@ Status
 
 # Previously Completed Sprint
 
-## Module 5 / Sprint 3 – Embeddings
+## Module 5 / Sprint 4 – Vector Storage
 
 Completed Features
 
-- `EmbeddingModel` interface redefined as plain-Python async methods (no LangChain types leaking out of `rag/`)
-- `OpenAIEmbeddingModel` (fixed from a broken, misnamed draft), batches all chunk texts into a single API call
-- `EmbeddingService` (`embed_chunks`, `embed_query`), wired via Dependency Injection
-- `POST /documents/embeddings` endpoint
-- Unit tests using a fake embedding model (no real API calls in the test suite)
+- `VectorStore` interface reworked to operate on `EmbeddedChunk` / query vectors, returning `ScoredChunk`
+- `InMemoryVectorStore` — brute-force cosine similarity search, pure Python, no new dependency
+- `VectorStoreService` (`index_text`), reusing `ChunkingService` and `EmbeddingService`
+- `POST /documents/index` and `POST /documents/search` endpoints
+- Removed the broken, docs-contradicting `ChromaVectorStore` and the `langchain-chroma` dependency
+- Unit tests for cosine similarity correctness and full index→search orchestration
 
 Status
 
@@ -257,8 +258,7 @@ The project follows these principles throughout the codebase.
 
 ## High Priority
 
-- Retrieval Service (metadata filtering)
-- Question Answering
+- Question Answering (grounded, prompt construction)
 - Source Citations
 
 ---
@@ -317,17 +317,17 @@ v0.4.0
 
 Module 5
 
-Sprint 5
+Sprint 6
 
 Increment 1
 
 Title:
 
-**Retrieval Service**
+**Grounded Answers**
 
 Goal:
 
-Build a `RetrievalService` on top of `VectorStoreService.search`, adding metadata filtering (e.g. restrict by `source`) and a stable result shape that Sprint 6 (Question Answering) and Sprint 7 (Citations) can build on.
+Build a `QuestionAnsweringService` that calls `RetrievalService.retrieve`, constructs a prompt that injects the retrieved chunks as context, and calls the existing `LLMProvider` to produce an answer grounded in that context rather than the model's own knowledge.
 
 ---
 
@@ -335,12 +335,12 @@ Build a `RetrievalService` on top of `VectorStoreService.search`, adding metadat
 
 The next increment will be complete when:
 
-- Search results can be filtered by document metadata (e.g. `source`), not just similarity score.
-- The retrieval result shape carries everything a future citation needs (content, source, score).
+- A question can be answered using only retrieved context (no unretrieved knowledge injected into the prompt by the service itself).
+- The prompt construction step is isolated and testable independent of the LLM call.
 - The RAG layer owns all LangChain interactions.
 - No router communicates directly with LangChain or the OpenAI SDK.
 - Existing architecture remains unchanged.
-- The behaviour is covered by automated tests (with the embedding call faked, not live).
+- The behaviour is covered by automated tests (with the embedding and chat calls faked, not live).
 
 ---
 
@@ -353,4 +353,4 @@ If continuing this project in a new ChatGPT conversation:
 3. Read this document (`02-current-status.md`)
 4. Continue with:
 
-**Module 5 → Sprint 5 → Increment 1 → Retrieval Service**
+**Module 5 → Sprint 6 → Increment 1 → Grounded Answers**

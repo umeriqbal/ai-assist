@@ -24,10 +24,16 @@ class VectorStore(ABC):
         self,
         query_vector: list[float],
         k: int = 5,
+        metadata_filter: dict[str, str] | None = None,
     ) -> list[ScoredChunk]:
         """
         Return the k chunks most similar to a query vector,
         ranked by descending similarity score.
+
+        If `metadata_filter` is provided, only chunks whose metadata
+        matches every key/value pair are considered, and the filter
+        is applied before ranking so the returned results are the
+        true top-k within the filtered set.
         """
         raise NotImplementedError
 

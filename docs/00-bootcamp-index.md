@@ -34,9 +34,9 @@ This project follows real software engineering practices including:
 | Item | Value |
 |------|-------|
 | Current Module | Module 5 – Enterprise RAG |
-| Current Sprint | Sprint 5 – Retrieval |
-| Current Increment | Increment 1 – Retrieval Service |
-| Status | Sprint 4 Complete. Ready to Begin Sprint 5 |
+| Current Sprint | Sprint 6 – Question Answering |
+| Current Increment | Increment 1 – Grounded Answers |
+| Status | Sprint 5 Complete. Ready to Begin Sprint 6 |
 
 ---
 
@@ -289,19 +289,18 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 Module 5
 
-Sprint 5
+Sprint 6
 
 Increment 1
 
 Objective:
 
-Build a Retrieval Service on top of the Sprint 4 vector store search, adding metadata filtering, integrated into the existing layered architecture.
+Build a Question Answering Service that retrieves grounding context via the Sprint 5 Retrieval Service and asks the LLM Provider to answer using only that context.
 
 ---
 
 # Next Milestones
 
-- Semantic Retrieval
 - Question Answering
 - Source Citations
 - PostgreSQL + pgvector

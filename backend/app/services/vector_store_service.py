@@ -1,4 +1,3 @@
-from app.rag.stores.scored_chunk import ScoredChunk
 from app.rag.stores.vector_store import VectorStore
 from app.services.chunking_service import ChunkingService
 from app.services.embedding_service import EmbeddingService
@@ -6,7 +5,7 @@ from app.services.embedding_service import EmbeddingService
 
 class VectorStoreService:
     """
-    Business service responsible for indexing and searching chunks.
+    Business service responsible for indexing chunks.
     """
 
     def __init__(
@@ -39,21 +38,3 @@ class VectorStoreService:
         await self._vector_store.add_documents(embedded_chunks)
 
         return len(embedded_chunks)
-
-    async def search(
-        self,
-        query: str,
-        k: int = 4,
-    ) -> list[ScoredChunk]:
-
-        query = query.strip()
-
-        if not query:
-            raise ValueError("Search query cannot be empty.")
-
-        query_vector = await self._embedding_service.embed_query(query)
-
-        return await self._vector_store.similarity_search(
-            query_vector=query_vector,
-            k=k,
-        )

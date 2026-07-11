@@ -122,6 +122,12 @@ class SearchRequest(BaseModel):
         le=20,
     )
 
+    source: str | None = Field(
+        default=None,
+        max_length=200,
+        description="Restrict results to chunks indexed with this source.",
+    )
+
 
 class SearchResultResponse(BaseModel):
     """

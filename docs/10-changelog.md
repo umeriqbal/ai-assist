@@ -12,6 +12,14 @@ The format follows the principles of Keep a Changelog.
 
 **Status:** 🚧 In Progress
 
+### Added — Sprint 5: Retrieval (Complete)
+
+- `VectorStore.similarity_search` gained `metadata_filter`, applied before ranking so filtered top-k is always correct (`app/rag/stores/vector_store.py`, `in_memory_vector_store.py`)
+- `RetrievalService` (new) — owns the read path: validates query, embeds it, applies the metadata filter
+- `VectorStoreService` trimmed to indexing-only; `search()` removed (single responsibility restored)
+- `POST /documents/search` gained an optional `source` field to filter results (same endpoint, extended request)
+- Unit tests for filter correctness (excludes non-matching sources, filters before ranking rather than after) and full retrieval orchestration
+
 ### Added — Sprint 4: Vector Storage (Complete)
 
 - `VectorStore` interface reworked to operate on `EmbeddedChunk` / query vectors, returning `ScoredChunk` (`app/rag/stores/vector_store.py`)
@@ -47,7 +55,6 @@ The format follows the principles of Keep a Changelog.
 
 ### Planned
 
-- Retrieval service with metadata filtering
 - Question answering
 - Source citations
 
@@ -219,7 +226,7 @@ Expected features
 - DOCX upload
 - HTML ingestion
 - Markdown ingestion
-- Retrieval (metadata filtering)
+- Question answering
 - Source citations
 
 ---

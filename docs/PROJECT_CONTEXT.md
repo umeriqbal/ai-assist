@@ -23,15 +23,15 @@ Module 5 – Enterprise RAG
 
 Current Sprint:
 
-Sprint 5 – Retrieval
+Sprint 6 – Question Answering
 
 Current Increment:
 
-Increment 1 – Retrieval Service
+Increment 1 – Grounded Answers
 
 Status:
 
-Sprint 4 (Vector Storage) complete. Ready to begin retrieval.
+Sprint 5 (Retrieval) complete. Ready to begin question answering.
 
 ---
 
@@ -220,10 +220,19 @@ Vector Storage (Module 5, Sprint 4)
 
 - `VectorStore` interface operating on `EmbeddedChunk` / query vectors, returning `ScoredChunk`
 - `InMemoryVectorStore` — brute-force cosine similarity, no new dependency
-- `VectorStoreService` (`index_text`, `search`), injected via `Depends`
+- `VectorStoreService` (`index_text`), injected via `Depends`
 - `POST /documents/index`, `POST /documents/search`
 - Removed the broken, docs-contradicting Chroma implementation and dependency
 - Unit tests for similarity correctness and index→search orchestration
+
+Retrieval Service (Module 5, Sprint 5)
+
+- `VectorStore.similarity_search` gained `metadata_filter`, applied before ranking
+- `InMemoryVectorStore` filters candidates by metadata prior to scoring
+- `RetrievalService` (`retrieve`), owns the read path, injected via `Depends`
+- `VectorStoreService` trimmed to indexing-only (single responsibility)
+- `POST /documents/search` gained an optional `source` filter
+- Unit tests for filter correctness and full retrieval orchestration
 
 ---
 
@@ -249,9 +258,9 @@ No framework-specific code inside routers.
 
 # Current Objective
 
-Continue Module 5, Sprint 5.
+Continue Module 5, Sprint 6.
 
-Implement retrieval: a `RetrievalService` on top of `VectorStoreService.search`, adding metadata filtering and a result shape ready for citations.
+Implement question answering: a `QuestionAnsweringService` that retrieves context via `RetrievalService`, constructs a grounded prompt, and calls the `LLMProvider` for an answer.
 
 ---
 
@@ -261,8 +270,8 @@ Implement retrieval: a `RetrievalService` on top of `VectorStoreService.search`,
 2. ~~Recursive Text Splitter~~ ✅ Complete
 3. ~~Embeddings~~ ✅ Complete
 4. ~~Vector Store~~ ✅ Complete
-5. Retriever ← current
-6. Question Answering
+5. ~~Retriever~~ ✅ Complete
+6. Question Answering ← current
 7. Source Citations
 8. PostgreSQL + pgvector
 9. Hybrid Search

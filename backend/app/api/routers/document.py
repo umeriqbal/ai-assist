@@ -4,6 +4,7 @@ from app.dependencies.services import (
     get_chunking_service,
     get_document_service,
     get_embedding_service,
+    get_retrieval_service,
     get_vector_store_service,
 )
 from app.schemas.document import (
@@ -23,6 +24,7 @@ from app.schemas.document import (
 from app.services.chunking_service import ChunkingService
 from app.services.document_service import DocumentService
 from app.services.embedding_service import EmbeddingService
+from app.services.retrieval_service import RetrievalService
 from app.services.vector_store_service import VectorStoreService
 
 router = APIRouter(
@@ -149,13 +151,14 @@ async def index_document(
 )
 async def search_documents(
     request: SearchRequest,
-    service: VectorStoreService = Depends(get_vector_store_service),
+    service: RetrievalService = Depends(get_retrieval_service),
 ) -> SearchResponse:
 
     try:
-        results = await service.search(
+        results = await service.retrieve(
             query=request.query,
             k=request.k,
+            source=request.source,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

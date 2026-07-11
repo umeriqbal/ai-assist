@@ -48,14 +48,24 @@ class InMemoryVectorStore(VectorStore):
         self,
         query_vector: list[float],
         k: int = 5,
+        metadata_filter: dict[str, str] | None = None,
     ) -> list[ScoredChunk]:
+
+        candidates = self._entries
+
+        if metadata_filter:
+            candidates = [
+                entry
+                for entry in candidates
+                if metadata_filter.items() <= entry.document.metadata.items()
+            ]
 
         scored = [
             ScoredChunk(
                 document=entry.document,
                 score=_cosine_similarity(query_vector, entry.vector),
             )
-            for entry in self._entries
+            for entry in candidates
         ]
 
         scored.sort(key=lambda chunk: chunk.score, reverse=True)
