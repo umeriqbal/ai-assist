@@ -34,9 +34,9 @@ This project follows real software engineering practices including:
 | Item | Value |
 |------|-------|
 | Current Module | Module 5 – Enterprise RAG |
-| Current Sprint | Sprint 6 – Question Answering |
-| Current Increment | Increment 1 – Grounded Answers |
-| Status | Sprint 5 Complete. Ready to Begin Sprint 6 |
+| Current Sprint | Sprint 7 – Citations |
+| Current Increment | Increment 1 – Structured Citations |
+| Status | Sprint 6 Complete. Ready to Begin Sprint 7 |
 
 ---
 
@@ -289,19 +289,18 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 Module 5
 
-Sprint 6
+Sprint 7
 
 Increment 1
 
 Objective:
 
-Build a Question Answering Service that retrieves grounding context via the Sprint 5 Retrieval Service and asks the LLM Provider to answer using only that context.
+Replace the flat source list on /ask responses with structured Citation objects (source, score, snippet) built from the chunks already used to answer.
 
 ---
 
 # Next Milestones
 
-- Question Answering
 - Source Citations
 - PostgreSQL + pgvector
 - Hybrid Search

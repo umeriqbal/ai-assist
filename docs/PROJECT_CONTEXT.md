@@ -23,15 +23,15 @@ Module 5 – Enterprise RAG
 
 Current Sprint:
 
-Sprint 6 – Question Answering
+Sprint 7 – Citations
 
 Current Increment:
 
-Increment 1 – Grounded Answers
+Increment 1 – Structured Citations
 
 Status:
 
-Sprint 5 (Retrieval) complete. Ready to begin question answering.
+Sprint 6 (Question Answering) complete. Ready to begin citations.
 
 ---
 
@@ -234,6 +234,14 @@ Retrieval Service (Module 5, Sprint 5)
 - `POST /documents/search` gained an optional `source` filter
 - Unit tests for filter correctness and full retrieval orchestration
 
+Question Answering (Module 5, Sprint 6)
+
+- `PromptBuilder` (`app/rag/prompts/`) — grounding instruction + source-labeled context + question, pure formatting
+- `QuestionAnsweringService` (`answer`) — retrieves, applies `min_score` source selection, skips the LLM entirely when nothing qualifies
+- `POST /ask` endpoint
+- `FakeLLMProvider` test double, no real API calls in the suite
+- Unit tests including the no-context short-circuit; live-verified against real OpenAI (grounded answer + correct refusal on an unrelated question)
+
 ---
 
 # Design Decisions
@@ -258,9 +266,9 @@ No framework-specific code inside routers.
 
 # Current Objective
 
-Continue Module 5, Sprint 6.
+Continue Module 5, Sprint 7.
 
-Implement question answering: a `QuestionAnsweringService` that retrieves context via `RetrievalService`, constructs a grounded prompt, and calls the `LLMProvider` for an answer.
+Implement structured citations: replace `AskResponse.sources: list[str]` with per-chunk `Citation` objects (source, score, snippet), derived from the same `ScoredChunk`s already used to answer.
 
 ---
 
@@ -271,8 +279,8 @@ Implement question answering: a `QuestionAnsweringService` that retrieves contex
 3. ~~Embeddings~~ ✅ Complete
 4. ~~Vector Store~~ ✅ Complete
 5. ~~Retriever~~ ✅ Complete
-6. Question Answering ← current
-7. Source Citations
+6. ~~Question Answering~~ ✅ Complete
+7. Source Citations ← current
 8. PostgreSQL + pgvector
 9. Hybrid Search
 10. Evaluation

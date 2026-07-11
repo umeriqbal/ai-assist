@@ -40,7 +40,7 @@ Status:
 
 # Current Sprint
 
-**Sprint 6 – Question Answering**
+**Sprint 7 – Citations**
 
 Status:
 
@@ -50,15 +50,34 @@ Ready to begin.
 
 # Current Increment
 
-**Increment 1 – Grounded Answers**
+**Increment 1 – Structured Citations**
 
 Objective:
 
-Build a `QuestionAnsweringService` that retrieves relevant chunks via `RetrievalService`, injects them into a prompt, and asks the `LLMProvider` to answer grounded only in that context.
+Replace the flat `sources: list[str]` on `AskResponse` with structured citation objects (source, similarity score, snippet) so every answer carries traceable evidence back to the chunks that produced it.
 
 ---
 
 # Last Completed Sprint
+
+## Module 5 / Sprint 6 – Question Answering
+
+Completed Features
+
+- `PromptBuilder` (new, `app/rag/prompts/`) — pure formatting: grounding instruction + source-labeled context + question, no network calls
+- `QuestionAnsweringService` (`answer`) — retrieves via `RetrievalService`, applies optional `min_score` filtering, skips the LLM call entirely when nothing qualifies (verified: no hallucinated answers on out-of-context questions)
+- `POST /ask` endpoint
+- `FakeLLMProvider` test double added alongside `FakeEmbeddingModel` — no real API calls in the automated suite
+- Unit tests for prompt formatting and full answer orchestration (including the no-context short-circuit)
+- Live-verified: a real indexed policy question answered correctly and grounded; an unrelated question correctly refused instead of guessed
+
+Status
+
+✅ Complete
+
+---
+
+# Previously Completed Sprint
 
 ## Module 5 / Sprint 5 – Retrieval
 
@@ -70,25 +89,6 @@ Completed Features
 - `VectorStoreService` trimmed to indexing-only (`search()` removed — single responsibility restored)
 - `POST /documents/search` gained an optional `source` filter (same endpoint, extended request)
 - Unit tests for filter correctness (excludes non-matching, filters before ranking) and full retrieval orchestration
-
-Status
-
-✅ Complete
-
----
-
-# Previously Completed Sprint
-
-## Module 5 / Sprint 4 – Vector Storage
-
-Completed Features
-
-- `VectorStore` interface reworked to operate on `EmbeddedChunk` / query vectors, returning `ScoredChunk`
-- `InMemoryVectorStore` — brute-force cosine similarity search, pure Python, no new dependency
-- `VectorStoreService` (`index_text`), reusing `ChunkingService` and `EmbeddingService`
-- `POST /documents/index` and `POST /documents/search` endpoints
-- Removed the broken, docs-contradicting `ChromaVectorStore` and the `langchain-chroma` dependency
-- Unit tests for cosine similarity correctness and full index→search orchestration
 
 Status
 
@@ -192,6 +192,7 @@ LangChain will remain isolated within the RAG layer.
 | POST /documents/embeddings | ✅ |
 | POST /documents/index | ✅ |
 | POST /documents/search | ✅ |
+| POST /ask | ✅ |
 
 ---
 
@@ -258,8 +259,7 @@ The project follows these principles throughout the codebase.
 
 ## High Priority
 
-- Question Answering (grounded, prompt construction)
-- Source Citations
+- Structured Source Citations (score, snippet)
 
 ---
 
@@ -317,17 +317,17 @@ v0.4.0
 
 Module 5
 
-Sprint 6
+Sprint 7
 
 Increment 1
 
 Title:
 
-**Grounded Answers**
+**Structured Citations**
 
 Goal:
 
-Build a `QuestionAnsweringService` that calls `RetrievalService.retrieve`, constructs a prompt that injects the retrieved chunks as context, and calls the existing `LLMProvider` to produce an answer grounded in that context rather than the model's own knowledge.
+Replace `AskResponse.sources: list[str]` with a list of `Citation` objects (source, similarity score, content snippet) built from the same `ScoredChunk`s already used to answer, so the response is independently verifiable rather than just naming sources.
 
 ---
 
@@ -335,10 +335,9 @@ Build a `QuestionAnsweringService` that calls `RetrievalService.retrieve`, const
 
 The next increment will be complete when:
 
-- A question can be answered using only retrieved context (no unretrieved knowledge injected into the prompt by the service itself).
-- The prompt construction step is isolated and testable independent of the LLM call.
-- The RAG layer owns all LangChain interactions.
-- No router communicates directly with LangChain or the OpenAI SDK.
+- `AskResponse` returns one citation per chunk actually used in the answer, each carrying its source, score, and a snippet.
+- Citation data is derived from existing `ScoredChunk` results — no second retrieval call.
+- Page-level attribution is deferred until the PDF loader (Medium Priority backlog) is wired up, since plain-text ingestion has no page concept.
 - Existing architecture remains unchanged.
 - The behaviour is covered by automated tests (with the embedding and chat calls faked, not live).
 
@@ -353,4 +352,4 @@ If continuing this project in a new ChatGPT conversation:
 3. Read this document (`02-current-status.md`)
 4. Continue with:
 
-**Module 5 → Sprint 6 → Increment 1 → Grounded Answers**
+**Module 5 → Sprint 7 → Increment 1 → Structured Citations**

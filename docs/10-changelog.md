@@ -12,6 +12,15 @@ The format follows the principles of Keep a Changelog.
 
 **Status:** 🚧 In Progress
 
+### Added — Sprint 6: Question Answering (Complete)
+
+- `PromptBuilder` (new, `app/rag/prompts/prompt_builder.py`) — pure formatting: grounding instruction, source-labeled context, and question, no network calls
+- `QuestionAnsweringService` (`answer`) — retrieves via `RetrievalService`, applies optional `min_score` source selection, skips the LLM call entirely when no chunk qualifies
+- `POST /ask` endpoint
+- `FakeLLMProvider` test double added alongside `FakeEmbeddingModel` — no real API calls in the automated suite
+- Unit tests for prompt formatting and full answer orchestration, including an explicit assertion that the LLM is never called without sufficient context
+- Live-verified against the real OpenAI API: a real indexed policy question answered correctly and grounded; an unrelated question correctly refused instead of hallucinated
+
 ### Added — Sprint 5: Retrieval (Complete)
 
 - `VectorStore.similarity_search` gained `metadata_filter`, applied before ranking so filtered top-k is always correct (`app/rag/stores/vector_store.py`, `in_memory_vector_store.py`)
@@ -55,8 +64,7 @@ The format follows the principles of Keep a Changelog.
 
 ### Planned
 
-- Question answering
-- Source citations
+- Structured source citations (score, snippet)
 
 ---
 
@@ -226,8 +234,7 @@ Expected features
 - DOCX upload
 - HTML ingestion
 - Markdown ingestion
-- Question answering
-- Source citations
+- Structured source citations
 
 ---
 
