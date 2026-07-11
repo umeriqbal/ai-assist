@@ -1,8 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+import tempfile
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
 from app.dependencies.services import (
     get_chunking_service,
     get_document_service,
+    get_document_upload_service,
     get_embedding_service,
     get_retrieval_service,
     get_vector_store_service,
@@ -20,9 +24,11 @@ from app.schemas.document import (
     SearchRequest,
     SearchResponse,
     SearchResultResponse,
+    UploadResponse,
 )
 from app.services.chunking_service import ChunkingService
 from app.services.document_service import DocumentService
+from app.services.document_upload_service import DocumentUploadService
 from app.services.embedding_service import EmbeddingService
 from app.services.retrieval_service import RetrievalService
 from app.services.vector_store_service import VectorStoreService
@@ -173,4 +179,42 @@ async def search_documents(
             for result in results
         ],
         result_count=len(results),
+    )
+
+
+@router.post(
+    "/upload",
+    response_model=UploadResponse,
+)
+async def upload_document(
+    file: UploadFile = File(...),
+    source: str | None = Form(default=None),
+    chunk_size: int = Form(default=1000),
+    chunk_overlap: int = Form(default=200),
+    service: DocumentUploadService = Depends(get_document_upload_service),
+) -> UploadResponse:
+
+    suffix = Path(file.filename or "").suffix
+    resolved_source = source or file.filename or "uploaded-file"
+
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        tmp.write(await file.read())
+        tmp_path = tmp.name
+
+    try:
+        result = await service.upload(
+            file_path=tmp_path,
+            source=resolved_source,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    finally:
+        Path(tmp_path).unlink(missing_ok=True)
+
+    return UploadResponse(
+        source=result.source,
+        pages_loaded=result.pages_loaded,
+        chunks_indexed=result.chunks_indexed,
     )

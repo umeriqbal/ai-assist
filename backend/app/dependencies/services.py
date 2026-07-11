@@ -5,9 +5,12 @@ from app.dependencies.llm import (
     get_openai_provider,
     get_vector_store,
 )
+from app.rag.document_ingestion_service import DocumentIngestionService
+from app.rag.loaders.loader_factory import DocumentLoaderFactory
 from app.services.chat_service import ChatService
 from app.services.chunking_service import ChunkingService
 from app.services.document_service import DocumentService
+from app.services.document_upload_service import DocumentUploadService
 from app.services.embedding_service import EmbeddingService
 from app.services.question_answering_service import QuestionAnsweringService
 from app.services.retrieval_service import RetrievalService
@@ -70,4 +73,19 @@ def get_question_answering_service() -> QuestionAnsweringService:
     return QuestionAnsweringService(
         retrieval_service=get_retrieval_service(),
         llm_provider=get_openai_provider(),
+    )
+
+
+@lru_cache
+def get_document_ingestion_service() -> DocumentIngestionService:
+    return DocumentIngestionService(
+        loader_factory=DocumentLoaderFactory(),
+    )
+
+
+@lru_cache
+def get_document_upload_service() -> DocumentUploadService:
+    return DocumentUploadService(
+        ingestion_service=get_document_ingestion_service(),
+        vector_store_service=get_vector_store_service(),
     )

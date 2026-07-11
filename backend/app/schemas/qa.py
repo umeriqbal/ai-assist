@@ -32,11 +32,21 @@ class AskRequest(BaseModel):
     )
 
 
+class CitationResponse(BaseModel):
+    """
+    Evidence for one chunk that contributed to an answer.
+    """
+
+    source: str
+    score: float
+    snippet: str
+
+
 class AskResponse(BaseModel):
     """
     A grounded answer returned to the client.
     """
 
     answer: str
-    sources: list[str]
+    citations: list[CitationResponse]
     chunks_used: int

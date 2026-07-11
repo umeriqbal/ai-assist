@@ -8,6 +8,30 @@ _NO_CONTEXT_ANSWER = (
     "I don't have enough information in the indexed documents to answer that."
 )
 
+_SNIPPET_MAX_LENGTH = 200
+
+
+def _snippet(text: str, max_length: int = _SNIPPET_MAX_LENGTH) -> str:
+    if len(text) <= max_length:
+        return text
+
+    return text[:max_length].rstrip() + "..."
+
+
+@dataclass
+class Citation:
+    """
+    Evidence for one chunk that contributed to an answer.
+
+    `score` is the chunk's cosine similarity to the question — a
+    relevance signal, not a measure of whether the answer itself is
+    correct.
+    """
+
+    source: str
+    score: float
+    snippet: str
+
 
 @dataclass
 class AnswerResult:
@@ -16,7 +40,7 @@ class AnswerResult:
     """
 
     answer: str
-    sources: list[str]
+    citations: list[Citation]
     chunks_used: int
 
 
@@ -53,7 +77,7 @@ class QuestionAnsweringService:
         if not results:
             return AnswerResult(
                 answer=_NO_CONTEXT_ANSWER,
-                sources=[],
+                citations=[],
                 chunks_used=0,
             )
 
@@ -66,16 +90,17 @@ class QuestionAnsweringService:
 
         answer_text = await self._llm_provider.chat(prompt=prompt)
 
-        sources = sorted(
-            {
-                document.metadata["source"]
-                for document in documents
-                if "source" in document.metadata
-            }
-        )
+        citations = [
+            Citation(
+                source=result.document.metadata.get("source", "unknown"),
+                score=result.score,
+                snippet=_snippet(result.document.page_content),
+            )
+            for result in results
+        ]
 
         return AnswerResult(
             answer=answer_text,
-            sources=sources,
+            citations=citations,
             chunks_used=len(results),
         )

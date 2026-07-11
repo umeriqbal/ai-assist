@@ -146,3 +146,13 @@ class SearchResponse(BaseModel):
 
     results: list[SearchResultResponse]
     result_count: int
+
+
+class UploadResponse(BaseModel):
+    """
+    Confirmation that an uploaded file was ingested and indexed.
+    """
+
+    source: str
+    pages_loaded: int
+    chunks_indexed: int

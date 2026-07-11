@@ -34,3 +34,21 @@ class ChunkingService:
         )
 
         return splitter.split([document])
+
+    async def chunk_documents(
+        self,
+        documents: list[Document],
+        chunk_size: int = 1000,
+        chunk_overlap: int = 200,
+    ) -> list[Document]:
+        """
+        Split already-loaded Documents (e.g. PDF pages) into chunks,
+        skipping the raw-text-to-Document step `chunk_text` performs.
+        """
+
+        splitter = RecursiveDocumentSplitter(
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+        )
+
+        return splitter.split(documents)

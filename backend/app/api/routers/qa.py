@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.dependencies.services import get_question_answering_service
-from app.schemas.qa import AskRequest, AskResponse
+from app.schemas.qa import AskRequest, AskResponse, CitationResponse
 from app.services.question_answering_service import QuestionAnsweringService
 
 router = APIRouter(
@@ -30,6 +30,13 @@ async def ask(
 
     return AskResponse(
         answer=result.answer,
-        sources=result.sources,
+        citations=[
+            CitationResponse(
+                source=citation.source,
+                score=citation.score,
+                snippet=citation.snippet,
+            )
+            for citation in result.citations
+        ],
         chunks_used=result.chunks_used,
     )
