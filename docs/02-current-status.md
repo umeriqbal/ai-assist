@@ -40,7 +40,7 @@ Status:
 
 # Current Sprint
 
-**Sprint 1 – LangChain Foundations**
+**Sprint 2 – Chunking**
 
 Status:
 
@@ -50,11 +50,29 @@ Ready to begin.
 
 # Current Increment
 
-**Increment 1 – LangChain Documents**
+**Increment 1 – Recursive Text Splitter**
 
 Objective:
 
-Learn how LangChain represents information internally and integrate LangChain Documents into our layered architecture.
+Split LangChain Documents into overlapping chunks sized for embedding, using `RecursiveCharacterTextSplitter`.
+
+---
+
+# Last Completed Sprint
+
+## Module 5 / Sprint 1 – LangChain Foundations
+
+Completed Features
+
+- LangChain `Document` representation (`DocumentFactory`)
+- Document metadata (`source`, `created_at`)
+- `DocumentService` (business logic, wired via Dependency Injection)
+- `POST /documents` endpoint
+- Unit tests for document creation (valid text, whitespace stripping, empty-text rejection)
+
+Status
+
+✅ Complete
 
 ---
 
@@ -149,6 +167,7 @@ LangChain will remain isolated within the RAG layer.
 | GET /chat/health | ✅ |
 | POST /chat | ✅ |
 | POST /chat/stream | ✅ |
+| POST /documents | ✅ |
 
 ---
 
@@ -215,9 +234,6 @@ The project follows these principles throughout the codebase.
 
 ## High Priority
 
-- LangChain Documents
-- Document Service
-- Document Metadata
 - RecursiveCharacterTextSplitter
 - Embeddings
 - Vector Store
@@ -255,8 +271,8 @@ Planned improvements include:
 - Provider interfaces for embeddings.
 - Repository layer for persistence.
 - Request-scoped logging.
-- Comprehensive automated testing.
-- Unified exception handling.
+- Broader automated test coverage (only `DocumentService` is currently tested).
+- Unified exception handling (currently handled per-router, e.g. `document.py` catches `ValueError`).
 
 These are intentional future enhancements rather than defects.
 
@@ -280,17 +296,17 @@ v0.4.0
 
 Module 5
 
-Sprint 1
+Sprint 2
 
 Increment 1
 
 Title:
 
-**LangChain Documents**
+**Recursive Text Splitter**
 
 Goal:
 
-Introduce LangChain's `Document` object into the RAG layer while preserving the existing architecture.
+Split LangChain `Document` objects into overlapping chunks using `RecursiveCharacterTextSplitter`, wired through a tested `ChunkingService`, so downstream embedding/storage stages have appropriately sized input.
 
 ---
 
@@ -298,12 +314,13 @@ Introduce LangChain's `Document` object into the RAG layer while preserving the 
 
 The next increment will be complete when:
 
-- A document can be represented as a LangChain `Document`.
-- Metadata is preserved.
-- A Document Service exists.
+- A `Document` can be split into multiple chunked `Document` objects.
+- Chunk size and overlap are configurable.
+- Original metadata is preserved (and extended with chunk position) on every chunk.
 - The RAG layer owns all LangChain interactions.
 - No router communicates directly with LangChain.
 - Existing architecture remains unchanged.
+- The behaviour is covered by automated tests.
 
 ---
 
@@ -316,4 +333,4 @@ If continuing this project in a new ChatGPT conversation:
 3. Read this document (`02-current-status.md`)
 4. Continue with:
 
-**Module 5 → Sprint 1 → Increment 1 → LangChain Documents**
+**Module 5 → Sprint 2 → Increment 1 → Recursive Text Splitter**

@@ -23,15 +23,15 @@ Module 5 – Enterprise RAG
 
 Current Sprint:
 
-Sprint 1
+Sprint 2 – Chunking
 
 Current Increment:
 
-Increment 1 – LangChain Documents
+Increment 1 – Recursive Text Splitter
 
 Status:
 
-Ready to begin LangChain integration.
+Sprint 1 (LangChain Foundations) complete. Ready to begin chunking.
 
 ---
 
@@ -193,6 +193,14 @@ Streaming
 - StreamingService
 - Streaming endpoint
 
+Document Service (Module 5, Sprint 1)
+
+- LangChain `Document` representation (`DocumentFactory`)
+- Document metadata (`source`, `created_at`)
+- `DocumentService`, injected via `Depends`
+- `POST /documents`
+- Unit tests
+
 ---
 
 # Design Decisions
@@ -217,20 +225,16 @@ No framework-specific code inside routers.
 
 # Current Objective
 
-Begin Module 5.
+Continue Module 5, Sprint 2.
 
-Implement Enterprise RAG.
-
-First milestone:
-
-Upload a document and represent it as LangChain Document objects.
+Implement chunking: split LangChain `Document` objects into overlapping chunks with `RecursiveCharacterTextSplitter`, wired through a tested `ChunkingService`.
 
 ---
 
 # Upcoming Milestones
 
-1. LangChain Documents
-2. Recursive Text Splitter
+1. ~~LangChain Documents~~ ✅ Complete
+2. Recursive Text Splitter ← current
 3. Embeddings
 4. Vector Store
 5. Retriever

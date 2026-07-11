@@ -12,10 +12,16 @@ The format follows the principles of Keep a Changelog.
 
 **Status:** 🚧 In Progress
 
+### Added — Sprint 1: LangChain Foundations (Complete)
+
+- `DocumentFactory`, producing LangChain `Document` objects (`app/rag/document_factory.py`)
+- `DocumentService`, validating and enriching text with metadata (`source`, `created_at`)
+- `DocumentService` wired into Dependency Injection (`get_document_service`)
+- `POST /documents` endpoint (thin router, converts `ValueError` to `400`)
+- Unit tests for `DocumentService` (valid text, whitespace stripping, empty-text rejection) — first test suite in the repository
+
 ### Planned
 
-- LangChain Document support
-- Document metadata
 - Recursive text splitting
 - OpenAI embeddings
 - Vector storage
@@ -191,7 +197,6 @@ Expected features
 - DOCX upload
 - HTML ingestion
 - Markdown ingestion
-- LangChain documents
 - Recursive text splitting
 - Embeddings
 - Retrieval

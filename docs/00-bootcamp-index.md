@@ -34,9 +34,9 @@ This project follows real software engineering practices including:
 | Item | Value |
 |------|-------|
 | Current Module | Module 5 – Enterprise RAG |
-| Current Sprint | Sprint 1 |
-| Current Increment | Increment 1 – LangChain Documents |
-| Status | Ready to Begin |
+| Current Sprint | Sprint 2 – Chunking |
+| Current Increment | Increment 1 – Recursive Text Splitter |
+| Status | Sprint 1 Complete. Ready to Begin Sprint 2 |
 
 ---
 
@@ -289,19 +289,18 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 Module 5
 
-Sprint 1
+Sprint 2
 
 Increment 1
 
 Objective:
 
-Implement LangChain Document support and integrate it into the existing layered architecture.
+Split LangChain Documents into overlapping chunks using `RecursiveCharacterTextSplitter`, integrated into the existing layered architecture.
 
 ---
 
 # Next Milestones
 
-- LangChain Documents
 - Recursive Text Splitter
 - OpenAI Embeddings
 - Vector Store
