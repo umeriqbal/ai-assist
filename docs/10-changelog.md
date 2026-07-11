@@ -12,6 +12,14 @@ The format follows the principles of Keep a Changelog.
 
 **Status:** 🚧 In Progress
 
+### Added — Sprint 2: Chunking (Complete)
+
+- `RecursiveDocumentSplitter` extended with `add_start_index` and `chunk_index` / `chunk_count` metadata (`app/rag/splitters/recursive_splitter.py`)
+- `ChunkingService`, reusing `DocumentService` to build the base `Document` before splitting
+- `ChunkingService` wired into Dependency Injection (`get_chunking_service`)
+- `POST /documents/chunks` endpoint (configurable `chunk_size` / `chunk_overlap`, thin router, converts `ValueError` to `400`)
+- Unit tests for `ChunkingService` (multi-chunk splitting, single-chunk short text, empty-text rejection, invalid overlap rejection)
+
 ### Added — Sprint 1: LangChain Foundations (Complete)
 
 - `DocumentFactory`, producing LangChain `Document` objects (`app/rag/document_factory.py`)
@@ -22,7 +30,6 @@ The format follows the principles of Keep a Changelog.
 
 ### Planned
 
-- Recursive text splitting
 - OpenAI embeddings
 - Vector storage
 - Semantic retrieval
@@ -197,7 +204,6 @@ Expected features
 - DOCX upload
 - HTML ingestion
 - Markdown ingestion
-- Recursive text splitting
 - Embeddings
 - Retrieval
 - Source citations

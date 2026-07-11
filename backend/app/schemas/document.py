@@ -25,3 +25,41 @@ class DocumentResponse(BaseModel):
 
     content: str
     metadata: dict
+
+
+class ChunkRequest(BaseModel):
+    """
+    Incoming request to create and chunk a Document.
+    """
+
+    text: str = Field(
+        ...,
+        min_length=1,
+        max_length=50000,
+    )
+
+    source: str = Field(
+        default="manual-upload",
+        max_length=200,
+    )
+
+    chunk_size: int = Field(
+        default=1000,
+        ge=100,
+        le=8000,
+    )
+
+    chunk_overlap: int = Field(
+        default=200,
+        ge=0,
+        le=4000,
+    )
+
+
+class ChunkResponse(BaseModel):
+    """
+    Chunked Documents returned to the client.
+    """
+
+    chunks: list[DocumentResponse]
+    chunk_count: int

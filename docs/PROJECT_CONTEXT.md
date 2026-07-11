@@ -23,15 +23,15 @@ Module 5 – Enterprise RAG
 
 Current Sprint:
 
-Sprint 2 – Chunking
+Sprint 3 – Embeddings
 
 Current Increment:
 
-Increment 1 – Recursive Text Splitter
+Increment 1 – OpenAI Embeddings
 
 Status:
 
-Sprint 1 (LangChain Foundations) complete. Ready to begin chunking.
+Sprint 2 (Chunking) complete. Ready to begin embeddings.
 
 ---
 
@@ -201,6 +201,13 @@ Document Service (Module 5, Sprint 1)
 - `POST /documents`
 - Unit tests
 
+Chunking Service (Module 5, Sprint 2)
+
+- `RecursiveDocumentSplitter` with `chunk_index` / `chunk_count` / `start_index` metadata
+- `ChunkingService`, reusing `DocumentService`, injected via `Depends`
+- `POST /documents/chunks` (configurable `chunk_size` / `chunk_overlap`)
+- Unit tests
+
 ---
 
 # Design Decisions
@@ -225,17 +232,17 @@ No framework-specific code inside routers.
 
 # Current Objective
 
-Continue Module 5, Sprint 2.
+Continue Module 5, Sprint 3.
 
-Implement chunking: split LangChain `Document` objects into overlapping chunks with `RecursiveCharacterTextSplitter`, wired through a tested `ChunkingService`.
+Implement embeddings: convert chunked `Document` objects into vectors via the OpenAI embeddings API, wired through a tested `EmbeddingService`.
 
 ---
 
 # Upcoming Milestones
 
 1. ~~LangChain Documents~~ ✅ Complete
-2. Recursive Text Splitter ← current
-3. Embeddings
+2. ~~Recursive Text Splitter~~ ✅ Complete
+3. Embeddings ← current
 4. Vector Store
 5. Retriever
 6. Question Answering

@@ -39,6 +39,7 @@ class RecursiveDocumentSplitter:
                 " ",
                 "",
             ],
+            add_start_index=True,
         )
 
     def split(
@@ -56,12 +57,18 @@ class RecursiveDocumentSplitter:
         Returns
         -------
         List[Document]
-            Chunked documents.
+            Chunked documents. Each chunk's metadata is extended
+            with `chunk_index` and `chunk_count` so chunks can be
+            ordered and traced back to their source document.
         """
 
         if not documents:
             return []
 
         chunks = self._splitter.split_documents(documents)
+
+        for index, chunk in enumerate(chunks):
+            chunk.metadata["chunk_index"] = index
+            chunk.metadata["chunk_count"] = len(chunks)
 
         return chunks

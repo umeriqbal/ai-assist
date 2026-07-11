@@ -40,7 +40,7 @@ Status:
 
 # Current Sprint
 
-**Sprint 2 – Chunking**
+**Sprint 3 – Embeddings**
 
 Status:
 
@@ -50,15 +50,32 @@ Ready to begin.
 
 # Current Increment
 
-**Increment 1 – Recursive Text Splitter**
+**Increment 1 – OpenAI Embeddings**
 
 Objective:
 
-Split LangChain Documents into overlapping chunks sized for embedding, using `RecursiveCharacterTextSplitter`.
+Convert chunked LangChain Documents into vector embeddings using the OpenAI embeddings API, through a tested `EmbeddingService`.
 
 ---
 
 # Last Completed Sprint
+
+## Module 5 / Sprint 2 – Chunking
+
+Completed Features
+
+- `RecursiveDocumentSplitter` enhanced with `add_start_index` and `chunk_index` / `chunk_count` metadata
+- `ChunkingService` (business logic, reuses `DocumentService`, wired via Dependency Injection)
+- `POST /documents/chunks` endpoint (configurable `chunk_size` / `chunk_overlap`)
+- Unit tests for chunking (multi-chunk splitting, single-chunk short text, empty-text rejection, invalid overlap rejection)
+
+Status
+
+✅ Complete
+
+---
+
+# Previously Completed Sprint
 
 ## Module 5 / Sprint 1 – LangChain Foundations
 
@@ -168,6 +185,7 @@ LangChain will remain isolated within the RAG layer.
 | POST /chat | ✅ |
 | POST /chat/stream | ✅ |
 | POST /documents | ✅ |
+| POST /documents/chunks | ✅ |
 
 ---
 
@@ -234,8 +252,7 @@ The project follows these principles throughout the codebase.
 
 ## High Priority
 
-- RecursiveCharacterTextSplitter
-- Embeddings
+- OpenAI Embeddings
 - Vector Store
 - Retriever
 
@@ -271,7 +288,7 @@ Planned improvements include:
 - Provider interfaces for embeddings.
 - Repository layer for persistence.
 - Request-scoped logging.
-- Broader automated test coverage (only `DocumentService` is currently tested).
+- Broader automated test coverage (only `DocumentService` and `ChunkingService` are currently tested).
 - Unified exception handling (currently handled per-router, e.g. `document.py` catches `ValueError`).
 
 These are intentional future enhancements rather than defects.
@@ -296,17 +313,17 @@ v0.4.0
 
 Module 5
 
-Sprint 2
+Sprint 3
 
 Increment 1
 
 Title:
 
-**Recursive Text Splitter**
+**OpenAI Embeddings**
 
 Goal:
 
-Split LangChain `Document` objects into overlapping chunks using `RecursiveCharacterTextSplitter`, wired through a tested `ChunkingService`, so downstream embedding/storage stages have appropriately sized input.
+Convert chunked `Document` objects into vector embeddings via the OpenAI embeddings API, wired through a tested `EmbeddingService`, so chunks can later be stored and retrieved by semantic similarity.
 
 ---
 
@@ -314,13 +331,13 @@ Split LangChain `Document` objects into overlapping chunks using `RecursiveChara
 
 The next increment will be complete when:
 
-- A `Document` can be split into multiple chunked `Document` objects.
-- Chunk size and overlap are configurable.
-- Original metadata is preserved (and extended with chunk position) on every chunk.
+- A chunked `Document` (or batch of chunks) can be converted into an embedding vector.
+- Batching is supported so multiple chunks are embedded in a single API call where possible.
+- The embedding model is configurable via `Settings`.
 - The RAG layer owns all LangChain interactions.
-- No router communicates directly with LangChain.
+- No router communicates directly with LangChain or the OpenAI SDK.
 - Existing architecture remains unchanged.
-- The behaviour is covered by automated tests.
+- The behaviour is covered by automated tests (with the OpenAI call mocked/faked, not live).
 
 ---
 
@@ -333,4 +350,4 @@ If continuing this project in a new ChatGPT conversation:
 3. Read this document (`02-current-status.md`)
 4. Continue with:
 
-**Module 5 → Sprint 2 → Increment 1 → Recursive Text Splitter**
+**Module 5 → Sprint 3 → Increment 1 → OpenAI Embeddings**

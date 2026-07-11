@@ -34,9 +34,9 @@ This project follows real software engineering practices including:
 | Item | Value |
 |------|-------|
 | Current Module | Module 5 – Enterprise RAG |
-| Current Sprint | Sprint 2 – Chunking |
-| Current Increment | Increment 1 – Recursive Text Splitter |
-| Status | Sprint 1 Complete. Ready to Begin Sprint 2 |
+| Current Sprint | Sprint 3 – Embeddings |
+| Current Increment | Increment 1 – OpenAI Embeddings |
+| Status | Sprint 2 Complete. Ready to Begin Sprint 3 |
 
 ---
 
@@ -289,19 +289,18 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 Module 5
 
-Sprint 2
+Sprint 3
 
 Increment 1
 
 Objective:
 
-Split LangChain Documents into overlapping chunks using `RecursiveCharacterTextSplitter`, integrated into the existing layered architecture.
+Convert chunked LangChain Documents into vector embeddings using the OpenAI embeddings API, integrated into the existing layered architecture.
 
 ---
 
 # Next Milestones
 
-- Recursive Text Splitter
 - OpenAI Embeddings
 - Vector Store
 - Semantic Retrieval

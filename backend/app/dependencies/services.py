@@ -2,6 +2,7 @@ from functools import lru_cache
 
 from app.dependencies.llm import get_openai_provider
 from app.services.chat_service import ChatService
+from app.services.chunking_service import ChunkingService
 from app.services.document_service import DocumentService
 from app.services.streaming_service import StreamingService
 
@@ -23,3 +24,10 @@ def get_streaming_service() -> StreamingService:
 @lru_cache
 def get_document_service() -> DocumentService:
     return DocumentService()
+
+
+@lru_cache
+def get_chunking_service() -> ChunkingService:
+    return ChunkingService(
+        document_service=get_document_service(),
+    )
