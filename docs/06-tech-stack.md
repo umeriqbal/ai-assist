@@ -212,6 +212,8 @@ Introduced in Module 6, Sprint 5, after the agent loop, planning, reflection, an
 
 Important detail: nodes in the graph call this project's own `LLMProvider`/`Tool` abstractions directly, not a LangChain chat model — see Decision 004 (Provider Pattern) and Decision 013 (LangChain Boundary). LangGraph orchestrates; it doesn't own the LLM call.
 
+Extended in Sprint 6 to a multi-worker graph (`supervisor`/`researcher`/`writer` nodes) for multi-agent collaboration — same pattern, more worker nodes behind the conditional edge, routed by a structured decision instead of a boolean.
+
 ---
 
 # Database

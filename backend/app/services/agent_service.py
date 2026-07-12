@@ -15,11 +15,13 @@ class AgentService:
         provider: LLMProvider,
         tools: list[Tool],
         memory: ConversationMemory | None = None,
+        system_prompt: str | None = None,
         max_iterations: int = 5,
     ) -> None:
         self._provider = provider
         self._tools = {tool.name: tool for tool in tools}
         self._memory = memory
+        self._system_prompt = system_prompt
         self._max_iterations = max_iterations
 
     async def chat(
@@ -39,7 +41,17 @@ class AgentService:
             else []
         )
 
-        messages: list[dict] = [*history, {"role": "user", "content": prompt}]
+        system_message = (
+            [{"role": "system", "content": self._system_prompt}]
+            if self._system_prompt
+            else []
+        )
+
+        messages: list[dict] = [
+            *system_message,
+            *history,
+            {"role": "user", "content": prompt},
+        ]
 
         for _ in range(self._max_iterations):
 

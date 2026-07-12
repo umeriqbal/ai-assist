@@ -19,15 +19,15 @@ The completed project should demonstrate the skills expected of an AI Engineer.
 
 Current Module:
 
-Module 6 – AI Agents
+Module 7 – Model Context Protocol (MCP)
 
 Current Sprint:
 
-Sprint 6 – Multi-Agent Collaboration (not yet scoped into increments)
+Not yet defined — Module 7 has not been broken into sprints yet.
 
 Status:
 
-Module 5 (Enterprise RAG) is complete: all 8 sprints delivered, unit-tested, and live-verified against the real OpenAI API. Module 6, Sprints 1–5 (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management) are complete — 95/95 tests passing, live-verified against the real OpenAI API. Sprint 6 (Multi-Agent Collaboration), the last sprint in Module 6, scoping has not started.
+Module 6 (AI Agents) is complete: all 6 sprints delivered (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management, Multi-Agent Collaboration), unit-tested, and live-verified against the real OpenAI API — 98/98 tests passing. Module 7 scoping has not started.
 
 ---
 
@@ -40,8 +40,8 @@ Module 5 (Enterprise RAG) is complete: all 8 sprints delivered, unit-tested, and
 | Module 3 - Semantic Search | Complete |
 | Module 4 - Enterprise AI Platform | Complete |
 | Module 5 - Enterprise RAG | Complete |
-| Module 6 - AI Agents | Current |
-| Module 7 - Model Context Protocol (MCP) | Pending |
+| Module 6 - AI Agents | Complete |
+| Module 7 - Model Context Protocol (MCP) | Current |
 | Module 8 - Production Infrastructure | Pending |
 | Module 9 - Evaluation & Observability | Pending |
 | Module 10 - Enterprise AI Assistant | Pending |
@@ -304,6 +304,17 @@ LangGraph + State Management (Module 6, Sprint 5)
 - Live-verified: memory recall across turns and correct tool-calling through the graph, both against the real OpenAI API
 - Known, deliberately unreconciled: `/agents/chat` and `/agents/graph-chat` use two independent state stores — a `conversation_id` means nothing across the two
 
+Multi-Agent Collaboration (Module 6, Sprint 6 — final sprint of Module 6)
+
+- `AgentService` gained an optional `system_prompt` — an agent can now have a role, not just a tool set
+- `SupervisorDecision` + `Supervisor` (`app/agents/`) — routes to the next specialist via `generate_structured()`, reused a third time (no new provider capability)
+- Researcher (`AgentService` + `KnowledgeBaseSearchTool`) and Writer (`AgentService`, no tools) — two ordinary, differently-configured `AgentService` instances, not a new specialist class
+- `MultiAgentState` + `supervisor`/`researcher`/`writer` graph nodes (`app/agents/multi_agent_graph.py`) — built on the exact graph pattern from Sprint 5, more worker nodes instead of new machinery
+- `MultiAgentService` + `POST /agents/collaborate` — returns the final answer plus the full per-specialist transcript
+- Deliberately out of scope: cross-call memory (Sprints 4–5 already covered it), a separate "Reviewer Agent" (already exists as `ReflectionService`, Sprint 3)
+- Live-verified: Supervisor correctly sequenced Researcher → Writer → finish, with two genuinely distinct specialist outputs
+- **Module 6 (AI Agents) is now fully complete.**
+
 ---
 
 # Design Decisions
@@ -328,9 +339,9 @@ No framework-specific code inside routers.
 
 # Current Objective
 
-Continue Module 6 – AI Agents.
+Begin Module 7 – Model Context Protocol (MCP).
 
-Sprints 1–5 (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management) are complete. Next step: scope Sprint 6 (Multi-Agent Collaboration) — the last sprint in Module 6 — the same way every prior sprint was — a concept walkthrough and a concrete increment plan before any code changes.
+Module 6 (AI Agents) is fully complete — all 6 sprints. First step: scope Module 7 into sprints the same way every prior module was — a concept walkthrough and a concrete plan for Sprint 1 before any code changes. Topics per the roadmap: MCP Specification, MCP Server, MCP Client, Tool Discovery, Remote Execution.
 
 Not yet decided: whether to close out the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first.
 
@@ -349,7 +360,7 @@ Not yet decided: whether to close out the remaining Medium Priority backlog (DOC
 7. ~~Source Citations~~ ✅
 8. ~~Evaluation~~ ✅
 
-## Module 6 (Current — Sprints 1–5 complete)
+## Module 6 (Complete)
 
 - ~~Agent Architecture~~ ✅
 - ~~Planning~~ ✅
@@ -357,7 +368,15 @@ Not yet decided: whether to close out the remaining Medium Priority backlog (DOC
 - ~~Memory~~ ✅
 - ~~LangGraph~~ ✅
 - ~~State Management~~ ✅
-- Multi-Agent Collaboration (not yet scoped — last sprint in Module 6)
+- ~~Multi-Agent Collaboration~~ ✅
+
+## Module 7 (Current — not yet scoped)
+
+- MCP Specification
+- MCP Server
+- MCP Client
+- Tool Discovery
+- Remote Execution
 
 ---
 

@@ -83,3 +83,33 @@ class ReflectResponse(BaseModel):
 
     answer: str
     drafts: list[DraftResponse]
+
+
+class CollaborateRequest(BaseModel):
+    """
+    Incoming multi-agent collaboration request.
+    """
+
+    prompt: str = Field(
+        ...,
+        min_length=1,
+        max_length=10000,
+    )
+
+
+class AgentTurnResponse(BaseModel):
+    """
+    One specialist's contribution to a collaborative answer.
+    """
+
+    agent: str
+    message: str
+
+
+class CollaborateResponse(BaseModel):
+    """
+    Multi-agent collaboration response returned to the client.
+    """
+
+    answer: str
+    transcript: list[AgentTurnResponse]

@@ -733,6 +733,18 @@ Installing the latest version of a package in the same ecosystem as existing pin
 
 ---
 
+## Multi-Agent Collaboration: Specialists, Not a New Kind of Agent
+
+The temptation with "multi-agent" is to invent a new abstraction — a `Specialist` base class, an `AgentRole` enum, something that feels proportionate to a grander-sounding capability. What actually made this work:
+
+- **A specialist is just an agent with a narrower job.** `AgentService` already had everything needed — a tool set and a loop. The only thing missing was a way to give it an identity (`system_prompt`), so a Researcher and a Writer could be two configurations of the same class, not two new ones.
+- **Coordination is a routing decision, repeated.** A `Supervisor` asking "who should act next, and what should they do?" is exactly the same shape as `generate_structured()` was already built for (Sprint 2) — just applied to a different question. No new provider capability, no new "coordination protocol."
+- **The graph shape doesn't change with more workers.** Sprint 5's graph was one worker node (`call_tools`) behind a conditional edge. Sprint 6's graph is two worker nodes (`researcher`, `writer`) behind the same shape of conditional edge, routed by a decision (the supervisor's) instead of a boolean (has-tool-calls). Multi-agent collaboration, at this scale, is a routing problem wearing a bigger name.
+
+The lesson generalizes past this project: before reaching for a new abstraction, check whether the "new" capability is actually a new *configuration* of something that already exists.
+
+---
+
 # Model Context Protocol (MCP)
 
 MCP provides a standard way for AI applications to discover and interact with external tools.

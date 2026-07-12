@@ -218,7 +218,7 @@ A complete enterprise document question-answering system.
 
 # Module 6 — AI Agents
 
-**Status:** 🚧 Current
+**Status:** ✅ Complete
 
 ## Objectives
 
@@ -293,7 +293,13 @@ LangGraph + State Management
 
 Multi-Agent Collaboration
 
-*(not yet scoped)*
+- `SupervisorDecision` model
+- `Supervisor` (routes via `generate_structured()`)
+- `MultiAgentState` + `supervisor`/`researcher`/`writer` graph nodes
+- `MultiAgentService`
+- `POST /agents/collaborate`
+
+**Status:** ✅ Complete
 
 ### Outcome
 
@@ -409,7 +415,7 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 | 3 | Semantic Search | ✅ Complete |
 | 4 | Enterprise AI Platform | ✅ Complete |
 | 5 | Enterprise RAG | ✅ Complete |
-| 6 | AI Agents | 🚧 Current |
+| 6 | AI Agents | ✅ Complete |
 | 7 | Model Context Protocol | ⏳ Planned |
 | 8 | Production Infrastructure | ⏳ Planned |
 | 9 | Evaluation & Observability | ⏳ Planned |
@@ -419,16 +425,12 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 
 # Current Focus
 
-**Module 6 – AI Agents**
-
-Current Sprint:
-
-**Sprint 6 – Multi-Agent Collaboration** *(not yet scoped)*
+**Module 6 – AI Agents: Complete**
 
 Last Completed Sprint:
 
-**Sprint 5 – LangGraph + State Management** — the Sprint 1 ReAct loop rebuilt as a LangGraph graph (`call_model`/`call_tools` nodes calling the exact same `LLMProvider`/`Tool` abstractions `AgentService` uses), compiled with a `MemorySaver` checkpointer for state management, exposed as `POST /agents/graph-chat` alongside (not replacing) the hand-built `POST /agents/chat`.
+**Sprint 6 – Multi-Agent Collaboration** — `Supervisor` (routes via Sprint 2's `generate_structured()`) coordinating two specialist `AgentService` instances (Researcher: knowledge-base tool; Writer: no tools, synthesis only) through a LangGraph graph, exposed as `POST /agents/collaborate`. Live-verified: the supervisor correctly sequenced researcher → writer → finish, each specialist producing genuinely distinct output.
 
 Next milestone:
 
-**Scope Sprint 6 (Multi-Agent Collaboration) into increments before writing any code.**
+**Module 7 – Model Context Protocol (MCP)**, not yet scoped into sprints. First step when this resumes: a concept walkthrough and concrete Sprint 1 plan, the same process used to start every prior module.

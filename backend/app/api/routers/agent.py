@@ -5,12 +5,16 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.dependencies.services import (
     get_agent_graph_service,
     get_agent_service,
+    get_multi_agent_service,
     get_planning_service,
     get_reflection_service,
 )
 from app.schemas.agent import (
     AgentChatRequest,
     AgentChatResponse,
+    AgentTurnResponse,
+    CollaborateRequest,
+    CollaborateResponse,
     DraftResponse,
     PlanRequest,
     PlanResponse,
@@ -19,6 +23,7 @@ from app.schemas.agent import (
 )
 from app.services.agent_graph_service import AgentGraphService
 from app.services.agent_service import AgentService
+from app.services.multi_agent_service import MultiAgentService
 from app.services.planning_service import PlanningService
 from app.services.reflection_service import ReflectionService
 
@@ -120,5 +125,28 @@ async def agent_reflect(
                 was_satisfactory=draft.was_satisfactory,
             )
             for draft in result.drafts
+        ],
+    )
+
+
+@router.post(
+    "/collaborate",
+    response_model=CollaborateResponse,
+)
+async def agent_collaborate(
+    request: CollaborateRequest,
+    service: MultiAgentService = Depends(get_multi_agent_service),
+) -> CollaborateResponse:
+
+    try:
+        result = await service.run(request.prompt)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return CollaborateResponse(
+        answer=result.answer,
+        transcript=[
+            AgentTurnResponse(agent=turn.agent, message=turn.message)
+            for turn in result.transcript
         ],
     )

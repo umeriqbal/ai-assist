@@ -20,7 +20,7 @@ Enterprise AI Assistant
 | Architecture | ✅ Complete |
 | AI Platform | ✅ Complete |
 | Enterprise RAG | ✅ Complete |
-| AI Agents | 🚧 In Progress |
+| AI Agents | ✅ Complete |
 | MCP | ⏳ Pending |
 | Infrastructure | ⏳ Pending |
 | Evaluation | ⏳ Pending |
@@ -30,33 +30,44 @@ Enterprise AI Assistant
 
 # Current Module
 
-**Module 6 – AI Agents**
+**Module 7 – Model Context Protocol (MCP)**
 
 Status:
 
-🚧 In Progress
-
-Completed Sprints
-
-- **Sprint 1 – Agent Architecture:** `Tool` interface (`app/tools/tool.py`), `EchoTool` (contract-proving), `LLMProvider.chat_with_tools()` / `tool_result_messages()` (OpenAI Responses API tool-calling, kept behind the provider boundary), `AgentService` (ReAct-style loop with a max-iteration guard and graceful unknown-tool handling), `KnowledgeBaseSearchTool` (wraps `RetrievalService`), `POST /agents/chat` — live-verified both without a tool (direct answer) and with one (correctly retrieved and grounded an answer in a freshly indexed document)
-- **Sprint 2 – Planning:** `Plan` / `PlanStep` (`app/agents/plan.py`, first use of the `app/agents/` layer) — strict-schema Pydantic models; `LLMProvider.generate_structured()` (new) — OpenAI Responses API JSON-Schema–constrained structured output, a more robust alternative to `FaithfulnessService`'s prompt-instructed JSON parsing; `Planner` (`app/agents/planner.py`) — turns a goal into an ordered `Plan`, filling `goal` in from the caller rather than trusting the model to echo it back; `PlanningService` (new) — runs the plan step by step through `AgentService`, feeding each step the prior steps' results, then synthesizes one final answer; `POST /agents/plan` — live-verified against a real indexed policy document: the plan correctly decomposed the goal, each step retrieved/reused the right fact, and the final synthesized answer was accurate
-- **Sprint 3 – Reflection:** `Critique` (`app/agents/critique.py`) — `is_satisfactory`/`feedback` strict-schema model; `Reflector` (`app/agents/reflector.py`) — critiques a candidate answer via `generate_structured()`, no new provider capability needed (pure reuse of Sprint 2's mechanism); `ReflectionService` (new) — generate → critique → revise loop built on `AgentService`, bounded by `max_iterations` but — unlike `AgentService`'s tool loop — returns a best-effort answer on hitting the cap instead of raising; `POST /agents/reflect` — returns the final answer plus every draft and its critique; live-verified against the real OpenAI API (both a general-knowledge question and a strict-format request were judged satisfactory on the first draft — the revision branch itself is deterministically covered by unit tests)
-- **Sprint 4 – Memory:** `ConversationMemory` (`app/agents/memory.py`) — ABC storing only the human-visible exchange (user message, final answer), not intermediate tool-call plumbing; `InMemoryConversationMemory` — process-local, non-persistent by design, same caveat as `InMemoryVectorStore`; `AgentService.chat()` extended with an optional `conversation_id` — loads prior turns as context, persists the new turn once an answer is produced, raises if a `conversation_id` is passed but no memory store is configured; `POST /agents/chat` — generates a `conversation_id` when the caller omits one and always returns it, so a Swagger user can continue the conversation; live-verified against the real OpenAI API: a fact stated in turn 1 was correctly recalled in turn 2 under the same `conversation_id`, and correctly *not* known in a fresh conversation
-- **Sprint 5 – LangGraph + State Management:** `langgraph==0.6.11` added (first new dependency since Module 5; pinned deliberately below the 1.x line, which forces `langchain-core>=1.0` and breaks the pinned `langchain`/`langchain-openai`/`langchain-community` 0.3.x stack); `AgentGraphState` + `call_model`/`call_tools` nodes (`app/agents/agent_graph.py`) rebuild the Sprint 1 ReAct loop as a graph — the nodes call the exact same `LLMProvider.chat_with_tools()`/`tool_result_messages()`/`Tool.execute()` `AgentService` uses, so LangGraph only replaces the hand-written loop's control flow, not the underlying mechanics; compiled with a `MemorySaver` checkpointer keyed by `conversation_id`, replacing `ConversationMemory` for this path — a graph recursion cap stands in for `max_iterations`, raising the same `RuntimeError` on exceeding it; `AgentGraphService` (new) — thin wrapper invoking the compiled graph; `POST /agents/graph-chat` — same request/response shape as `POST /agents/chat` (which stays unchanged), so the two implementations are directly comparable in Swagger; live-verified against the real OpenAI API on both the memory path (fact recalled across turns under the same `conversation_id`) and the tool-calling path (correctly retrieved a freshly indexed fact via `KnowledgeBaseSearchTool`)
-
-Per the roadmap, Module 6's remaining topic is: Multi-Agent Collaboration — to be scoped the same way Sprints 1–5 were, at the start of the sprint rather than in advance.
+⏳ Not Started
 
 ---
 
 # Current Sprint
 
-**Sprint 6 – Multi-Agent Collaboration**
+Not yet defined.
 
-Not yet scoped into increments.
+Module 7 hasn't been broken into sprints yet — that scoping happens the same way every prior module's did, at the start of the module rather than in advance. Per the roadmap, Module 7's topics are: MCP Specification, MCP Server, MCP Client, Tool Discovery, Remote Execution.
 
 ---
 
 # Last Completed Module
+
+## Module 6 – AI Agents
+
+Completed Features
+
+- **Sprint 1 – Agent Architecture:** `Tool` interface (`app/tools/tool.py`), `EchoTool` (contract-proving), `LLMProvider.chat_with_tools()` / `tool_result_messages()` (OpenAI Responses API tool-calling, kept behind the provider boundary), `AgentService` (ReAct-style loop with a max-iteration guard and graceful unknown-tool handling), `KnowledgeBaseSearchTool` (wraps `RetrievalService`), `POST /agents/chat`
+- **Sprint 2 – Planning:** `Plan` / `PlanStep` (first use of `app/agents/`), `LLMProvider.generate_structured()` (OpenAI JSON-Schema–constrained structured output), `Planner`, `PlanningService` (plan → execute each step via `AgentService` → synthesize), `POST /agents/plan`
+- **Sprint 3 – Reflection:** `Critique`, `Reflector` (reuses `generate_structured()`, no new provider capability needed), `ReflectionService` (generate → critique → revise, best-effort answer at the iteration cap rather than raising), `POST /agents/reflect`
+- **Sprint 4 – Memory:** `ConversationMemory` interface + `InMemoryConversationMemory` (process-local, non-persistent by design, same trade-off as `InMemoryVectorStore`), `AgentService.chat()` extended with an optional `conversation_id`, `POST /agents/chat` now generates/returns/accepts one for real multi-turn conversations
+- **Sprint 5 – LangGraph + State Management:** `langgraph==0.6.11` (first new dependency since Module 5, deliberately pinned below the 1.x line to avoid a `langchain-core` conflict with the existing pinned LangChain stack); the Sprint 1 loop rebuilt as a LangGraph graph (`call_model`/`call_tools` nodes calling the exact same `LLMProvider`/`Tool` methods `AgentService` uses — LangGraph replaces only the control flow), compiled with a `MemorySaver` checkpointer for state management; `AgentGraphService`; `POST /agents/graph-chat` alongside (not replacing) `POST /agents/chat`
+- **Sprint 6 – Multi-Agent Collaboration:** `AgentService` gained an optional `system_prompt` (agents can now have a role, not just a tool set); `SupervisorDecision` + `Supervisor` (routes via `generate_structured()`, reusing Sprint 2's mechanism a third time); `MultiAgentState` + `supervisor`/`researcher`/`writer` graph nodes (`app/agents/multi_agent_graph.py`) — a Researcher (`AgentService` with the knowledge-base tool) and a Writer (`AgentService` with no tools) coordinated by the Supervisor, built on Sprint 5's graph pattern; `MultiAgentService`; `POST /agents/collaborate` — returns the final answer plus the full per-specialist transcript. Deliberately out of scope: cross-call memory (Sprints 4–5 already demonstrated it)
+
+Every sprint above was unit-tested (with external calls faked) and additionally live-verified against the real OpenAI API — including, in Sprint 6, watching the Supervisor correctly sequence Researcher → Writer → finish with each specialist producing genuinely distinct output.
+
+Status
+
+✅ Complete
+
+---
+
+# Previously Completed Module
 
 ## Module 5 – Enterprise RAG
 
@@ -73,30 +84,6 @@ Completed Features
 - **Out of sequence:** fixed the long-broken PDF loader and wired a real file-upload pipeline (`POST /documents/upload`), tested via a real HTTP multipart request and Swagger's file picker
 
 Every increment above was unit-tested (with external calls faked) and additionally live-verified against the real OpenAI API. Still open, non-blocking: DOCX/HTML/Markdown loaders (Medium Priority backlog, never built).
-
-Status
-
-✅ Complete
-
----
-
-# Previously Completed Module
-
-## Module 4 – Enterprise AI Platform
-
-Completed Features
-
-- Application Configuration
-- Environment Variables
-- Application Factory
-- Structured Logging
-- Health Endpoints
-- Dependency Injection
-- Provider Pattern
-- Service Layer
-- OpenAI Provider
-- Chat API
-- Streaming Support
 
 Status
 
@@ -185,6 +172,7 @@ LangChain will remain isolated within the RAG layer.
 | POST /agents/reflect | ✅ |
 | POST /agents/chat (now with conversation_id) | ✅ |
 | POST /agents/graph-chat | ✅ |
+| POST /agents/collaborate | ✅ |
 
 ---
 
@@ -208,7 +196,7 @@ agents/
 tools/
 ```
 
-`agents/` was created in Sprint 2 (`plan.py`, `planner.py`), extended in Sprint 3 (`critique.py`, `reflector.py`), Sprint 4 (`memory.py`, `in_memory_conversation_memory.py`), and Sprint 5 (`agent_graph.py`) — holds the planning/reflection/memory/graph building blocks, the same way `rag/` holds RAG building blocks. LangGraph is confined to this layer, same isolation principle as LangChain and `rag/`. The services that orchestrate them for DI/router use (`AgentService`, `PlanningService`, `ReflectionService`, `AgentGraphService`) still live in `services/`, consistent with Decision 003.
+`agents/` grew across every sprint of Module 6: `plan.py`/`planner.py` (Sprint 2), `critique.py`/`reflector.py` (Sprint 3), `memory.py`/`in_memory_conversation_memory.py` (Sprint 4), `agent_graph.py` (Sprint 5), `supervisor_decision.py`/`supervisor.py`/`multi_agent_graph.py` (Sprint 6) — holds the planning/reflection/memory/graph building blocks, the same way `rag/` holds RAG building blocks. LangGraph is confined to this layer, same isolation principle as LangChain and `rag/`. The services that orchestrate them for DI/router use (`AgentService`, `PlanningService`, `ReflectionService`, `AgentGraphService`, `MultiAgentService`) still live in `services/`, consistent with Decision 003.
 
 ---
 
@@ -253,7 +241,7 @@ The project follows these principles throughout the codebase.
 
 ## High Priority
 
-- Module 6, Sprint 6 – Multi-Agent Collaboration (scoping not yet started)
+- Module 7 – Model Context Protocol (scoping not yet started)
 
 ---
 
@@ -271,7 +259,6 @@ The project follows these principles throughout the codebase.
 - pgvector
 - Hybrid Search
 - Reranking
-- MCP
 - Production Infrastructure
 
 ---
@@ -289,6 +276,7 @@ Planned improvements include:
 - `InMemoryConversationMemory` (Module 6, Sprint 4) carries the identical caveat — process-local, non-persistent, lost on restart — behind the same `ConversationMemory` interface, ready to be replaced by Redis or PostgreSQL (both already listed as "Future" in the tech stack).
 - `POST /agents/chat` and `POST /agents/graph-chat` (Module 6, Sprint 5) use two separate, unrelated state stores (`ConversationMemory` vs. LangGraph's `MemorySaver`). A `conversation_id` from one endpoint means nothing to the other — reusing one across both is a no-op, not an error, so nothing will surface this if it happens. Intentional (they're two independent implementations of the same capability, kept deliberately separate for comparison), but worth knowing before assuming they interoperate.
 - LangGraph's `MemorySaver` checkpointer persists the *entire* graph state per turn, including intermediate tool-call round-trip messages — unlike `ConversationMemory`, which deliberately stores only the human-visible exchange. More faithful context, but an uncurated and unboundedly growing state; not reconciled between the two paths.
+- `POST /agents/collaborate` (Module 6, Sprint 6) has no cross-call memory at all — each request is a fresh collaboration with no `conversation_id`. Intentional scope decision (Sprints 4–5 already covered that capability), not an oversight, but worth knowing before assuming feature parity with the other `/agents/*` endpoints.
 - `FaithfulnessService` parses the LLM judge's verdict from prompt-instructed JSON text, not a guaranteed schema. Malformed responses are reported as `is_faithful: null` rather than silently misreported, but this is best-effort parsing, not a guaranteed contract. `LLMProvider.generate_structured()` (added in Module 6, Sprint 2) now provides exactly the robust mechanism this needed — retrofitting `FaithfulnessService` to use it is an optional, non-blocking cleanup, not yet done.
 - DOCX/HTML/Markdown loaders are not implemented — only PDF and raw text ingestion currently work.
 
@@ -300,33 +288,34 @@ These are intentional future enhancements rather than defects.
 
 Latest Completed Milestone
 
-Module 6, Sprint 5 – LangGraph + State Management
+Module 6 – AI Agents (all 6 sprints)
 
 Recommended Tag
 
 ```
-v0.6.0-sprint5
+v0.6.0
 ```
 
 ---
 
 # Next Development Task
 
-Module 6, Sprint 6 – Multi-Agent Collaboration
+Module 7 – Model Context Protocol (MCP)
 
-Not yet broken into increments.
+Not yet broken into sprints/increments.
 
 Goal (module-level, per the roadmap):
 
-Build a modular multi-agent system covering agent architecture, planning, reflection, memory, multi-agent collaboration, and state management, using LangGraph. Sprints 1–5 are complete — the loop, planning, reflection, and memory were hand-built first, then Sprint 5 rebuilt the loop as a LangGraph graph so the framework reads as "the same mechanics, now managed" rather than new magic. Sprint 6 (Multi-Agent Collaboration) is the last sprint in Module 6 and the first to require more than one agent — the next step is scoping it the same way every prior sprint was, a concept walkthrough and increment plan before any code changes.
+Build and consume MCP servers, covering the MCP specification, an MCP server, an MCP client, tool discovery, and remote execution. Module 6 (AI Agents) is fully complete: agent architecture, planning, reflection, memory, LangGraph/state management, and multi-agent collaboration, all built and live-verified. The first step when this resumes is scoping Module 7 into sprints the same way every prior module was — starting with a concept walkthrough and a plan for Sprint 1, before any code changes.
 
 ---
 
 # Success Criteria
 
-Module 6, Sprint 6 is ready to scope when:
+Module 7 is ready to scope when:
 
-- Sprint 5's graph-based agent is confirmed stable (it is — 95/95 tests passing, live-verified against the real OpenAI API on both the memory path and the tool-calling path).
+- Module 6's full agent system is confirmed stable (it is — 98/98 tests passing, every sprint live-verified against the real OpenAI API, including Sprint 6's multi-agent collaboration).
+- A decision is made on whether to first close out the Medium Priority backlog (DOCX/HTML/Markdown loaders) or move straight into MCP.
 
 ---
 
@@ -339,4 +328,4 @@ If continuing this project in a new conversation:
 3. Read this document (`02-current-status.md`)
 4. Continue with:
 
-**Module 6, Sprint 6 – Multi-Agent Collaboration → scope into increments (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.
+**Module 7 – Model Context Protocol → scope Sprint 1 (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.

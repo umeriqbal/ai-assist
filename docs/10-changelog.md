@@ -8,7 +8,20 @@ The format follows the principles of Keep a Changelog.
 
 # [0.6.0] - AI Agents
 
-**Status:** 🚧 In Progress
+**Status:** ✅ Complete
+
+### Added — Sprint 6: Multi-Agent Collaboration (Complete)
+
+- `AgentService` gained an optional `system_prompt` constructor param — the first time an agent has had a role, not just a tool set; prepended as a `{"role": "system", ...}` message when set, a no-op otherwise (existing callers/tests unaffected)
+- `SupervisorDecision` (new, `app/agents/supervisor_decision.py`) — `next: Literal["researcher", "writer", "finish"]` + `instructions: str`, strict-schema model
+- `Supervisor` (new, `app/agents/supervisor.py`) — decides which specialist acts next given the transcript so far, via `generate_structured()` (Sprint 2's mechanism, reused a third time — no new provider capability needed)
+- `MultiAgentState` + `supervisor`/`researcher`/`writer` graph nodes (new, `app/agents/multi_agent_graph.py`) — Researcher (`AgentService` + `KnowledgeBaseSearchTool`) and Writer (`AgentService`, no tools) coordinated by the Supervisor, built on the exact graph pattern `agent_graph.py` established in Sprint 5 (conditional edge + node-per-worker), just with more than one worker node this time. No checkpointer — this endpoint deliberately has no cross-call memory (Sprints 4–5 already demonstrated that capability)
+- `MultiAgentService` (new, `app/services/multi_agent_service.py`) — thin wrapper invoking the graph, returning the final answer plus the full per-specialist transcript
+- `POST /agents/collaborate` endpoint
+- Unit tests: full researcher → writer → finish routing sequence, empty-prompt rejection, iteration-limit cap without needing to script every possible loop path
+- Live-verified against the real OpenAI API and a real indexed document: the Supervisor correctly sequenced Researcher (retrieved the fact via the knowledge-base tool) → Writer (composed a polished, friendly answer from the researcher's findings) → finish — two genuinely distinct specialist outputs in the transcript, not one agent doing everything
+- This realizes the "Planner/Supervisor → Specialist Agents → Final Answer" sketch that sat in `03-architecture.md` since before Module 6 began, with two concrete specialists rather than an open-ended set, and no separate "Reviewer Agent" — self-critique already exists as `ReflectionService` (Sprint 3) and wasn't duplicated here
+- **Module 6 (AI Agents) is now fully complete** — all 6 sprints (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management, Multi-Agent Collaboration) delivered, unit-tested, and live-verified against the real OpenAI API
 
 ### Added — Sprint 5: LangGraph + State Management (Complete)
 
@@ -72,9 +85,10 @@ The format follows the principles of Keep a Changelog.
 
 ### Not Included
 
-- Multi-Agent Collaboration (Sprint 6, not yet scoped)
 - Persistent conversation memory (Redis/PostgreSQL) — `InMemoryConversationMemory` is process-local by design, same as `InMemoryVectorStore`; `MemorySaver` carries the identical caveat for the graph path
 - Reconciling the two independent `/agents/chat` vs. `/agents/graph-chat` state stores — deliberately kept separate for side-by-side comparison, not merged
+- Cross-call memory for `POST /agents/collaborate` — deliberately out of scope for Sprint 6; Sprints 4–5 already covered that ground
+- A "Reviewer Agent" as a third multi-agent specialist — self-critique already exists as `ReflectionService` (Sprint 3) and wasn't duplicated
 
 ---
 
@@ -326,13 +340,7 @@ Built the first OpenAI-powered application.
 
 # Upcoming Releases
 
-## Remainder of 0.6.0 - AI Agents
-
-### Planned (Sprint 6, not yet scoped)
-
-- Multi-Agent Collaboration
-
-### Carried over from 0.5.0 (not blocking)
+## Carried over from 0.5.0 (not blocking)
 
 - DOCX upload
 - HTML ingestion
@@ -417,7 +425,7 @@ Expected features
 | 0.3.0 | Semantic Search | ✅ |
 | 0.4.0 | Enterprise AI Platform | ✅ |
 | 0.5.0 | Enterprise RAG | ✅ |
-| 0.6.0 | AI Agents | 🚧 |
+| 0.6.0 | AI Agents | ✅ |
 | 0.7.0 | MCP | ⏳ |
 | 0.8.0 | Infrastructure | ⏳ |
 | 0.9.0 | Evaluation | ⏳ |
@@ -429,8 +437,8 @@ Expected features
 
 Current Status
 
-- Modules Completed: 5 / 10
-- Current Module: 6 (Sprints 1–5 of 6 complete)
+- Modules Completed: 6 / 10
+- Current Module: 7 (not yet scoped)
 - Architecture: Stable
 - Documentation: Complete
 - Production Readiness: Strong foundation established

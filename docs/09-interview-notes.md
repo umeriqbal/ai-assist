@@ -561,9 +561,33 @@ The fix wasn't to unpin everything to "whatever's compatible" — that reintrodu
 
 ---
 
+## Q41. Why is a specialist just a differently-configured `AgentService`, not a new class? (Sprint 6)
+
+### Answer
+
+Because the only things that make a "specialist" specialist are its tool set and its role — both of which `AgentService` already had a place for (`tools`, and now `system_prompt`). A Researcher is an `AgentService` with `KnowledgeBaseSearchTool` and a research-framed system prompt; a Writer is the same class with no tools and a writing-framed prompt. Inventing a `Specialist` base class or a `Role` enum on top of that would be an abstraction with nothing to abstract — the variation is entirely in configuration, not behavior.
+
+---
+
+## Q42. How does the Supervisor decide who acts next, and why is that not new machinery? (Sprint 6)
+
+### Answer
+
+The Supervisor looks at the transcript so far and asks a structured question: which specialist should act next (or is the task done), and what should they do? That's answered by `generate_structured()` — the exact same structured-output mechanism `Planner` (Sprint 2) and `Reflector` (Sprint 3) already used, just pointed at a routing decision instead of a plan or a critique. The graph orchestrating it is the same shape as Sprint 5's single-agent graph, just with two worker nodes behind the conditional edge instead of one. Multi-agent collaboration, built this way, isn't a new category of system — it's the same two tools (structured decisions, graph routing) applied one level up.
+
+---
+
+## Q43. Why no "Reviewer Agent," when the sketch in the architecture docs included one?
+
+### Answer
+
+Because it would have duplicated a capability that already exists. `ReflectionService` (Sprint 3) already does self-critique — generate, critique, revise. Adding a third specialist whose job is "review the answer" would be re-solving a problem Sprint 3 solved, under a different name, inside a different sprint. Recognizing that a "new" piece of a system is actually a capability already built elsewhere — and reusing it instead of rebuilding it — is as much a part of system design as building the new pieces are.
+
+---
+
 # Model Context Protocol (MCP)
 
-## Q30. What is MCP?
+## Q44. What is MCP?
 
 ### Answer
 
@@ -579,7 +603,7 @@ Benefits:
 
 # System Design Questions
 
-## Q31. How would you design an enterprise AI assistant?
+## Q45. How would you design an enterprise AI assistant?
 
 ### Talking Points
 
@@ -595,7 +619,7 @@ Benefits:
 
 ---
 
-## Q32. How do you reduce hallucinations?
+## Q46. How do you reduce hallucinations?
 
 ### Talking Points
 
@@ -608,7 +632,7 @@ Benefits:
 
 ---
 
-## Q33. How would you support multiple LLM providers?
+## Q47. How would you support multiple LLM providers?
 
 ### Answer
 
@@ -628,7 +652,7 @@ Business logic depends only on the interface.
 
 ---
 
-## Q34. What would you monitor in production?
+## Q48. What would you monitor in production?
 
 ### Metrics
 

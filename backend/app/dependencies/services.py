@@ -19,6 +19,7 @@ from app.services.document_upload_service import DocumentUploadService
 from app.services.embedding_service import EmbeddingService
 from app.services.evaluation_service import EvaluationService
 from app.services.faithfulness_service import FaithfulnessService
+from app.services.multi_agent_service import MultiAgentService
 from app.services.planning_service import PlanningService
 from app.services.question_answering_service import QuestionAnsweringService
 from app.services.reflection_service import ReflectionService
@@ -168,4 +169,38 @@ def get_reflection_service() -> ReflectionService:
     return ReflectionService(
         agent_service=get_agent_service(),
         reflector=get_reflector(),
+    )
+
+
+@lru_cache
+def get_researcher_agent_service() -> AgentService:
+    return AgentService(
+        provider=get_openai_provider(),
+        tools=[get_knowledge_base_search_tool()],
+        system_prompt=(
+            "You are a research specialist. Use the knowledge base search "
+            "tool to find relevant facts. Report findings concisely."
+        ),
+    )
+
+
+@lru_cache
+def get_writer_agent_service() -> AgentService:
+    return AgentService(
+        provider=get_openai_provider(),
+        tools=[],
+        system_prompt=(
+            "You are a writing specialist. You have no tools. Given the "
+            "goal and the information already gathered, compose a clear, "
+            "complete final answer."
+        ),
+    )
+
+
+@lru_cache
+def get_multi_agent_service() -> MultiAgentService:
+    return MultiAgentService(
+        provider=get_openai_provider(),
+        researcher=get_researcher_agent_service(),
+        writer=get_writer_agent_service(),
     )

@@ -626,41 +626,50 @@ Known asymmetry, not yet reconciled: `MemorySaver` persists the *entire* graph s
 
 ---
 
-# Future Agent Flow
+# Current Multi-Agent Flow
 
 ```
-User Request
+POST /agents/collaborate  { prompt }
 
 ↓
 
-Planner Agent
+Agent Router
 
 ↓
 
-Task Breakdown
+MultiAgentService.run(prompt)
 
 ↓
 
-Specialist Agents
+compiled StateGraph.ainvoke(...)
 
 ↓
 
-Tool Calls
+┌──────────────────────────────────────────┐
+│  supervisor node                          │
+│    → Supervisor.decide(messages)          │
+│    → LLMProvider.generate_structured()    │
+│    → { next, instructions }               │
+└──────────────────────────────────────────┘
 
-↓
+↓  conditional edge on `next`
 
-Results
-
-↓
-
-Reviewer Agent
-
-↓
-
-Final Answer
+  ┌─────────────┐         ┌─────────────┐
+  │ researcher  │         │   writer    │
+  │ (AgentService│        │ (AgentService│
+  │  + KB tool)  │        │  no tools)   │
+  └─────────────┘         └─────────────┘
+        │                        │
+        └──────────┬─────────────┘
+                    ↓
+             back to supervisor
+                    │
+              next == "finish"
+                    ↓
+      final answer + full transcript
 ```
 
-Introduced across Sprints 2–6 (Planning, Reflection, Memory, LangGraph/State Management, Multi-Agent Collaboration), building on the Current Agent Flow above rather than replacing it.
+This is the "Planner/Supervisor → Specialist Agents → Final Answer" idea this document sketched before Module 6 began — realized with two concrete specialists (Researcher, Writer) rather than an open-ended set, and no separate "Reviewer Agent": self-critique already exists as its own capability (`ReflectionService`, Sprint 3) and wasn't duplicated here. Each specialist is an ordinary `AgentService` instance — Sprint 6 added an optional `system_prompt` so an agent can have a role, not a new "specialist" class. The Supervisor routes via `generate_structured()` (Sprint 2's mechanism, reused a third time), and orchestration follows the exact graph pattern `agent_graph.py` established in Sprint 5 — a conditional edge and node-per-worker, just with more than one worker node this time. No checkpointer: this endpoint deliberately has no cross-call memory (Sprints 4–5 already covered that ground).
 
 ---
 
@@ -766,6 +775,7 @@ Current
 - PlanningService
 - ReflectionService
 - AgentGraphService
+- MultiAgentService
 
 Future
 

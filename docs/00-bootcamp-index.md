@@ -33,10 +33,10 @@ This project follows real software engineering practices including:
 
 | Item | Value |
 |------|-------|
-| Current Module | Module 6 – AI Agents |
-| Current Sprint | Sprint 6 – Multi-Agent Collaboration (not yet scoped) |
+| Current Module | Module 7 – Model Context Protocol (MCP) |
+| Current Sprint | Not yet defined |
 | Current Increment | Not yet defined |
-| Status | Module 5 (Enterprise RAG) Complete. Module 6, Sprints 1–5 (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management) complete — 95/95 tests passing, live-verified |
+| Status | Module 6 (AI Agents) Complete — all 6 sprints, 98/98 tests passing, live-verified. Module 7 not yet scoped into sprints |
 
 ---
 
@@ -87,8 +87,8 @@ The completed application will include:
 | module-03.md | Complete |
 | module-04.md | Complete |
 | module-05.md | Complete |
-| module-06.md | Current |
-| module-07.md | Pending |
+| module-06.md | Complete |
+| module-07.md | Current |
 | module-08.md | Pending |
 | module-09.md | Pending |
 | module-10.md | Pending |
@@ -201,8 +201,6 @@ Complete
 
 ---
 
-# Current Module (In Progress)
-
 ## Module 6
 
 AI Agents
@@ -214,14 +212,13 @@ Completed Sprints
 - **Sprint 3 – Reflection:** `Critique`, `Reflector` (reuses `generate_structured()`, no new provider work needed), `ReflectionService` (generate → critique → revise loop, best-effort answer on hitting the iteration cap rather than raising), `POST /agents/reflect`
 - **Sprint 4 – Memory:** `ConversationMemory` interface + `InMemoryConversationMemory` (process-local, non-persistent by design, same trade-off as `InMemoryVectorStore`), `AgentService.chat()` extended with an optional `conversation_id`, `POST /agents/chat` now generates/returns/accepts a `conversation_id` for real multi-turn conversations
 - **Sprint 5 – LangGraph + State Management:** `langgraph==0.6.11` (first new dependency since Module 5); the Sprint 1 loop rebuilt as a LangGraph graph (`call_model`/`call_tools` nodes calling the same `LLMProvider`/`Tool` methods `AgentService` uses — LangGraph replaces only the loop's control flow), compiled with a `MemorySaver` checkpointer for state management; `AgentGraphService`; `POST /agents/graph-chat` alongside (not replacing) `POST /agents/chat`
+- **Sprint 6 – Multi-Agent Collaboration:** `AgentService` gained an optional `system_prompt` (an agent can now have a role); `Supervisor` (routes via `generate_structured()`, reused a third time) coordinating a Researcher and a Writer specialist — both ordinary `AgentService` instances, differently configured — through a LangGraph graph built on Sprint 5's pattern; `MultiAgentService`; `POST /agents/collaborate`
 
-Every sprint above unit-tested and live-verified against the real OpenAI API.
-
-Not yet scoped: Sprint 6 (Multi-Agent Collaboration) — the last sprint in Module 6.
+Every sprint above unit-tested and live-verified against the real OpenAI API — Sprint 6's included watching the Supervisor correctly sequence Researcher → Writer → finish with two genuinely distinct specialist outputs.
 
 Status
 
-🚧 In Progress
+Complete
 
 ---
 
@@ -315,15 +312,14 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 # Current Milestone
 
-Module 6 – AI Agents
+Module 7 – Model Context Protocol (MCP)
 
-Sprints 1–5 (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management) complete. Next step: a concept walkthrough and concrete increment plan for Sprint 6 (Multi-Agent Collaboration) — the last sprint in Module 6, same approach used for every prior sprint.
+Module 6 (AI Agents) is fully complete — all 6 sprints. Not yet scoped into sprints. First step when work resumes: a concept walkthrough and a concrete plan for Sprint 1, same approach used to start every prior module.
 
 ---
 
 # Next Milestones
 
-- AI Agents: Multi-Agent Collaboration (Sprint 6, not yet scoped — the last sprint in Module 6)
 - Model Context Protocol (MCP)
 - Production Infrastructure (Docker, PostgreSQL, pgvector, Terraform, AWS, CI/CD)
 - Evaluation & Observability (cost/latency/prompt versioning — system-wide, distinct from Module 5's RAG-quality evaluation)
