@@ -1,6 +1,7 @@
 from functools import lru_cache
 
 from app.agents.planner import Planner
+from app.agents.reflector import Reflector
 from app.dependencies.llm import (
     get_embedding_model,
     get_openai_provider,
@@ -18,6 +19,7 @@ from app.services.evaluation_service import EvaluationService
 from app.services.faithfulness_service import FaithfulnessService
 from app.services.planning_service import PlanningService
 from app.services.question_answering_service import QuestionAnsweringService
+from app.services.reflection_service import ReflectionService
 from app.services.retrieval_service import RetrievalService
 from app.services.streaming_service import StreamingService
 from app.services.vector_store_service import VectorStoreService
@@ -140,4 +142,19 @@ def get_planning_service() -> PlanningService:
         planner=get_planner(),
         agent_service=get_agent_service(),
         provider=get_openai_provider(),
+    )
+
+
+@lru_cache
+def get_reflector() -> Reflector:
+    return Reflector(
+        provider=get_openai_provider(),
+    )
+
+
+@lru_cache
+def get_reflection_service() -> ReflectionService:
+    return ReflectionService(
+        agent_service=get_agent_service(),
+        reflector=get_reflector(),
     )

@@ -500,6 +500,45 @@ Steps execute sequentially, not in parallel — each step's prompt includes ever
 
 ---
 
+# Current Reflection Flow
+
+```
+POST /agents/reflect
+
+↓
+
+Agent Router
+
+↓
+
+ReflectionService
+
+↓
+
+AgentService.chat()  (initial answer — Current Agent Flow, above)
+
+↓
+
+┌──────────────────────────────────┐
+│  Reflector.critique()            │
+│  (LLMProvider.generate_structured)│
+└──────────────────────────────────┘
+
+↓
+
+Satisfactory? ── yes ──→ Final Answer + Drafts
+       │
+       no
+       ↓
+AgentService.chat()  (revise, using the critique feedback)
+       │
+       └──→ back into the loop (bounded by max_iterations)
+```
+
+`Reflector` lives in `app/agents/`, alongside `Planner` — another planning/reasoning building block, not a business service. `ReflectionService` composes it with `AgentService`, same split as `PlanningService`. No new provider capability was needed: `generate_structured()` (Sprint 2) already covers the critique step.
+
+---
+
 # Future Agent Flow
 
 ```
@@ -638,6 +677,7 @@ Current
 - FaithfulnessService
 - AgentService
 - PlanningService
+- ReflectionService
 
 Future
 

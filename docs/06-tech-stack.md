@@ -206,6 +206,10 @@ Reason
 
 Production-ready architecture.
 
+Status
+
+Not yet introduced. Module 6's agent loop, planning, and reflection (Sprints 1–3) were deliberately hand-built in plain Python first, without LangGraph — so the underlying mechanics are understood before a framework manages them. LangGraph is scoped for Sprint 5.
+
 ---
 
 # Database

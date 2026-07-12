@@ -40,14 +40,15 @@ Completed Sprints
 
 - **Sprint 1 – Agent Architecture:** `Tool` interface (`app/tools/tool.py`), `EchoTool` (contract-proving), `LLMProvider.chat_with_tools()` / `tool_result_messages()` (OpenAI Responses API tool-calling, kept behind the provider boundary), `AgentService` (ReAct-style loop with a max-iteration guard and graceful unknown-tool handling), `KnowledgeBaseSearchTool` (wraps `RetrievalService`), `POST /agents/chat` — live-verified both without a tool (direct answer) and with one (correctly retrieved and grounded an answer in a freshly indexed document)
 - **Sprint 2 – Planning:** `Plan` / `PlanStep` (`app/agents/plan.py`, first use of the `app/agents/` layer) — strict-schema Pydantic models; `LLMProvider.generate_structured()` (new) — OpenAI Responses API JSON-Schema–constrained structured output, a more robust alternative to `FaithfulnessService`'s prompt-instructed JSON parsing; `Planner` (`app/agents/planner.py`) — turns a goal into an ordered `Plan`, filling `goal` in from the caller rather than trusting the model to echo it back; `PlanningService` (new) — runs the plan step by step through `AgentService`, feeding each step the prior steps' results, then synthesizes one final answer; `POST /agents/plan` — live-verified against a real indexed policy document: the plan correctly decomposed the goal, each step retrieved/reused the right fact, and the final synthesized answer was accurate
+- **Sprint 3 – Reflection:** `Critique` (`app/agents/critique.py`) — `is_satisfactory`/`feedback` strict-schema model; `Reflector` (`app/agents/reflector.py`) — critiques a candidate answer via `generate_structured()`, no new provider capability needed (pure reuse of Sprint 2's mechanism); `ReflectionService` (new) — generate → critique → revise loop built on `AgentService`, bounded by `max_iterations` but — unlike `AgentService`'s tool loop — returns a best-effort answer on hitting the cap instead of raising; `POST /agents/reflect` — returns the final answer plus every draft and its critique; live-verified against the real OpenAI API (both a general-knowledge question and a strict-format request were judged satisfactory on the first draft — the revision branch itself is deterministically covered by unit tests)
 
-Per the roadmap, Module 6's remaining topics are: Reflection, Memory, Multi-Agent Collaboration, LangGraph, State Management — each to be scoped into its own sprint the same way Sprints 1–2 were, at the start of the sprint rather than in advance.
+Per the roadmap, Module 6's remaining topics are: Memory, Multi-Agent Collaboration, LangGraph, State Management — each to be scoped into its own sprint the same way Sprints 1–3 were, at the start of the sprint rather than in advance.
 
 ---
 
 # Current Sprint
 
-**Sprint 3 – Reflection**
+**Sprint 4 – Memory**
 
 Not yet scoped into increments.
 
@@ -179,6 +180,7 @@ LangChain will remain isolated within the RAG layer.
 | POST /evaluate/faithfulness | ✅ |
 | POST /agents/chat | ✅ |
 | POST /agents/plan | ✅ |
+| POST /agents/reflect | ✅ |
 
 ---
 
@@ -202,7 +204,7 @@ agents/
 tools/
 ```
 
-`agents/` was created in Sprint 2 (`plan.py`, `planner.py`) — holds the planning building blocks, the same way `rag/` holds RAG building blocks. The services that orchestrate them for DI/router use (`AgentService`, `PlanningService`) still live in `services/`, consistent with Decision 003.
+`agents/` was created in Sprint 2 (`plan.py`, `planner.py`) and extended in Sprint 3 (`critique.py`, `reflector.py`) — holds the planning/reflection building blocks, the same way `rag/` holds RAG building blocks. The services that orchestrate them for DI/router use (`AgentService`, `PlanningService`, `ReflectionService`) still live in `services/`, consistent with Decision 003.
 
 ---
 
@@ -247,7 +249,7 @@ The project follows these principles throughout the codebase.
 
 ## High Priority
 
-- Module 6, Sprint 3 – Reflection (scoping not yet started)
+- Module 6, Sprint 4 – Memory (scoping not yet started)
 
 ---
 
@@ -291,33 +293,33 @@ These are intentional future enhancements rather than defects.
 
 Latest Completed Milestone
 
-Module 6, Sprint 2 – Planning
+Module 6, Sprint 3 – Reflection
 
 Recommended Tag
 
 ```
-v0.6.0-sprint2
+v0.6.0-sprint3
 ```
 
 ---
 
 # Next Development Task
 
-Module 6, Sprint 3 – Reflection
+Module 6, Sprint 4 – Memory
 
 Not yet broken into increments.
 
 Goal (module-level, per the roadmap):
 
-Build a modular multi-agent system covering agent architecture, planning, reflection, memory, multi-agent collaboration, and state management, using LangGraph. Sprints 1 (Agent Architecture) and 2 (Planning) are complete, both hand-built without LangGraph by design — LangGraph is introduced in Sprint 5 so it's recognizable as "the same loop, now framework-managed" rather than unexplained magic. The next step is scoping Sprint 3 the same way — a concept walkthrough and increment plan, before any code changes.
+Build a modular multi-agent system covering agent architecture, planning, reflection, memory, multi-agent collaboration, and state management, using LangGraph. Sprints 1 (Agent Architecture), 2 (Planning), and 3 (Reflection) are complete, all hand-built without LangGraph by design — LangGraph is introduced in Sprint 5 so it's recognizable as "the same loop, now framework-managed" rather than unexplained magic. The next step is scoping Sprint 4 the same way — a concept walkthrough and increment plan, before any code changes.
 
 ---
 
 # Success Criteria
 
-Module 6, Sprint 3 is ready to scope when:
+Module 6, Sprint 4 is ready to scope when:
 
-- Sprint 2's plan-and-execute pipeline is confirmed stable (it is — 75/75 tests passing, live-verified end to end against the real OpenAI API and a real indexed document).
+- Sprint 3's reflect-and-revise loop is confirmed stable (it is — 81/81 tests passing, live-verified against the real OpenAI API).
 
 ---
 
@@ -330,4 +332,4 @@ If continuing this project in a new conversation:
 3. Read this document (`02-current-status.md`)
 4. Continue with:
 
-**Module 6, Sprint 3 – Reflection → scope into increments (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.
+**Module 6, Sprint 4 – Memory → scope into increments (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.

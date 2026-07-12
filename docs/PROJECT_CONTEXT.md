@@ -23,11 +23,11 @@ Module 6 – AI Agents
 
 Current Sprint:
 
-Not yet defined — Module 6 has not been broken into sprints yet.
+Sprint 4 – Memory (not yet scoped into increments)
 
 Status:
 
-Module 5 (Enterprise RAG) is complete: all 8 sprints delivered, unit-tested, and live-verified against the real OpenAI API. Module 6 scoping (into sprints/increments, the same way Module 5 was) has not started.
+Module 5 (Enterprise RAG) is complete: all 8 sprints delivered, unit-tested, and live-verified against the real OpenAI API. Module 6, Sprints 1–3 (Agent Architecture, Planning, Reflection) are complete — 81/81 tests passing, live-verified against the real OpenAI API. Sprint 4 (Memory) scoping has not started.
 
 ---
 
@@ -261,6 +261,32 @@ Evaluation (Module 5, Sprint 8 — final sprint of Module 5)
 - Defensive JSON parsing of the judge's verdict (strips code fences; reports `is_faithful: null` rather than guessing on malformed output) — an explicitly documented limitation, not a guaranteed schema
 - Live-verified: real retrieval evaluation correctly flagged a deliberately mislabeled test case; real faithfulness judging correctly passed a genuinely grounded answer
 
+Agent Architecture (Module 6, Sprint 1)
+
+- `Tool` interface (`app/tools/tool.py`) — name, description, JSON-Schema parameters, async `execute()`
+- `LLMProvider.chat_with_tools()` / `tool_result_messages()` — OpenAI Responses API tool-calling, kept behind the provider boundary so business logic never sees OpenAI's wire format
+- `AgentService` — ReAct-style loop (call model → execute requested tool → feed result back → repeat), bounded by a `max_iterations` guard; unknown tool names fed back as a recoverable error instead of crashing
+- `KnowledgeBaseSearchTool` — wraps `RetrievalService` as the agent's first real tool
+- `POST /agents/chat`
+- Live-verified: a direct question answered without a tool call; a question about a freshly indexed document correctly triggered the knowledge-base tool and produced a grounded answer
+
+Planning (Module 6, Sprint 2)
+
+- `app/agents/` layer created (first use) — `Plan` / `PlanStep`, strict-schema Pydantic models
+- `LLMProvider.generate_structured()` — OpenAI JSON-Schema–constrained structured output; a more robust alternative to `FaithfulnessService`'s prompt-instructed JSON parsing
+- `Planner` — turns a goal into an ordered `Plan`, filling `goal` in from the caller rather than trusting the model to echo it back
+- `PlanningService` — runs the plan step by step through `AgentService` (each step keeps tool access, and sees prior steps' results), then synthesizes one final answer
+- `POST /agents/plan`
+- Live-verified against a real indexed document: correct step decomposition, correct per-step retrieval, accurate synthesized answer
+
+Reflection (Module 6, Sprint 3)
+
+- `Critique` — `is_satisfactory` / `feedback`, strict-schema model
+- `Reflector` — critiques a candidate answer via `generate_structured()` (no new provider capability needed)
+- `ReflectionService` — generate → critique → revise loop on `AgentService`, bounded by `max_iterations`; unlike the tool loop, hitting the cap returns a best-effort answer instead of raising
+- `POST /agents/reflect` — returns the final answer plus every draft and its critique
+- Live-verified against the real OpenAI API (both test questions were judged satisfactory on the first draft; the revision branch is deterministically covered by unit tests)
+
 ---
 
 # Design Decisions
@@ -285,9 +311,9 @@ No framework-specific code inside routers.
 
 # Current Objective
 
-Begin Module 6 – AI Agents.
+Continue Module 6 – AI Agents.
 
-First step: scope Module 6 into sprints the same way Module 5 was — a concept walkthrough and a concrete plan for Sprint 1 before any code changes. Topics per the roadmap: Agent Architecture, Planning, Reflection, Memory, Multi-Agent Collaboration, LangGraph, State Management.
+Sprints 1–3 (Agent Architecture, Planning, Reflection) are complete. Next step: scope Sprint 4 (Memory) the same way every prior sprint was — a concept walkthrough and a concrete increment plan before any code changes.
 
 Not yet decided: whether to close out the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first.
 
@@ -306,15 +332,15 @@ Not yet decided: whether to close out the remaining Medium Priority backlog (DOC
 7. ~~Source Citations~~ ✅
 8. ~~Evaluation~~ ✅
 
-## Module 6 (Current — not yet scoped)
+## Module 6 (Current — Sprints 1–3 complete)
 
-- Agent Architecture
-- Planning
-- Reflection
-- Memory
-- Multi-Agent Collaboration
-- LangGraph
-- State Management
+- ~~Agent Architecture~~ ✅
+- ~~Planning~~ ✅
+- ~~Reflection~~ ✅
+- Memory (not yet scoped)
+- Multi-Agent Collaboration (not yet scoped)
+- LangGraph (deliberately deferred to Sprint 5)
+- State Management (folded into the LangGraph sprint)
 
 ---
 

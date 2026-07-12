@@ -426,7 +426,7 @@ Benefits:
 
 ---
 
-# AI Agents
+# Module 6 — AI Agents
 
 ## Q28. What is an AI Agent?
 
@@ -449,6 +449,67 @@ An agent can:
 - Make decisions
 - Execute workflows
 - Reflect on results
+
+---
+
+## Q30. How does an agent decide to call a tool? (Sprint 1)
+
+### Answer
+
+The ReAct pattern: send the conversation plus the available tools' schemas to the model. The model either answers directly or requests a tool call by name with arguments. If it requests one, execute it and feed the result back into the conversation, then ask again — repeating until it returns a final answer instead of another tool call.
+
+Two failure modes have to be handled explicitly, not left implicit:
+
+- **Unbounded looping** — nothing stops a model from requesting tools forever without a hard iteration cap.
+- **Hallucinated tool names** — the model can request a tool that doesn't exist; feeding an error back and letting the model recover is better than crashing the request.
+
+---
+
+## Q31. Why did tool-calling need a change to the Provider Pattern? (Sprint 1)
+
+### Answer
+
+Tool-calling wire formats are provider-specific — OpenAI's Responses API needs an echoed `function_call` item plus a `function_call_output` item keyed by `call_id`; other providers shape this differently. If that shape were built inside the agent's business logic, swapping providers later would mean rewriting the agent loop — exactly what the Provider Pattern exists to prevent.
+
+The fix: give each provider a method (`tool_result_messages()`) that translates "a tool call and its result" into its own wire format, so the shape never leaves the provider layer.
+
+---
+
+## Q32. What is plan-and-execute, and how is it different from ReAct? (Sprint 2)
+
+### Answer
+
+ReAct is reactive — the model decides one tool call at a time, discovering its path as it goes. Plan-and-execute decomposes a goal into an explicit, ordered list of steps *before* executing anything, then runs each step (still through a ReAct loop, so each step can still use tools), passing earlier steps' results into later ones, and finally synthesizes one answer from all the results.
+
+Trade-off: an upfront plan can't react to what a step discovers the way a pure ReAct loop can — which is why plan-and-execute nests a ReAct loop inside each step rather than replacing it. The benefit that justifies the extra machinery: the plan itself becomes inspectable, user-visible output, not just an internal decision.
+
+---
+
+## Q33. Structured output vs. prompt-instructed JSON — why does it matter? (Sprint 2)
+
+### Answer
+
+Prompt-instructed JSON (asking nicely in the prompt and parsing the text response) is fragile — the model can wrap it in prose or drift from the schema. Structured output passes a JSON Schema to the API itself; in strict mode, generation is grammar-constrained so the output cannot violate the schema.
+
+Prefer structured output whenever a schema is available. `FaithfulnessService` (Module 5) uses the fragile prompt-instructed approach because it predates this capability — it's flagged as technical debt rather than treated as a permanent pattern, precisely so it gets revisited now that the real mechanism (`LLMProvider.generate_structured()`) exists.
+
+---
+
+## Q34. What is Reflection, and when should the loop stop? (Sprint 3)
+
+### Answer
+
+Reflection is a generate → critique → revise loop: produce an answer, have the model critique its own answer against the original question, and if unsatisfactory, revise and re-check — bounded by an iteration cap.
+
+What happens at the cap matters and isn't automatically "fail": a tool loop that never produced an answer has genuinely failed, so raising is correct there. A reflection loop that never reaches "satisfactory" still has a real, usable answer sitting in hand — returning that last draft as a best-effort result is the right call, not an error.
+
+---
+
+## Q35. Is Reflection the same as the faithfulness/hallucination check from Module 5?
+
+### Answer
+
+No — same underlying idea (LLM-as-judge), different purpose and different place in the pipeline. `FaithfulnessService` is an **offline evaluation** check: it judges an answer *after the fact*, against retrieved context, for measurement purposes. `ReflectionService` is an **inline runtime** loop: it judges a candidate answer *before it's ever returned to the caller*, against the original question, as part of producing the answer.
 
 ---
 

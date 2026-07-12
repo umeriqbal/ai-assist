@@ -255,7 +255,12 @@ Planning
 
 Reflection
 
-*(not yet scoped)*
+- `Critique` model
+- `Reflector`
+- `ReflectionService`
+- `POST /agents/reflect`
+
+**Status:** ✅ Complete
 
 ---
 
@@ -409,12 +414,12 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 
 Current Sprint:
 
-**Sprint 3 – Reflection** *(not yet scoped)*
+**Sprint 4 – Memory** *(not yet scoped)*
 
 Last Completed Sprint:
 
-**Sprint 2 – Planning** — `Plan`/`PlanStep` models, provider structured-output support, `Planner`, `PlanningService`, and a live `POST /agents/plan` endpoint that decomposes a goal, executes each step through the Sprint 1 agent loop, and synthesizes a final answer.
+**Sprint 3 – Reflection** — `Critique` model, `Reflector`, `ReflectionService` (generate → critique → revise loop, reusing `AgentService` and Sprint 2's `generate_structured()` with no new provider capability needed), and a live `POST /agents/reflect` endpoint that returns the final answer plus its full revision history.
 
 Next milestone:
 
-**Scope Sprint 3 (Reflection) into increments before writing any code.**
+**Scope Sprint 4 (Memory) into increments before writing any code.**

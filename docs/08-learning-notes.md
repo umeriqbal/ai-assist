@@ -650,6 +650,37 @@ Prefer structured output whenever a schema is available. Prompt-instructed JSON 
 
 ---
 
+## Reflection (Self-Critique)
+
+A generate → critique → revise loop: produce an answer, ask the model to judge its own answer against the original question, and if it's found lacking, revise and re-check — bounded by an iteration cap, same discipline as the ReAct loop's tool-call cap.
+
+```
+Answer
+
+↓
+
+Critique (structured: satisfactory? + feedback)
+
+↓
+
+Satisfactory? ── yes ──→ Done
+       │
+       no
+       ↓
+   Revise (answer + feedback → new answer)
+       │
+       └──→ back to Critique
+```
+
+Two things worth being deliberate about:
+
+- **What happens at the iteration cap matters, and it's not always "fail."** A tool loop that never gets an answer has genuinely failed — raising is correct. A reflection loop that never gets to "satisfactory" still has a real, usable answer sitting there — it just wasn't perfectly polished. Returning that last draft is the right call, not an error.
+- **Self-critique is not the same as correctness.** A model judging its own output can be wrong, overconfident, or overly harsh — reflection improves average quality, it doesn't guarantee it. That's why the drafts and feedback are worth surfacing to the caller rather than hiding them: visibility into "the model thought this was fine" is itself useful signal.
+
+**Distinct from offline evaluation** (`FaithfulnessService`, Module 5): that judges an answer *after the fact*, against retrieved context, for measurement purposes. Reflection judges an answer *before returning it*, against the question, as part of producing the answer. Same "LLM-as-judge" idea, different point in the pipeline, different purpose.
+
+---
+
 # Model Context Protocol (MCP)
 
 MCP provides a standard way for AI applications to discover and interact with external tools.

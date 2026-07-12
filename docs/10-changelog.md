@@ -10,6 +10,16 @@ The format follows the principles of Keep a Changelog.
 
 **Status:** 🚧 In Progress
 
+### Added — Sprint 3: Reflection (Complete)
+
+- `Critique` (new, `app/agents/critique.py`) — `is_satisfactory: bool` / `feedback: str`, strict-schema Pydantic model
+- `Reflector` (new, `app/agents/reflector.py`) — critiques a candidate answer against its question via `LLMProvider.generate_structured()`; required no new provider capability, pure reuse of Sprint 2's mechanism
+- `ReflectionService` (new, `app/services/reflection_service.py`) — generate → critique → revise loop: initial answer via `AgentService.chat()`, critiqued by `Reflector`, revised via another `AgentService.chat()` call (question + previous answer + feedback, so revision can still use tools) if unsatisfactory, bounded by `max_iterations` (default 3). Deliberately different failure behavior from `AgentService`'s tool loop: hitting the iteration cap returns the last draft as a best-effort answer instead of raising — a reflection loop that never finishes still has a usable answer, unlike a tool loop that never got one
+- `POST /agents/reflect` endpoint — returns the final answer plus every draft and its critique, so the self-correction process is visible
+- Unit tests: `Reflector` contract via the fake provider, `ReflectionService` (immediate-satisfactory shortcut, one revision cycle, iteration-limit cap without raising, empty-question rejection)
+- Live-verified against the real OpenAI API: both a general-knowledge question and a strict-format request were judged satisfactory on the first draft (no revision triggered); the revision branch itself is deterministically covered by unit tests rather than forced live
+- Explicitly distinguished from `FaithfulnessService` (Module 5): that's an offline evaluation check on an already-given answer; `ReflectionService` is an inline runtime self-correction loop before an answer is ever returned
+
 ### Added — Sprint 2: Planning (Complete)
 
 - `app/agents/` layer created (first use) — planning building blocks, mirroring how `rag/` holds RAG building blocks
@@ -40,7 +50,7 @@ The format follows the principles of Keep a Changelog.
 
 ### Not Included
 
-- Reflection, Memory, LangGraph/State Management, Multi-Agent Collaboration (Sprints 3–6, not yet scoped) — LangGraph is deliberately deferred to Sprint 5 rather than introduced in Sprint 1, so the hand-built loop above is understood before a framework manages it
+- Memory, LangGraph/State Management, Multi-Agent Collaboration (Sprints 4–6, not yet scoped) — LangGraph is deliberately deferred to Sprint 5 rather than introduced in Sprint 1, so the hand-built loop above is understood before a framework manages it
 
 ---
 
@@ -294,9 +304,8 @@ Built the first OpenAI-powered application.
 
 ## Remainder of 0.6.0 - AI Agents
 
-### Planned (Sprints 3–6, not yet scoped)
+### Planned (Sprints 4–6, not yet scoped)
 
-- Reflection
 - Memory
 - LangGraph + State Management
 - Multi-Agent Collaboration
@@ -399,7 +408,7 @@ Expected features
 Current Status
 
 - Modules Completed: 5 / 10
-- Current Module: 6 (Sprints 1–2 of ~6 complete)
+- Current Module: 6 (Sprints 1–3 of ~6 complete)
 - Architecture: Stable
 - Documentation: Complete
 - Production Readiness: Strong foundation established

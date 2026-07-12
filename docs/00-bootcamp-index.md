@@ -34,9 +34,9 @@ This project follows real software engineering practices including:
 | Item | Value |
 |------|-------|
 | Current Module | Module 6 – AI Agents |
-| Current Sprint | Not yet defined |
+| Current Sprint | Sprint 4 – Memory (not yet scoped) |
 | Current Increment | Not yet defined |
-| Status | Module 5 (Enterprise RAG) Complete. Module 6 not yet scoped into sprints |
+| Status | Module 5 (Enterprise RAG) Complete. Module 6, Sprints 1–3 (Agent Architecture, Planning, Reflection) complete — 81/81 tests passing, live-verified |
 
 ---
 
@@ -201,6 +201,28 @@ Complete
 
 ---
 
+# Current Module (In Progress)
+
+## Module 6
+
+AI Agents
+
+Completed Sprints
+
+- **Sprint 1 – Agent Architecture:** `Tool` interface, `LLMProvider.chat_with_tools()` / `tool_result_messages()` (OpenAI tool-calling kept behind the provider boundary), `AgentService` (ReAct loop with iteration cap and graceful unknown-tool handling), `KnowledgeBaseSearchTool` (wraps `RetrievalService`), `POST /agents/chat`
+- **Sprint 2 – Planning:** `app/agents/` layer created; `Plan`/`PlanStep`, `LLMProvider.generate_structured()` (OpenAI structured output), `Planner`, `PlanningService` (executes a plan step by step via `AgentService`, then synthesizes an answer), `POST /agents/plan`
+- **Sprint 3 – Reflection:** `Critique`, `Reflector` (reuses `generate_structured()`, no new provider work needed), `ReflectionService` (generate → critique → revise loop, best-effort answer on hitting the iteration cap rather than raising), `POST /agents/reflect`
+
+Every sprint above unit-tested and live-verified against the real OpenAI API.
+
+Not yet scoped: Sprint 4 (Memory), Sprint 5 (LangGraph + State Management), Sprint 6 (Multi-Agent Collaboration). LangGraph is deliberately deferred to Sprint 5 rather than used from the start.
+
+Status
+
+🚧 In Progress
+
+---
+
 # Architecture
 
 The project follows a layered architecture.
@@ -293,13 +315,13 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 Module 6 – AI Agents
 
-Not yet scoped into sprints. First step when work resumes: a concept walkthrough and a concrete plan for Sprint 1, same approach used to start Module 5.
+Sprints 1–3 (Agent Architecture, Planning, Reflection) complete. Next step: a concept walkthrough and concrete increment plan for Sprint 4 (Memory), same approach used for every prior sprint.
 
 ---
 
 # Next Milestones
 
-- AI Agents (Agent Architecture, Planning, Reflection, Memory, Multi-Agent Collaboration, LangGraph, State Management)
+- AI Agents: Memory, Multi-Agent Collaboration, LangGraph, State Management (Sprints 4–6, not yet scoped)
 - Model Context Protocol (MCP)
 - Production Infrastructure (Docker, PostgreSQL, pgvector, Terraform, AWS, CI/CD)
 - Evaluation & Observability (cost/latency/prompt versioning — system-wide, distinct from Module 5's RAG-quality evaluation)
