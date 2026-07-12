@@ -3,6 +3,7 @@ from functools import lru_cache
 from app.agents.planner import Planner
 from app.agents.reflector import Reflector
 from app.dependencies.llm import (
+    get_conversation_memory,
     get_embedding_model,
     get_openai_provider,
     get_vector_store,
@@ -126,6 +127,7 @@ def get_agent_service() -> AgentService:
     return AgentService(
         provider=get_openai_provider(),
         tools=[get_knowledge_base_search_tool()],
+        memory=get_conversation_memory(),
     )
 
 

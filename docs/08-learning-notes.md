@@ -681,6 +681,25 @@ Two things worth being deliberate about:
 
 ---
 
+## Memory
+
+Every agent service built so far is stateless per call — each request starts from nothing. Memory means carrying context across multiple calls: a real conversation, not just a single self-contained exchange.
+
+```
+Turn 1: "My favorite number is 47."  ──→  stored
+
+Turn 2: "What's my favorite number?"  ──→  loads Turn 1  ──→  "47"
+```
+
+Two design choices worth naming explicitly:
+
+- **What to store.** An agent turn can involve a lot of internal machinery (tool calls, intermediate results). Memory here stores only the human-visible exchange — the user's message and the final answer — not that internal machinery. It's simpler, keeps the memory store free of any provider-specific wire format, and matches what a person would actually recall about "the conversation so far."
+- **Identity.** Memory needs a key — some `conversation_id` scoping which turns belong together. Without one, there's no way to know which history belongs to which caller. Auto-generating one when the caller doesn't supply it (and always returning it) is a small but real UX decision: the caller shouldn't have to invent an id scheme just to get a multi-turn conversation working.
+
+**Same evolution story as the vector store.** `InMemoryVectorStore` (Module 5) was an intentional first pass — in-memory now, `PostgreSQL`/`pgvector` later, behind the same interface. `InMemoryConversationMemory` repeats that pattern exactly: build the interface, ship a process-local implementation, swap the implementation later (Redis or PostgreSQL) without touching anything that calls it.
+
+---
+
 # Model Context Protocol (MCP)
 
 MCP provides a standard way for AI applications to discover and interact with external tools.

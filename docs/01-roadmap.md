@@ -268,7 +268,11 @@ Reflection
 
 Memory
 
-*(not yet scoped)*
+- `ConversationMemory` interface / `InMemoryConversationMemory`
+- `AgentService.chat()` extended with `conversation_id`
+- `POST /agents/chat` returns and accepts `conversation_id`
+
+**Status:** ✅ Complete
 
 ---
 
@@ -414,12 +418,12 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 
 Current Sprint:
 
-**Sprint 4 – Memory** *(not yet scoped)*
+**Sprint 5 – LangGraph + State Management** *(not yet scoped)*
 
 Last Completed Sprint:
 
-**Sprint 3 – Reflection** — `Critique` model, `Reflector`, `ReflectionService` (generate → critique → revise loop, reusing `AgentService` and Sprint 2's `generate_structured()` with no new provider capability needed), and a live `POST /agents/reflect` endpoint that returns the final answer plus its full revision history.
+**Sprint 4 – Memory** — `ConversationMemory` interface + `InMemoryConversationMemory`, `AgentService.chat()` extended with an optional `conversation_id` (loads prior turns, persists the new one), and `POST /agents/chat` now generates/returns/accepts a `conversation_id` so a Swagger user can hold a real multi-turn conversation.
 
 Next milestone:
 
-**Scope Sprint 4 (Memory) into increments before writing any code.**
+**Scope Sprint 5 (LangGraph + State Management) into increments before writing any code.**

@@ -10,6 +10,17 @@ The format follows the principles of Keep a Changelog.
 
 **Status:** 🚧 In Progress
 
+### Added — Sprint 4: Memory (Complete)
+
+- `ConversationMemory` (new, `app/agents/memory.py`) — ABC with `get_history()` / `append_turn()`; stores only the human-visible exchange (user message, final assistant answer), deliberately excluding the tool-call round-trips a turn may go through internally, keeping the store provider-agnostic
+- `InMemoryConversationMemory` (new, `app/agents/in_memory_conversation_memory.py`) — process-local, non-persistent by design, same trade-off as `InMemoryVectorStore`; ready to swap for Redis/PostgreSQL (both already "Future" in the tech stack) behind the same interface
+- `AgentService.chat()` extended with an optional `conversation_id` — when given, prior turns are loaded and prepended to the new user message before the existing ReAct loop runs unchanged, then the new turn is persisted once an answer is produced; raises if a `conversation_id` is passed but no memory store is configured for that `AgentService` instance
+- `dependencies/llm.py` gained `get_conversation_memory()` (singleton, same caching rationale as `get_vector_store()`), wired into `get_agent_service()`
+- `POST /agents/chat` — request gained an optional `conversation_id`; the server generates one when omitted and always returns it, so a client can continue the conversation on the next call
+- Unit tests: `InMemoryConversationMemory` (empty-conversation default, ordering, multi-turn accumulation, isolation by id), `AgentService` (no-memory-used when no `conversation_id`, prior history included when one is given, new turn persisted, explicit error when `conversation_id` is passed without a configured memory store)
+- Live-verified against the real OpenAI API: a fact stated in turn 1 was correctly recalled in turn 2 under the same `conversation_id`; a fresh conversation (new `conversation_id`) correctly had no knowledge of it
+- Scope note: memory was added to `AgentService`/`POST /agents/chat` only, not `PlanningService`/`ReflectionService` — kept to the single concrete, demonstrable capability the roadmap names for this sprint rather than expanding scope
+
 ### Added — Sprint 3: Reflection (Complete)
 
 - `Critique` (new, `app/agents/critique.py`) — `is_satisfactory: bool` / `feedback: str`, strict-schema Pydantic model
@@ -50,7 +61,8 @@ The format follows the principles of Keep a Changelog.
 
 ### Not Included
 
-- Memory, LangGraph/State Management, Multi-Agent Collaboration (Sprints 4–6, not yet scoped) — LangGraph is deliberately deferred to Sprint 5 rather than introduced in Sprint 1, so the hand-built loop above is understood before a framework manages it
+- LangGraph/State Management, Multi-Agent Collaboration (Sprints 5–6, not yet scoped) — LangGraph is deliberately deferred to Sprint 5 rather than introduced in Sprint 1, so the hand-built loop, planning, reflection, and memory above are understood before a framework manages them
+- Persistent conversation memory (Redis/PostgreSQL) — `InMemoryConversationMemory` is process-local by design, same as `InMemoryVectorStore`
 
 ---
 
@@ -304,9 +316,8 @@ Built the first OpenAI-powered application.
 
 ## Remainder of 0.6.0 - AI Agents
 
-### Planned (Sprints 4–6, not yet scoped)
+### Planned (Sprints 5–6, not yet scoped)
 
-- Memory
 - LangGraph + State Management
 - Multi-Agent Collaboration
 
@@ -408,7 +419,7 @@ Expected features
 Current Status
 
 - Modules Completed: 5 / 10
-- Current Module: 6 (Sprints 1–3 of ~6 complete)
+- Current Module: 6 (Sprints 1–4 of ~6 complete)
 - Architecture: Stable
 - Documentation: Complete
 - Production Readiness: Strong foundation established

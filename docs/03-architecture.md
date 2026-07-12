@@ -539,6 +539,48 @@ AgentService.chat()  (revise, using the critique feedback)
 
 ---
 
+# Current Memory Flow
+
+```
+POST /agents/chat  { prompt, conversation_id? }
+
+↓
+
+Agent Router  (generates a conversation_id if the caller omitted one)
+
+↓
+
+AgentService.chat(prompt, conversation_id)
+
+↓
+
+ConversationMemory.get_history(conversation_id)  ──→  prior turns
+
+↓
+
+messages = prior turns + new user message
+
+↓
+
+(Current Agent Flow, above — unchanged)
+
+↓
+
+final answer
+
+↓
+
+ConversationMemory.append_turn(conversation_id, prompt, answer)
+
+↓
+
+response + conversation_id
+```
+
+Only the human-visible exchange (user message, final answer) is stored — not the tool-call round-trips that happen mid-turn inside the ReAct loop. `ConversationMemory` lives in `app/agents/` (a building block, like `Planner`/`Reflector`); `InMemoryConversationMemory` is process-local and non-persistent by design, the same trade-off `InMemoryVectorStore` made, behind an interface ready to swap for Redis or PostgreSQL later.
+
+---
+
 # Future Agent Flow
 
 ```

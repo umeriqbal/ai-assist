@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.dependencies.services import (
@@ -33,12 +35,19 @@ async def agent_chat(
     service: AgentService = Depends(get_agent_service),
 ) -> AgentChatResponse:
 
-    response = await service.chat(
-        request.prompt,
-    )
+    conversation_id = request.conversation_id or str(uuid.uuid4())
+
+    try:
+        response = await service.chat(
+            request.prompt,
+            conversation_id=conversation_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     return AgentChatResponse(
         response=response,
+        conversation_id=conversation_id,
     )
 
 

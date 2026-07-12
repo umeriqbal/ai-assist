@@ -12,6 +12,15 @@ class AgentChatRequest(BaseModel):
         max_length=10000,
     )
 
+    conversation_id: str | None = Field(
+        default=None,
+        max_length=100,
+        description=(
+            "Continue an existing conversation. Omit to start a new one — "
+            "the server generates and returns an id to reuse on the next call."
+        ),
+    )
+
 
 class AgentChatResponse(BaseModel):
     """
@@ -19,6 +28,7 @@ class AgentChatResponse(BaseModel):
     """
 
     response: str
+    conversation_id: str
 
 
 class PlanRequest(BaseModel):

@@ -23,11 +23,11 @@ Module 6 – AI Agents
 
 Current Sprint:
 
-Sprint 4 – Memory (not yet scoped into increments)
+Sprint 5 – LangGraph + State Management (not yet scoped into increments)
 
 Status:
 
-Module 5 (Enterprise RAG) is complete: all 8 sprints delivered, unit-tested, and live-verified against the real OpenAI API. Module 6, Sprints 1–3 (Agent Architecture, Planning, Reflection) are complete — 81/81 tests passing, live-verified against the real OpenAI API. Sprint 4 (Memory) scoping has not started.
+Module 5 (Enterprise RAG) is complete: all 8 sprints delivered, unit-tested, and live-verified against the real OpenAI API. Module 6, Sprints 1–4 (Agent Architecture, Planning, Reflection, Memory) are complete — 89/89 tests passing, live-verified against the real OpenAI API. Sprint 5 (LangGraph + State Management) scoping has not started.
 
 ---
 
@@ -287,6 +287,14 @@ Reflection (Module 6, Sprint 3)
 - `POST /agents/reflect` — returns the final answer plus every draft and its critique
 - Live-verified against the real OpenAI API (both test questions were judged satisfactory on the first draft; the revision branch is deterministically covered by unit tests)
 
+Memory (Module 6, Sprint 4)
+
+- `ConversationMemory` (`app/agents/memory.py`) — ABC storing only the human-visible exchange (user message, final answer), not intermediate tool-call plumbing
+- `InMemoryConversationMemory` — process-local, non-persistent by design, same trade-off `InMemoryVectorStore` made
+- `AgentService.chat()` extended with an optional `conversation_id` — loads prior turns as context, persists the new turn once an answer is produced
+- `POST /agents/chat` — generates a `conversation_id` when omitted, always returns it, so a client can continue the conversation on the next call
+- Live-verified: a fact stated in turn 1 was correctly recalled in turn 2 under the same `conversation_id`, and correctly absent in a fresh conversation
+
 ---
 
 # Design Decisions
@@ -313,7 +321,7 @@ No framework-specific code inside routers.
 
 Continue Module 6 – AI Agents.
 
-Sprints 1–3 (Agent Architecture, Planning, Reflection) are complete. Next step: scope Sprint 4 (Memory) the same way every prior sprint was — a concept walkthrough and a concrete increment plan before any code changes.
+Sprints 1–4 (Agent Architecture, Planning, Reflection, Memory) are complete. Next step: scope Sprint 5 (LangGraph + State Management) the same way every prior sprint was — a concept walkthrough and a concrete increment plan before any code changes.
 
 Not yet decided: whether to close out the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first.
 
@@ -332,12 +340,12 @@ Not yet decided: whether to close out the remaining Medium Priority backlog (DOC
 7. ~~Source Citations~~ ✅
 8. ~~Evaluation~~ ✅
 
-## Module 6 (Current — Sprints 1–3 complete)
+## Module 6 (Current — Sprints 1–4 complete)
 
 - ~~Agent Architecture~~ ✅
 - ~~Planning~~ ✅
 - ~~Reflection~~ ✅
-- Memory (not yet scoped)
+- ~~Memory~~ ✅
 - Multi-Agent Collaboration (not yet scoped)
 - LangGraph (deliberately deferred to Sprint 5)
 - State Management (folded into the LangGraph sprint)

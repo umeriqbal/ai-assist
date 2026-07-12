@@ -513,6 +513,24 @@ No — same underlying idea (LLM-as-judge), different purpose and different plac
 
 ---
 
+## Q36. What does "memory" mean for an agent, and what should it actually store? (Sprint 4)
+
+### Answer
+
+Memory means carrying context across multiple separate requests — a real conversation, not just a single self-contained exchange each time. Concretely: give each conversation an id, load its prior turns before running the agent loop, and persist the new turn once an answer is produced.
+
+The more interesting design question is *what* to store. An agent turn can involve a lot of internal machinery — tool calls, intermediate results. Storing only the human-visible exchange (the user's message and the final answer), not that internal machinery, is deliberate: it's simpler, it keeps the memory store free of any provider-specific format, and it matches what a person would actually mean by "the conversation so far."
+
+---
+
+## Q37. How is `InMemoryConversationMemory` similar to `InMemoryVectorStore`?
+
+### Answer
+
+Same story, one layer over. Both are an intentional first pass: build the interface (`VectorStore` / `ConversationMemory`), ship a process-local, non-persistent implementation now, and swap in a durable backend later (`PostgreSQL`+`pgvector` for vectors, Redis or PostgreSQL for conversation memory) without touching any code that calls the interface. It's the Provider Pattern's idea — depend on abstractions — applied to storage, not just LLM providers.
+
+---
+
 # Model Context Protocol (MCP)
 
 ## Q30. What is MCP?
