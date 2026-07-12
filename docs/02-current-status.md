@@ -20,7 +20,7 @@ Enterprise AI Assistant
 | Architecture | ✅ Complete |
 | AI Platform | ✅ Complete |
 | Enterprise RAG | ✅ Complete |
-| AI Agents | ⏳ Pending |
+| AI Agents | 🚧 In Progress |
 | MCP | ⏳ Pending |
 | Infrastructure | ⏳ Pending |
 | Evaluation | ⏳ Pending |
@@ -34,15 +34,21 @@ Enterprise AI Assistant
 
 Status:
 
-⏳ Not Started
+🚧 In Progress
+
+Completed Sprints
+
+- **Sprint 1 – Agent Architecture:** `Tool` interface (`app/tools/tool.py`), `EchoTool` (contract-proving), `LLMProvider.chat_with_tools()` / `tool_result_messages()` (OpenAI Responses API tool-calling, kept behind the provider boundary), `AgentService` (ReAct-style loop with a max-iteration guard and graceful unknown-tool handling), `KnowledgeBaseSearchTool` (wraps `RetrievalService`), `POST /agents/chat` — live-verified both without a tool (direct answer) and with one (correctly retrieved and grounded an answer in a freshly indexed document)
+
+Per the roadmap, Module 6's remaining topics are: Planning, Reflection, Memory, Multi-Agent Collaboration, LangGraph, State Management — each to be scoped into its own sprint the same way Sprint 1 was, at the start of the sprint rather than in advance.
 
 ---
 
 # Current Sprint
 
-Not yet defined.
+**Sprint 2 – Planning**
 
-Module 6 hasn't been broken into sprints yet — that scoping happens the same way Module 5's did, at the start of the module rather than in advance. Per the roadmap, Module 6's topics are: Agent Architecture, Planning, Reflection, Memory, Multi-Agent Collaboration, LangGraph, State Management.
+Not yet scoped into increments.
 
 ---
 
@@ -170,6 +176,7 @@ LangChain will remain isolated within the RAG layer.
 | POST /ask | ✅ |
 | POST /evaluate/retrieval | ✅ |
 | POST /evaluate/faithfulness | ✅ |
+| POST /agents/chat | ✅ |
 
 ---
 
@@ -189,9 +196,10 @@ rag/
 schemas/
 models/
 database/
-agents/
 tools/
 ```
+
+`agents/` doesn't exist yet — Sprint 1's single-agent loop is business logic and rightly lives in `services/agent_service.py` (Decision 003 already lists `AgentService` as a service example). A dedicated `agents/` layer will be introduced once planning/memory/multi-agent orchestration (Sprints 2+) needs a home distinct from a plain service — likely alongside LangGraph in Sprint 5.
 
 ---
 
@@ -236,7 +244,7 @@ The project follows these principles throughout the codebase.
 
 ## High Priority
 
-- Agent Architecture (Module 6, Sprint scoping not yet started)
+- Module 6, Sprint 2 – Planning (scoping not yet started)
 
 ---
 
@@ -280,44 +288,43 @@ These are intentional future enhancements rather than defects.
 
 Latest Completed Milestone
 
-Module 5 – Enterprise RAG
+Module 6, Sprint 1 – Agent Architecture
 
 Recommended Tag
 
 ```
-v0.5.0
+v0.6.0-sprint1
 ```
 
 ---
 
 # Next Development Task
 
-Module 6 – AI Agents
+Module 6, Sprint 2 – Planning
 
-Not yet broken into sprints/increments.
+Not yet broken into increments.
 
 Goal (module-level, per the roadmap):
 
-Build a modular multi-agent system covering agent architecture, planning, reflection, memory, multi-agent collaboration, and state management, using LangGraph. The first step when this resumes is scoping Module 6 into sprints the same way Module 5 was — starting with a concept walkthrough and a plan for Sprint 1, before any code changes.
+Build a modular multi-agent system covering agent architecture, planning, reflection, memory, multi-agent collaboration, and state management, using LangGraph. Sprint 1 (Agent Architecture) is complete, hand-built without LangGraph by design — LangGraph is introduced in Sprint 5 so it's recognizable as "the same loop, now framework-managed" rather than unexplained magic. The next step is scoping Sprint 2 the same way Sprint 1 was — a concept walkthrough and increment plan, before any code changes.
 
 ---
 
 # Success Criteria
 
-Module 6 is ready to scope when:
+Module 6, Sprint 2 is ready to scope when:
 
-- Module 5's full pipeline is confirmed stable (it is — 52/52 tests passing, every increment live-verified).
-- A decision is made on whether to first close out the Medium Priority backlog (DOCX/HTML/Markdown loaders) or move straight into agents.
+- Sprint 1's agent loop is confirmed stable (it is — 65/65 tests passing, both the no-tool and tool-calling paths live-verified against the real OpenAI API).
 
 ---
 
 # Resume Point
 
-If continuing this project in a new ChatGPT conversation:
+If continuing this project in a new conversation:
 
 1. Read `PROJECT_CONTEXT.md`
 2. Read `00-bootcamp-index.md`
 3. Read this document (`02-current-status.md`)
 4. Continue with:
 
-**Module 6 – AI Agents → scope Sprint 1 (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.
+**Module 6, Sprint 2 – Planning → scope into increments (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.

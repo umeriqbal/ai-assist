@@ -7,6 +7,7 @@ from app.dependencies.llm import (
 )
 from app.rag.document_ingestion_service import DocumentIngestionService
 from app.rag.loaders.loader_factory import DocumentLoaderFactory
+from app.services.agent_service import AgentService
 from app.services.chat_service import ChatService
 from app.services.chunking_service import ChunkingService
 from app.services.document_service import DocumentService
@@ -18,6 +19,7 @@ from app.services.question_answering_service import QuestionAnsweringService
 from app.services.retrieval_service import RetrievalService
 from app.services.streaming_service import StreamingService
 from app.services.vector_store_service import VectorStoreService
+from app.tools.knowledge_base_search_tool import KnowledgeBaseSearchTool
 
 
 @lru_cache
@@ -105,4 +107,19 @@ def get_faithfulness_service() -> FaithfulnessService:
     return FaithfulnessService(
         question_answering_service=get_question_answering_service(),
         llm_provider=get_openai_provider(),
+    )
+
+
+@lru_cache
+def get_knowledge_base_search_tool() -> KnowledgeBaseSearchTool:
+    return KnowledgeBaseSearchTool(
+        retrieval_service=get_retrieval_service(),
+    )
+
+
+@lru_cache
+def get_agent_service() -> AgentService:
+    return AgentService(
+        provider=get_openai_provider(),
+        tools=[get_knowledge_base_search_tool()],
     )

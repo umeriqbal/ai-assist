@@ -117,7 +117,7 @@ Created a reusable enterprise AI platform that will host all future capabilities
 
 # Module 5 — Enterprise RAG
 
-**Status:** 🚧 Current
+**Status:** ✅ Complete
 
 ## Objectives
 
@@ -218,21 +218,62 @@ A complete enterprise document question-answering system.
 
 # Module 6 — AI Agents
 
-**Status:** ⏳ Planned
+**Status:** 🚧 Current
 
 ## Objectives
 
 Build production-quality AI agents.
 
-### Topics
+### Sprint 1
 
-- Agent Architecture
-- Planning
-- Reflection
-- Memory
-- Multi-Agent Collaboration
-- LangGraph
-- State Management
+Agent Architecture (foundations)
+
+- `Tool` abstraction
+- Provider tool-calling support
+- Agent loop (ReAct-style)
+- `POST /agents/chat`
+
+**Status:** ✅ Complete
+
+---
+
+### Sprint 2
+
+Planning
+
+*(not yet scoped)*
+
+---
+
+### Sprint 3
+
+Reflection
+
+*(not yet scoped)*
+
+---
+
+### Sprint 4
+
+Memory
+
+*(not yet scoped)*
+
+---
+
+### Sprint 5
+
+LangGraph + State Management
+
+*(not yet scoped)*
+
+---
+
+### Sprint 6
+
+Multi-Agent Collaboration
+
+*(not yet scoped)*
 
 ### Outcome
 
@@ -347,8 +388,8 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 | 2 | Prompt Engineering | ✅ Complete |
 | 3 | Semantic Search | ✅ Complete |
 | 4 | Enterprise AI Platform | ✅ Complete |
-| 5 | Enterprise RAG | 🚧 Current |
-| 6 | AI Agents | ⏳ Planned |
+| 5 | Enterprise RAG | ✅ Complete |
+| 6 | AI Agents | 🚧 Current |
 | 7 | Model Context Protocol | ⏳ Planned |
 | 8 | Production Infrastructure | ⏳ Planned |
 | 9 | Evaluation & Observability | ⏳ Planned |
@@ -358,16 +399,16 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 
 # Current Focus
 
-**Module 5 – Enterprise RAG**
+**Module 6 – AI Agents**
 
 Current Sprint:
 
-**Sprint 1 – LangChain Foundations**
+**Sprint 2 – Planning** *(not yet scoped)*
 
-Current Increment:
+Last Completed Sprint:
 
-**Increment 1 – LangChain Documents**
+**Sprint 1 – Agent Architecture** — `Tool` abstraction, provider tool-calling support, the agent loop, and a live `POST /agents/chat` endpoint using knowledge-base search as its first tool.
 
 Next milestone:
 
-**Upload a document and represent it as LangChain `Document` objects.**
+**Scope Sprint 2 (Planning) into increments before writing any code.**

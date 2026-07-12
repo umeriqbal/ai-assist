@@ -1,9 +1,14 @@
+import json
 from collections.abc import AsyncIterator
+from typing import Any
 
 from openai import AsyncOpenAI
 
 from app.core.config import settings
 from app.providers.base import LLMProvider
+from app.providers.chat_result import ChatResult
+from app.providers.tool_call import ToolCall
+from app.tools.tool import Tool
 
 
 class OpenAIProvider(LLMProvider):
@@ -48,3 +53,60 @@ class OpenAIProvider(LLMProvider):
         async for event in stream:
             if event.type == "response.output_text.delta":
                 yield event.delta
+
+    async def chat_with_tools(
+        self,
+        messages: list[dict[str, Any]],
+        tools: list[Tool],
+    ) -> ChatResult:
+
+        openai_tools = [
+            {
+                "type": "function",
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": tool.parameters,
+            }
+            for tool in tools
+        ]
+
+        response = await self._client.responses.create(
+            model=settings.openai_chat_model,
+            input=messages,
+            tools=openai_tools,
+        )
+
+        tool_calls = [
+            ToolCall(
+                id=item.call_id,
+                name=item.name,
+                arguments=json.loads(item.arguments),
+            )
+            for item in response.output
+            if item.type == "function_call"
+        ]
+
+        return ChatResult(
+            output_text=response.output_text or None,
+            tool_calls=tool_calls,
+        )
+
+    def tool_result_messages(
+        self,
+        tool_call: ToolCall,
+        result: str,
+    ) -> list[dict[str, Any]]:
+
+        return [
+            {
+                "type": "function_call",
+                "call_id": tool_call.id,
+                "name": tool_call.name,
+                "arguments": json.dumps(tool_call.arguments),
+            },
+            {
+                "type": "function_call_output",
+                "call_id": tool_call.id,
+                "output": result,
+            },
+        ]

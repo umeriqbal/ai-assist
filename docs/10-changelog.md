@@ -6,6 +6,32 @@ The format follows the principles of Keep a Changelog.
 
 ---
 
+# [0.6.0] - AI Agents
+
+**Status:** 🚧 In Progress
+
+### Added — Sprint 1: Agent Architecture (Complete)
+
+- `Tool` interface (`app/tools/tool.py`) — `name`, `description`, JSON-Schema `parameters`, async `execute()`
+- `EchoTool` (new) — trivial concrete implementation, exists purely to validate the `Tool` contract before anything depends on it
+- `LLMProvider.chat_with_tools()` (new abstract method) — sends a conversation + available tools, returns a `ChatResult` (final text, requested tool calls, or both); additive, `chat()`/`stream_chat()` untouched
+- `LLMProvider.tool_result_messages()` (new abstract method) — translates a tool call + its result into provider-specific wire format, keeping OpenAI's Responses API `function_call`/`function_call_output` item shape out of business logic (Provider Pattern boundary, Decision 004)
+- `ChatResult` / `ToolCall` dataclasses (`app/providers/`)
+- `OpenAIProvider.chat_with_tools()` / `.tool_result_messages()` — implemented via the Responses API's `tools` parameter, same API already used by `chat`/`stream_chat`
+- `AgentService` (new, `app/services/agent_service.py`) — the ReAct-style loop: call the model, execute any requested tool, feed the result back, repeat; bounded by a `max_iterations` guard (default 5, raises rather than looping forever); an unrecognized tool name is fed back to the model as an error string instead of crashing the request
+- `KnowledgeBaseSearchTool` (new, `app/tools/`) — wraps `RetrievalService` as the agent's first real tool, reusing Module 5's retrieval pipeline instead of a toy example
+- `POST /agents/chat` endpoint
+- `FakeLLMProvider` test double extended with a scriptable `chat_with_tools()` (queued `ChatResult`s) and `tool_result_messages()`, without changing behavior for any test still using only `chat()`
+- Unit tests: `Tool`/`EchoTool` contract, provider tool-calling contract via the fake, agent loop (no-tool path, tool round-trip, unknown-tool fallback, iteration-limit guard), `KnowledgeBaseSearchTool` (declared schema, matching-query retrieval, no-results case)
+- Live-verified against the real OpenAI API: a plain question answered directly with no tool call; a question about a freshly indexed document correctly triggered `search_knowledge_base` and produced a grounded answer
+- Removed a stray, empty `app/agents/tools/` scaffold folder that duplicated `app/tools/`; `app/agents/` itself intentionally left uncreated until planning/memory/multi-agent orchestration (Sprints 2+) needs a home distinct from a plain service
+
+### Not Included
+
+- Planning, Reflection, Memory, LangGraph/State Management, Multi-Agent Collaboration (Sprints 2–6, not yet scoped) — LangGraph is deliberately deferred to Sprint 5 rather than introduced in Sprint 1, so the hand-built loop above is understood before a framework manages it
+
+---
+
 # [0.5.0] - Enterprise RAG
 
 **Status:** ✅ Complete
@@ -254,21 +280,15 @@ Built the first OpenAI-powered application.
 
 # Upcoming Releases
 
-## Version 0.6.0
+## Remainder of 0.6.0 - AI Agents
 
-### Planned
+### Planned (Sprints 2–6, not yet scoped)
 
-AI Agents (not yet scoped into sprints)
-
-Expected features
-
-- Agent architecture
 - Planning
 - Reflection
 - Memory
-- Multi-agent collaboration
-- LangGraph
-- State management
+- LangGraph + State Management
+- Multi-Agent Collaboration
 
 ### Carried over from 0.5.0 (not blocking)
 
@@ -355,7 +375,7 @@ Expected features
 | 0.3.0 | Semantic Search | ✅ |
 | 0.4.0 | Enterprise AI Platform | ✅ |
 | 0.5.0 | Enterprise RAG | ✅ |
-| 0.6.0 | AI Agents | ⏳ |
+| 0.6.0 | AI Agents | 🚧 |
 | 0.7.0 | MCP | ⏳ |
 | 0.8.0 | Infrastructure | ⏳ |
 | 0.9.0 | Evaluation | ⏳ |
@@ -368,7 +388,7 @@ Expected features
 Current Status
 
 - Modules Completed: 5 / 10
-- Current Module: 6 (not yet scoped)
+- Current Module: 6 (Sprint 1 of ~6 complete)
 - Architecture: Stable
 - Documentation: Complete
 - Production Readiness: Strong foundation established

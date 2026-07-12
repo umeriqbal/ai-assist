@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.api.routers.agent import router as agent_router
 from app.api.routers.chat import router as chat_router
 from app.api.routers.document import router as document_router
 from app.api.routers.evaluation import router as evaluation_router
@@ -37,6 +38,10 @@ def create_app() -> FastAPI:
 
     app.include_router(
         evaluation_router,
+    )
+
+    app.include_router(
+        agent_router,
     )
 
     return app

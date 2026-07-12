@@ -423,6 +423,41 @@ Client
 
 ---
 
+# Current Agent Flow
+
+```
+POST /agents/chat
+
+↓
+
+Agent Router
+
+↓
+
+AgentService (ReAct loop)
+
+↓
+
+LLMProvider.chat_with_tools()
+
+↓
+
+Has tool calls? ── no ──→ Final Answer
+       │
+      yes
+       ↓
+   Tool.execute()
+       │
+       ↓
+LLMProvider.tool_result_messages()
+       │
+       └──→ back into the loop
+```
+
+Single agent, one tool so far (`KnowledgeBaseSearchTool`, wrapping `RetrievalService`). Bounded by a max-iteration guard; an unrecognized tool name is fed back to the model as an error instead of crashing the request.
+
+---
+
 # Future Agent Flow
 
 ```
@@ -456,6 +491,8 @@ Reviewer Agent
 
 Final Answer
 ```
+
+Introduced across Sprints 2–6 (Planning, Reflection, Memory, LangGraph/State Management, Multi-Agent Collaboration), building on the Current Agent Flow above rather than replacing it.
 
 ---
 
@@ -549,16 +586,20 @@ Current
 
 - ChatService
 - StreamingService
+- DocumentService
+- ChunkingService
+- EmbeddingService
+- VectorStoreService
+- RetrievalService
+- QuestionAnsweringService
+- EvaluationService
+- FaithfulnessService
+- AgentService
 
 Future
 
-- EmbeddingService
-- RetrievalService
-- DocumentService
 - PromptService
 - CitationService
-- AgentService
-- EvaluationService
 
 Services collaborate rather than becoming large monolithic classes.
 

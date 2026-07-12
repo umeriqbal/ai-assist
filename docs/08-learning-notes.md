@@ -565,6 +565,50 @@ Unlike a chatbot, an agent can perform multi-step tasks autonomously.
 
 ---
 
+## Tool Calling
+
+A tool is a contract, not an implementation detail: a name, a description, a JSON Schema of arguments, and an `execute()`. The description and schema are the only things the model ever sees — how well they're written directly affects whether the model calls the tool correctly (or at all).
+
+---
+
+## The ReAct Loop
+
+The simplest working "agent" is: send the conversation + available tools to the model → the model either answers directly or asks to call a tool → if it asks, run the tool and append the result to the conversation → send again → repeat until it answers directly.
+
+```
+Messages + Tools
+
+↓
+
+Model
+
+↓
+
+Tool call requested? ── no ──→ Final Answer
+       │
+      yes
+       ↓
+  Execute Tool
+
+       ↓
+Append result to messages
+       │
+       └──→ back to Model
+```
+
+Two failure modes to guard against explicitly, not as an afterthought:
+
+- **Unbounded looping** — nothing stops a model from requesting tools forever. A max-iteration cap is not optional.
+- **Hallucinated tool names** — the model can ask for a tool that doesn't exist. Crashing the request is worse than feeding an error string back and letting the model recover.
+
+---
+
+## Tool Calling vs. the Provider Pattern
+
+Tool-calling wire formats are provider-specific (OpenAI's Responses API needs an echoed `function_call` item plus a `function_call_output` item, keyed by `call_id`; other providers shape this differently). If that shape leaks into the agent loop itself, swapping providers later means rewriting business logic — exactly what the Provider Pattern exists to prevent. The fix: give each provider a method that translates "a tool call and its result" into whatever its own wire format needs, and never construct that shape outside the provider.
+
+---
+
 # Model Context Protocol (MCP)
 
 MCP provides a standard way for AI applications to discover and interact with external tools.
