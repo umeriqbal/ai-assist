@@ -241,7 +241,13 @@ Agent Architecture (foundations)
 
 Planning
 
-*(not yet scoped)*
+- `Plan` / `PlanStep` models
+- Provider structured-output support
+- `Planner`
+- `PlanningService`
+- `POST /agents/plan`
+
+**Status:** ✅ Complete
 
 ---
 
@@ -403,12 +409,12 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 
 Current Sprint:
 
-**Sprint 2 – Planning** *(not yet scoped)*
+**Sprint 3 – Reflection** *(not yet scoped)*
 
 Last Completed Sprint:
 
-**Sprint 1 – Agent Architecture** — `Tool` abstraction, provider tool-calling support, the agent loop, and a live `POST /agents/chat` endpoint using knowledge-base search as its first tool.
+**Sprint 2 – Planning** — `Plan`/`PlanStep` models, provider structured-output support, `Planner`, `PlanningService`, and a live `POST /agents/plan` endpoint that decomposes a goal, executes each step through the Sprint 1 agent loop, and synthesizes a final answer.
 
 Next milestone:
 
-**Scope Sprint 2 (Planning) into increments before writing any code.**
+**Scope Sprint 3 (Reflection) into increments before writing any code.**

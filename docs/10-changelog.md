@@ -10,6 +10,18 @@ The format follows the principles of Keep a Changelog.
 
 **Status:** 🚧 In Progress
 
+### Added — Sprint 2: Planning (Complete)
+
+- `app/agents/` layer created (first use) — planning building blocks, mirroring how `rag/` holds RAG building blocks
+- `Plan` / `PlanStep` (new, `app/agents/plan.py`) — Pydantic models with `extra="forbid"`, so their generated JSON Schema includes `additionalProperties: false` at every level, required for OpenAI's strict structured-output mode
+- `LLMProvider.generate_structured()` (new abstract method) — returns a JSON object constrained to a given JSON Schema instead of free text; `OpenAIProvider` implements it via the Responses API's `text.format` (`type: json_schema`, `strict: true`). A more robust alternative to `FaithfulnessService`'s prompt-instructed JSON parsing (flagged in Known Technical Debt) — retrofitting `FaithfulnessService` onto it is optional, not done here
+- `Planner` (new, `app/agents/planner.py`) — turns a goal into an ordered `Plan` via `generate_structured()`; only asks the model for `steps`, fills `goal` in from the caller's input rather than trusting the model to echo it back verbatim
+- `PlanningService` (new, `app/services/planning_service.py`) — runs a plan step by step through the Sprint 1 `AgentService` (each step still has tool access), passing prior steps' results into each subsequent step's prompt, then makes one final `LLMProvider.chat()` call to synthesize a coherent answer from all step results; short-circuits to a direct answer when the model decides a goal needs no steps
+- `POST /agents/plan` endpoint — returns the plan, each step's raw result, and the final answer
+- `FakeLLMProvider` extended with a scriptable `generate_structured()`, without changing behavior for tests using only `chat()` / `chat_with_tools()`
+- Unit tests: structured-output contract via the fake, `Planner` (goal/steps parsing, goal preserved over model divergence, empty-goal rejection), `PlanningService` (multi-step execution + synthesis, no-steps shortcut, later steps see earlier results)
+- Live-verified against the real OpenAI API and a real indexed document: the plan correctly decomposed a two-part question into steps, each step correctly retrieved/reused the relevant fact via the knowledge-base tool, and the synthesized final answer was accurate
+
 ### Added — Sprint 1: Agent Architecture (Complete)
 
 - `Tool` interface (`app/tools/tool.py`) — `name`, `description`, JSON-Schema `parameters`, async `execute()`
@@ -28,7 +40,7 @@ The format follows the principles of Keep a Changelog.
 
 ### Not Included
 
-- Planning, Reflection, Memory, LangGraph/State Management, Multi-Agent Collaboration (Sprints 2–6, not yet scoped) — LangGraph is deliberately deferred to Sprint 5 rather than introduced in Sprint 1, so the hand-built loop above is understood before a framework manages it
+- Reflection, Memory, LangGraph/State Management, Multi-Agent Collaboration (Sprints 3–6, not yet scoped) — LangGraph is deliberately deferred to Sprint 5 rather than introduced in Sprint 1, so the hand-built loop above is understood before a framework manages it
 
 ---
 
@@ -282,9 +294,8 @@ Built the first OpenAI-powered application.
 
 ## Remainder of 0.6.0 - AI Agents
 
-### Planned (Sprints 2–6, not yet scoped)
+### Planned (Sprints 3–6, not yet scoped)
 
-- Planning
 - Reflection
 - Memory
 - LangGraph + State Management
@@ -388,7 +399,7 @@ Expected features
 Current Status
 
 - Modules Completed: 5 / 10
-- Current Module: 6 (Sprint 1 of ~6 complete)
+- Current Module: 6 (Sprints 1–2 of ~6 complete)
 - Architecture: Stable
 - Documentation: Complete
 - Production Readiness: Strong foundation established

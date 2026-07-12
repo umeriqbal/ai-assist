@@ -57,3 +57,17 @@ class LLMProvider(ABC):
         conversation passed into the next `chat_with_tools` call.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    async def generate_structured(
+        self,
+        prompt: str,
+        schema: dict[str, Any],
+        schema_name: str,
+    ) -> dict[str, Any]:
+        """
+        Return a JSON object constrained to match `schema`, instead of
+        free text. `schema_name` identifies the schema to the model
+        (letters, digits, underscores, dashes only).
+        """
+        raise NotImplementedError

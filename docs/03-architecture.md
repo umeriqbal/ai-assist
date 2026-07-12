@@ -458,6 +458,48 @@ Single agent, one tool so far (`KnowledgeBaseSearchTool`, wrapping `RetrievalSer
 
 ---
 
+# Current Plan-and-Execute Flow
+
+```
+POST /agents/plan
+
+↓
+
+Agent Router
+
+↓
+
+PlanningService
+
+↓
+
+Planner ──→ LLMProvider.generate_structured() ──→ Plan (goal + ordered steps)
+
+↓
+
+for each step:
+
+   AgentService.chat(step + prior results)   (Current Agent Flow, above)
+
+       ↓
+
+   step result
+
+↓
+
+LLMProvider.chat()  (synthesis: goal + all step results → final answer)
+
+↓
+
+Plan + step results + final answer
+```
+
+Steps execute sequentially, not in parallel — each step's prompt includes every prior step's result, so later steps can build on earlier ones. If the model decides a goal needs no steps, `PlanningService` short-circuits straight to a direct answer instead of running an empty plan through a pointless synthesis call.
+
+`Planner` lives in `app/agents/` (the first component in that layer) since it's a planning building block; `PlanningService` lives in `app/services/` since it's the orchestrating business service that composes `Planner` + `AgentService` for router/DI use — the same split as `rag/` (building blocks) vs. `services/` (orchestration) in the RAG layer.
+
+---
+
 # Future Agent Flow
 
 ```
@@ -595,6 +637,7 @@ Current
 - EvaluationService
 - FaithfulnessService
 - AgentService
+- PlanningService
 
 Future
 

@@ -609,6 +609,47 @@ Tool-calling wire formats are provider-specific (OpenAI's Responses API needs an
 
 ---
 
+## Planning (Plan-and-Execute)
+
+A ReAct loop discovers its path one tool call at a time — it's reactive. Planning is the alternative: decompose a goal into an explicit, ordered list of steps *before* executing anything.
+
+```
+Goal
+
+↓
+
+Planner (structured output)
+
+↓
+
+Plan (ordered steps)
+
+↓
+
+Execute each step (still via the ReAct loop, with tools)
+
+↓
+
+Synthesize a final answer from all step results
+```
+
+Trade-off: a plan made upfront can't react to what a step actually discovers the way a pure ReAct loop can — which is why each step is still executed through the ReAct loop (it can still use tools and adapt within that one step), and why later steps are given earlier steps' results as context. Planning and reacting aren't mutually exclusive; plan-and-execute nests a ReAct loop inside each step.
+
+The benefit that justifies the extra machinery: the plan itself is inspectable output. A user (or a future Reflection/Review step) can see the steps the model intends to take, not just the tool calls it happened to make.
+
+---
+
+## Structured Output vs. Prompt-Instructed JSON
+
+Two ways to get JSON out of an LLM:
+
+- **Prompt-instructed** — ask nicely in the prompt ("respond with JSON matching this shape"), then parse the text response and hope it matches. Fragile: the model can wrap it in prose, use markdown code fences, or drift from the schema.
+- **Structured output** — pass a JSON Schema to the API itself (OpenAI's `strict` mode grammar-constrains generation so the output *cannot* violate the schema). Reliable, but requires a schema the API accepts (e.g. OpenAI's strict mode requires `additionalProperties: false` at every object level, which Pydantic models need `extra="forbid"` to produce).
+
+Prefer structured output whenever a schema is available. Prompt-instructed JSON parsing is a workaround for when it isn't (or wasn't yet built) — worth naming as technical debt rather than a permanent pattern, so it gets revisited once the real mechanism exists.
+
+---
+
 # Model Context Protocol (MCP)
 
 MCP provides a standard way for AI applications to discover and interact with external tools.

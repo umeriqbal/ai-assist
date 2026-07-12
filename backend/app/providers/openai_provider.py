@@ -110,3 +110,25 @@ class OpenAIProvider(LLMProvider):
                 "output": result,
             },
         ]
+
+    async def generate_structured(
+        self,
+        prompt: str,
+        schema: dict[str, Any],
+        schema_name: str,
+    ) -> dict[str, Any]:
+
+        response = await self._client.responses.create(
+            model=settings.openai_chat_model,
+            input=prompt,
+            text={
+                "format": {
+                    "type": "json_schema",
+                    "name": schema_name,
+                    "schema": schema,
+                    "strict": True,
+                }
+            },
+        )
+
+        return json.loads(response.output_text)

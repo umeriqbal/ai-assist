@@ -34,6 +34,7 @@ class FakeLLMProvider(LLMProvider):
         self,
         response: str = "fake answer",
         chat_with_tools_results: list[ChatResult] | None = None,
+        structured_results: list[dict[str, Any]] | None = None,
     ) -> None:
         self.response = response
         self.chat_calls: list[str] = []
@@ -41,6 +42,8 @@ class FakeLLMProvider(LLMProvider):
         self.chat_with_tools_calls: list[
             tuple[list[dict[str, Any]], list[Tool]]
         ] = []
+        self._structured_results = list(structured_results or [])
+        self.generate_structured_calls: list[tuple[str, dict[str, Any], str]] = []
 
     async def health_check(self) -> bool:
         return True
@@ -78,6 +81,19 @@ class FakeLLMProvider(LLMProvider):
                 "content": result,
             }
         ]
+
+    async def generate_structured(
+        self,
+        prompt: str,
+        schema: dict[str, Any],
+        schema_name: str,
+    ) -> dict[str, Any]:
+        self.generate_structured_calls.append((prompt, schema, schema_name))
+
+        if self._structured_results:
+            return self._structured_results.pop(0)
+
+        return {}
 
 
 _MINIMAL_PDF_TEMPLATE = """%PDF-1.4

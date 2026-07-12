@@ -39,14 +39,15 @@ Status:
 Completed Sprints
 
 - **Sprint 1 – Agent Architecture:** `Tool` interface (`app/tools/tool.py`), `EchoTool` (contract-proving), `LLMProvider.chat_with_tools()` / `tool_result_messages()` (OpenAI Responses API tool-calling, kept behind the provider boundary), `AgentService` (ReAct-style loop with a max-iteration guard and graceful unknown-tool handling), `KnowledgeBaseSearchTool` (wraps `RetrievalService`), `POST /agents/chat` — live-verified both without a tool (direct answer) and with one (correctly retrieved and grounded an answer in a freshly indexed document)
+- **Sprint 2 – Planning:** `Plan` / `PlanStep` (`app/agents/plan.py`, first use of the `app/agents/` layer) — strict-schema Pydantic models; `LLMProvider.generate_structured()` (new) — OpenAI Responses API JSON-Schema–constrained structured output, a more robust alternative to `FaithfulnessService`'s prompt-instructed JSON parsing; `Planner` (`app/agents/planner.py`) — turns a goal into an ordered `Plan`, filling `goal` in from the caller rather than trusting the model to echo it back; `PlanningService` (new) — runs the plan step by step through `AgentService`, feeding each step the prior steps' results, then synthesizes one final answer; `POST /agents/plan` — live-verified against a real indexed policy document: the plan correctly decomposed the goal, each step retrieved/reused the right fact, and the final synthesized answer was accurate
 
-Per the roadmap, Module 6's remaining topics are: Planning, Reflection, Memory, Multi-Agent Collaboration, LangGraph, State Management — each to be scoped into its own sprint the same way Sprint 1 was, at the start of the sprint rather than in advance.
+Per the roadmap, Module 6's remaining topics are: Reflection, Memory, Multi-Agent Collaboration, LangGraph, State Management — each to be scoped into its own sprint the same way Sprints 1–2 were, at the start of the sprint rather than in advance.
 
 ---
 
 # Current Sprint
 
-**Sprint 2 – Planning**
+**Sprint 3 – Reflection**
 
 Not yet scoped into increments.
 
@@ -177,6 +178,7 @@ LangChain will remain isolated within the RAG layer.
 | POST /evaluate/retrieval | ✅ |
 | POST /evaluate/faithfulness | ✅ |
 | POST /agents/chat | ✅ |
+| POST /agents/plan | ✅ |
 
 ---
 
@@ -196,10 +198,11 @@ rag/
 schemas/
 models/
 database/
+agents/
 tools/
 ```
 
-`agents/` doesn't exist yet — Sprint 1's single-agent loop is business logic and rightly lives in `services/agent_service.py` (Decision 003 already lists `AgentService` as a service example). A dedicated `agents/` layer will be introduced once planning/memory/multi-agent orchestration (Sprints 2+) needs a home distinct from a plain service — likely alongside LangGraph in Sprint 5.
+`agents/` was created in Sprint 2 (`plan.py`, `planner.py`) — holds the planning building blocks, the same way `rag/` holds RAG building blocks. The services that orchestrate them for DI/router use (`AgentService`, `PlanningService`) still live in `services/`, consistent with Decision 003.
 
 ---
 
@@ -244,7 +247,7 @@ The project follows these principles throughout the codebase.
 
 ## High Priority
 
-- Module 6, Sprint 2 – Planning (scoping not yet started)
+- Module 6, Sprint 3 – Reflection (scoping not yet started)
 
 ---
 
@@ -277,7 +280,7 @@ Planned improvements include:
 - Request-scoped logging.
 - Unified exception handling (currently handled per-router, e.g. `document.py` catches `ValueError`).
 - `InMemoryVectorStore` is process-local and non-persistent by design — will be replaced by a `PostgreSQL` + `pgvector` implementation behind the same `VectorStore` interface once the RAG pipeline is otherwise proven out.
-- `FaithfulnessService` parses the LLM judge's verdict from prompt-instructed JSON text, not a guaranteed schema (OpenAI's structured outputs / function calling would be more robust). Malformed responses are reported as `is_faithful: null` rather than silently misreported, but this is best-effort parsing, not a guaranteed contract.
+- `FaithfulnessService` parses the LLM judge's verdict from prompt-instructed JSON text, not a guaranteed schema. Malformed responses are reported as `is_faithful: null` rather than silently misreported, but this is best-effort parsing, not a guaranteed contract. `LLMProvider.generate_structured()` (added in Module 6, Sprint 2) now provides exactly the robust mechanism this needed — retrofitting `FaithfulnessService` to use it is an optional, non-blocking cleanup, not yet done.
 - DOCX/HTML/Markdown loaders are not implemented — only PDF and raw text ingestion currently work.
 
 These are intentional future enhancements rather than defects.
@@ -288,33 +291,33 @@ These are intentional future enhancements rather than defects.
 
 Latest Completed Milestone
 
-Module 6, Sprint 1 – Agent Architecture
+Module 6, Sprint 2 – Planning
 
 Recommended Tag
 
 ```
-v0.6.0-sprint1
+v0.6.0-sprint2
 ```
 
 ---
 
 # Next Development Task
 
-Module 6, Sprint 2 – Planning
+Module 6, Sprint 3 – Reflection
 
 Not yet broken into increments.
 
 Goal (module-level, per the roadmap):
 
-Build a modular multi-agent system covering agent architecture, planning, reflection, memory, multi-agent collaboration, and state management, using LangGraph. Sprint 1 (Agent Architecture) is complete, hand-built without LangGraph by design — LangGraph is introduced in Sprint 5 so it's recognizable as "the same loop, now framework-managed" rather than unexplained magic. The next step is scoping Sprint 2 the same way Sprint 1 was — a concept walkthrough and increment plan, before any code changes.
+Build a modular multi-agent system covering agent architecture, planning, reflection, memory, multi-agent collaboration, and state management, using LangGraph. Sprints 1 (Agent Architecture) and 2 (Planning) are complete, both hand-built without LangGraph by design — LangGraph is introduced in Sprint 5 so it's recognizable as "the same loop, now framework-managed" rather than unexplained magic. The next step is scoping Sprint 3 the same way — a concept walkthrough and increment plan, before any code changes.
 
 ---
 
 # Success Criteria
 
-Module 6, Sprint 2 is ready to scope when:
+Module 6, Sprint 3 is ready to scope when:
 
-- Sprint 1's agent loop is confirmed stable (it is — 65/65 tests passing, both the no-tool and tool-calling paths live-verified against the real OpenAI API).
+- Sprint 2's plan-and-execute pipeline is confirmed stable (it is — 75/75 tests passing, live-verified end to end against the real OpenAI API and a real indexed document).
 
 ---
 
@@ -327,4 +330,4 @@ If continuing this project in a new conversation:
 3. Read this document (`02-current-status.md`)
 4. Continue with:
 
-**Module 6, Sprint 2 – Planning → scope into increments (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.
+**Module 6, Sprint 3 – Reflection → scope into increments (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.
