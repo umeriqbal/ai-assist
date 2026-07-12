@@ -23,11 +23,11 @@ Module 6 – AI Agents
 
 Current Sprint:
 
-Sprint 5 – LangGraph + State Management (not yet scoped into increments)
+Sprint 6 – Multi-Agent Collaboration (not yet scoped into increments)
 
 Status:
 
-Module 5 (Enterprise RAG) is complete: all 8 sprints delivered, unit-tested, and live-verified against the real OpenAI API. Module 6, Sprints 1–4 (Agent Architecture, Planning, Reflection, Memory) are complete — 89/89 tests passing, live-verified against the real OpenAI API. Sprint 5 (LangGraph + State Management) scoping has not started.
+Module 5 (Enterprise RAG) is complete: all 8 sprints delivered, unit-tested, and live-verified against the real OpenAI API. Module 6, Sprints 1–5 (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management) are complete — 95/95 tests passing, live-verified against the real OpenAI API. Sprint 6 (Multi-Agent Collaboration), the last sprint in Module 6, scoping has not started.
 
 ---
 
@@ -126,11 +126,11 @@ Backend
 - Pydantic
 - OpenAI SDK
 - LangChain (confined to `app/rag/`)
+- LangGraph (confined to `app/agents/`, same isolation principle)
 - Structlog
 
 Future
 
-- LangGraph
 - PostgreSQL
 - pgvector
 - SQLAlchemy
@@ -295,6 +295,15 @@ Memory (Module 6, Sprint 4)
 - `POST /agents/chat` — generates a `conversation_id` when omitted, always returns it, so a client can continue the conversation on the next call
 - Live-verified: a fact stated in turn 1 was correctly recalled in turn 2 under the same `conversation_id`, and correctly absent in a fresh conversation
 
+LangGraph + State Management (Module 6, Sprint 5)
+
+- `langgraph==0.6.11` — first new dependency since Module 5; pinned below the 1.x line, which requires `langchain-core>=1.0` and conflicts with the pinned `langchain`/`langchain-openai`/`langchain-community` 0.3.x stack
+- `AgentGraphState` + `call_model`/`call_tools` nodes (`app/agents/agent_graph.py`) — the Sprint 1 ReAct loop rebuilt as a graph; nodes call the exact same `LLMProvider.chat_with_tools()`/`Tool.execute()`/`tool_result_messages()` `AgentService` uses, so LangGraph only replaces the loop's control flow, not the underlying mechanics
+- Compiled with a `MemorySaver` checkpointer keyed by `conversation_id`, replacing `ConversationMemory` for this path; a graph recursion limit stands in for `max_iterations`
+- `AgentGraphService` + `POST /agents/graph-chat` — same request/response shape as `POST /agents/chat` (unchanged), for direct side-by-side comparison
+- Live-verified: memory recall across turns and correct tool-calling through the graph, both against the real OpenAI API
+- Known, deliberately unreconciled: `/agents/chat` and `/agents/graph-chat` use two independent state stores — a `conversation_id` means nothing across the two
+
 ---
 
 # Design Decisions
@@ -321,7 +330,7 @@ No framework-specific code inside routers.
 
 Continue Module 6 – AI Agents.
 
-Sprints 1–4 (Agent Architecture, Planning, Reflection, Memory) are complete. Next step: scope Sprint 5 (LangGraph + State Management) the same way every prior sprint was — a concept walkthrough and a concrete increment plan before any code changes.
+Sprints 1–5 (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management) are complete. Next step: scope Sprint 6 (Multi-Agent Collaboration) — the last sprint in Module 6 — the same way every prior sprint was — a concept walkthrough and a concrete increment plan before any code changes.
 
 Not yet decided: whether to close out the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first.
 
@@ -340,15 +349,15 @@ Not yet decided: whether to close out the remaining Medium Priority backlog (DOC
 7. ~~Source Citations~~ ✅
 8. ~~Evaluation~~ ✅
 
-## Module 6 (Current — Sprints 1–4 complete)
+## Module 6 (Current — Sprints 1–5 complete)
 
 - ~~Agent Architecture~~ ✅
 - ~~Planning~~ ✅
 - ~~Reflection~~ ✅
 - ~~Memory~~ ✅
-- Multi-Agent Collaboration (not yet scoped)
-- LangGraph (deliberately deferred to Sprint 5)
-- State Management (folded into the LangGraph sprint)
+- ~~LangGraph~~ ✅
+- ~~State Management~~ ✅
+- Multi-Agent Collaboration (not yet scoped — last sprint in Module 6)
 
 ---
 

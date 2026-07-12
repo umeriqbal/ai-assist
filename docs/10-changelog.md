@@ -10,6 +10,17 @@ The format follows the principles of Keep a Changelog.
 
 **Status:** 🚧 In Progress
 
+### Added — Sprint 5: LangGraph + State Management (Complete)
+
+- `langgraph==0.6.11` added to `requirements.txt` — the first new dependency since Module 5. Deliberately pinned to the 0.6.x line: `langgraph`'s 1.x releases require `langchain-core>=1.0`, which conflicts with the pinned `langchain==0.3.27`/`langchain-openai==0.3.31`/`langchain-community==0.3.27` stack (all require `langchain-core<1.0.0`). Installing latest-`langgraph` first, discovering the conflict, then resolving to a compatible version was part of this increment, not a footnote — `pip check` confirms no broken requirements
+- `AgentGraphState` + `call_model`/`call_tools` nodes (new, `app/agents/agent_graph.py`) — rebuild the Sprint 1 ReAct loop as a LangGraph graph. The nodes call the exact same `LLMProvider.chat_with_tools()`, `Tool.execute()`, and `LLMProvider.tool_result_messages()` that `AgentService` already uses — LangGraph replaces only the hand-written loop's control flow (a conditional edge routes back to `call_model` while tool calls are pending, or ends), not the underlying mechanics. LangGraph confined to `app/agents/`, mirroring Decision 013's isolation of LangChain to `app/rag/` — no LangChain chat model or message types used
+- Compiled with LangGraph's `MemorySaver` checkpointer, keyed by `conversation_id` — replaces `ConversationMemory` for this path; a graph recursion limit (derived from `max_iterations`) stands in for the hand-rolled iteration cap, translated to the same `RuntimeError` on exceeding it
+- `AgentGraphService` (new, `app/services/agent_graph_service.py`) — thin wrapper invoking the compiled graph
+- `POST /agents/graph-chat` — same `AgentChatRequest`/`AgentChatResponse` shape as `POST /agents/chat` (unchanged), so the hand-built and graph-based implementations are directly comparable
+- Unit tests: no-tool path, tool round-trip, unknown-tool fallback, iteration-limit cap, cross-turn memory under the same `conversation_id`, and isolation between different `conversation_id`s — mirroring `AgentService`'s test suite to demonstrate equivalent behavior
+- Live-verified against the real OpenAI API: a fact stated in turn 1 recalled in turn 2 under the same `conversation_id`; a question requiring a freshly indexed document correctly triggered `KnowledgeBaseSearchTool` through the graph
+- Known, explicitly documented (not fixed) asymmetry: `POST /agents/chat` and `POST /agents/graph-chat` use two independent state stores — a `conversation_id` from one is meaningless to the other — and `MemorySaver` persists the entire graph state (including tool-call round-trips) versus `ConversationMemory`'s curated human-only turns
+
 ### Added — Sprint 4: Memory (Complete)
 
 - `ConversationMemory` (new, `app/agents/memory.py`) — ABC with `get_history()` / `append_turn()`; stores only the human-visible exchange (user message, final assistant answer), deliberately excluding the tool-call round-trips a turn may go through internally, keeping the store provider-agnostic
@@ -61,8 +72,9 @@ The format follows the principles of Keep a Changelog.
 
 ### Not Included
 
-- LangGraph/State Management, Multi-Agent Collaboration (Sprints 5–6, not yet scoped) — LangGraph is deliberately deferred to Sprint 5 rather than introduced in Sprint 1, so the hand-built loop, planning, reflection, and memory above are understood before a framework manages them
-- Persistent conversation memory (Redis/PostgreSQL) — `InMemoryConversationMemory` is process-local by design, same as `InMemoryVectorStore`
+- Multi-Agent Collaboration (Sprint 6, not yet scoped)
+- Persistent conversation memory (Redis/PostgreSQL) — `InMemoryConversationMemory` is process-local by design, same as `InMemoryVectorStore`; `MemorySaver` carries the identical caveat for the graph path
+- Reconciling the two independent `/agents/chat` vs. `/agents/graph-chat` state stores — deliberately kept separate for side-by-side comparison, not merged
 
 ---
 
@@ -316,9 +328,8 @@ Built the first OpenAI-powered application.
 
 ## Remainder of 0.6.0 - AI Agents
 
-### Planned (Sprints 5–6, not yet scoped)
+### Planned (Sprint 6, not yet scoped)
 
-- LangGraph + State Management
 - Multi-Agent Collaboration
 
 ### Carried over from 0.5.0 (not blocking)
@@ -419,7 +430,7 @@ Expected features
 Current Status
 
 - Modules Completed: 5 / 10
-- Current Module: 6 (Sprints 1–4 of ~6 complete)
+- Current Module: 6 (Sprints 1–5 of 6 complete)
 - Architecture: Stable
 - Documentation: Complete
 - Production Readiness: Strong foundation established

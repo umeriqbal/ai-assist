@@ -3,6 +3,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.dependencies.services import (
+    get_agent_graph_service,
     get_agent_service,
     get_planning_service,
     get_reflection_service,
@@ -16,6 +17,7 @@ from app.schemas.agent import (
     ReflectRequest,
     ReflectResponse,
 )
+from app.services.agent_graph_service import AgentGraphService
 from app.services.agent_service import AgentService
 from app.services.planning_service import PlanningService
 from app.services.reflection_service import ReflectionService
@@ -44,6 +46,28 @@ async def agent_chat(
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return AgentChatResponse(
+        response=response,
+        conversation_id=conversation_id,
+    )
+
+
+@router.post(
+    "/graph-chat",
+    response_model=AgentChatResponse,
+)
+async def agent_graph_chat(
+    request: AgentChatRequest,
+    service: AgentGraphService = Depends(get_agent_graph_service),
+) -> AgentChatResponse:
+
+    conversation_id = request.conversation_id or str(uuid.uuid4())
+
+    response = await service.chat(
+        request.prompt,
+        conversation_id=conversation_id,
+    )
 
     return AgentChatResponse(
         response=response,

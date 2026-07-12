@@ -531,6 +531,36 @@ Same story, one layer over. Both are an intentional first pass: build the interf
 
 ---
 
+## Q38. What did LangGraph actually add, that hand-written code didn't already do? (Sprint 5)
+
+### Answer
+
+Two things, precisely: a `checkpointer` that persists graph state across calls keyed by a `thread_id` (the same capability `ConversationMemory` hand-built in Sprint 4, now framework-managed), and a recursion limit that serves the same role as the hand-rolled `max_iterations` guard from Sprint 1.
+
+Everything else — *what* gets called (`LLMProvider.chat_with_tools()`, `Tool.execute()`) — is identical to `AgentService`. LangGraph only replaced the *control flow*: a hand-written `for` loop became graph nodes and a conditional edge. That's the point of building the loop by hand first — it makes it possible to say exactly what a framework did and didn't change, instead of taking it on faith.
+
+---
+
+## Q39. Why not let LangGraph nodes call a LangChain chat model directly, the way most LangGraph tutorials do? (Sprint 5)
+
+### Answer
+
+Because that would mean the LLM call itself — provider selection, tool-calling wire format — moves into LangChain's hands instead of the project's own `LLMProvider` abstraction. That's exactly the coupling the Provider Pattern (Decision 004) exists to prevent, and exactly the same isolation instinct that confines LangChain to `app/rag/` (Decision 013) — just applied to LangGraph and `app/agents/` instead.
+
+The fix: graph nodes call `LLMProvider.chat_with_tools()` and `Tool.execute()` directly — the same calls `AgentService` makes. LangGraph becomes purely an orchestration layer over abstractions the project already owns, not a new place where a vendor SDK's shape leaks into business logic.
+
+---
+
+## Q40. What broke when installing `langgraph`, and what does that teach about dependency pinning? (Sprint 5)
+
+### Answer
+
+Installing latest `langgraph` (1.x) silently upgraded `langchain-core` to a version the already-pinned `langchain==0.3.27`/`langchain-openai==0.3.31`/`langchain-community==0.3.27` don't support (they all require `langchain-core<1.0.0`). `pip`'s resolver doesn't retroactively re-check already-installed packages' constraints against a new package's transitive upgrade.
+
+The fix wasn't to unpin everything to "whatever's compatible" — that reintroduces the version drift pinning exists to prevent. It was to find the specific `langgraph` version (0.6.11) whose own dependency constraints stayed compatible with what was already pinned, then confirm with `pip check` before writing any code. Talking point: dependency conflicts inside one ecosystem (here, everything under the LangChain umbrella) are common precisely because packages share a core dependency that doesn't version in lockstep with each of them.
+
+---
+
 # Model Context Protocol (MCP)
 
 ## Q30. What is MCP?

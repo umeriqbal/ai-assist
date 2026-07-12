@@ -208,7 +208,9 @@ Production-ready architecture.
 
 Status
 
-Not yet introduced. Module 6's agent loop, planning, and reflection (Sprints 1–3) were deliberately hand-built in plain Python first, without LangGraph — so the underlying mechanics are understood before a framework manages them. LangGraph is scoped for Sprint 5.
+Introduced in Module 6, Sprint 5, after the agent loop, planning, reflection, and memory (Sprints 1–4) were deliberately hand-built in plain Python first — so the underlying mechanics were understood before a framework managed them. Version pinned at `0.6.11` (not the 1.x line, which requires `langchain-core>=1.0` and conflicts with this project's pinned `langchain==0.3.27` stack). Confined to `app/rag/`'s sibling, `app/agents/` — same isolation principle as LangChain, applied to LangGraph.
+
+Important detail: nodes in the graph call this project's own `LLMProvider`/`Tool` abstractions directly, not a LangChain chat model — see Decision 004 (Provider Pattern) and Decision 013 (LangChain Boundary). LangGraph orchestrates; it doesn't own the LLM call.
 
 ---
 

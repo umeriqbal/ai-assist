@@ -34,9 +34,9 @@ This project follows real software engineering practices including:
 | Item | Value |
 |------|-------|
 | Current Module | Module 6 – AI Agents |
-| Current Sprint | Sprint 5 – LangGraph + State Management (not yet scoped) |
+| Current Sprint | Sprint 6 – Multi-Agent Collaboration (not yet scoped) |
 | Current Increment | Not yet defined |
-| Status | Module 5 (Enterprise RAG) Complete. Module 6, Sprints 1–4 (Agent Architecture, Planning, Reflection, Memory) complete — 89/89 tests passing, live-verified |
+| Status | Module 5 (Enterprise RAG) Complete. Module 6, Sprints 1–5 (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management) complete — 95/95 tests passing, live-verified |
 
 ---
 
@@ -213,10 +213,11 @@ Completed Sprints
 - **Sprint 2 – Planning:** `app/agents/` layer created; `Plan`/`PlanStep`, `LLMProvider.generate_structured()` (OpenAI structured output), `Planner`, `PlanningService` (executes a plan step by step via `AgentService`, then synthesizes an answer), `POST /agents/plan`
 - **Sprint 3 – Reflection:** `Critique`, `Reflector` (reuses `generate_structured()`, no new provider work needed), `ReflectionService` (generate → critique → revise loop, best-effort answer on hitting the iteration cap rather than raising), `POST /agents/reflect`
 - **Sprint 4 – Memory:** `ConversationMemory` interface + `InMemoryConversationMemory` (process-local, non-persistent by design, same trade-off as `InMemoryVectorStore`), `AgentService.chat()` extended with an optional `conversation_id`, `POST /agents/chat` now generates/returns/accepts a `conversation_id` for real multi-turn conversations
+- **Sprint 5 – LangGraph + State Management:** `langgraph==0.6.11` (first new dependency since Module 5); the Sprint 1 loop rebuilt as a LangGraph graph (`call_model`/`call_tools` nodes calling the same `LLMProvider`/`Tool` methods `AgentService` uses — LangGraph replaces only the loop's control flow), compiled with a `MemorySaver` checkpointer for state management; `AgentGraphService`; `POST /agents/graph-chat` alongside (not replacing) `POST /agents/chat`
 
 Every sprint above unit-tested and live-verified against the real OpenAI API.
 
-Not yet scoped: Sprint 5 (LangGraph + State Management), Sprint 6 (Multi-Agent Collaboration). LangGraph is deliberately deferred to Sprint 5 rather than used from the start.
+Not yet scoped: Sprint 6 (Multi-Agent Collaboration) — the last sprint in Module 6.
 
 Status
 
@@ -316,13 +317,13 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 Module 6 – AI Agents
 
-Sprints 1–4 (Agent Architecture, Planning, Reflection, Memory) complete. Next step: a concept walkthrough and concrete increment plan for Sprint 5 (LangGraph + State Management), same approach used for every prior sprint.
+Sprints 1–5 (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management) complete. Next step: a concept walkthrough and concrete increment plan for Sprint 6 (Multi-Agent Collaboration) — the last sprint in Module 6, same approach used for every prior sprint.
 
 ---
 
 # Next Milestones
 
-- AI Agents: Multi-Agent Collaboration, LangGraph, State Management (Sprints 5–6, not yet scoped)
+- AI Agents: Multi-Agent Collaboration (Sprint 6, not yet scoped — the last sprint in Module 6)
 - Model Context Protocol (MCP)
 - Production Infrastructure (Docker, PostgreSQL, pgvector, Terraform, AWS, CI/CD)
 - Evaluation & Observability (cost/latency/prompt versioning — system-wide, distinct from Module 5's RAG-quality evaluation)

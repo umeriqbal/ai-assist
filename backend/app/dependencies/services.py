@@ -10,6 +10,7 @@ from app.dependencies.llm import (
 )
 from app.rag.document_ingestion_service import DocumentIngestionService
 from app.rag.loaders.loader_factory import DocumentLoaderFactory
+from app.services.agent_graph_service import AgentGraphService
 from app.services.agent_service import AgentService
 from app.services.chat_service import ChatService
 from app.services.chunking_service import ChunkingService
@@ -128,6 +129,14 @@ def get_agent_service() -> AgentService:
         provider=get_openai_provider(),
         tools=[get_knowledge_base_search_tool()],
         memory=get_conversation_memory(),
+    )
+
+
+@lru_cache
+def get_agent_graph_service() -> AgentGraphService:
+    return AgentGraphService(
+        provider=get_openai_provider(),
+        tools=[get_knowledge_base_search_tool()],
     )
 
 

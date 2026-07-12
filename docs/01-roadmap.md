@@ -280,7 +280,12 @@ Memory
 
 LangGraph + State Management
 
-*(not yet scoped)*
+- `AgentGraphState` + graph nodes (`call_model`, `call_tools`) rebuilding the Sprint 1 loop
+- `MemorySaver` checkpointer for state management (replaces `ConversationMemory` for this path)
+- `AgentGraphService`
+- `POST /agents/graph-chat`
+
+**Status:** ✅ Complete
 
 ---
 
@@ -418,12 +423,12 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 
 Current Sprint:
 
-**Sprint 5 – LangGraph + State Management** *(not yet scoped)*
+**Sprint 6 – Multi-Agent Collaboration** *(not yet scoped)*
 
 Last Completed Sprint:
 
-**Sprint 4 – Memory** — `ConversationMemory` interface + `InMemoryConversationMemory`, `AgentService.chat()` extended with an optional `conversation_id` (loads prior turns, persists the new one), and `POST /agents/chat` now generates/returns/accepts a `conversation_id` so a Swagger user can hold a real multi-turn conversation.
+**Sprint 5 – LangGraph + State Management** — the Sprint 1 ReAct loop rebuilt as a LangGraph graph (`call_model`/`call_tools` nodes calling the exact same `LLMProvider`/`Tool` abstractions `AgentService` uses), compiled with a `MemorySaver` checkpointer for state management, exposed as `POST /agents/graph-chat` alongside (not replacing) the hand-built `POST /agents/chat`.
 
 Next milestone:
 
-**Scope Sprint 5 (LangGraph + State Management) into increments before writing any code.**
+**Scope Sprint 6 (Multi-Agent Collaboration) into increments before writing any code.**

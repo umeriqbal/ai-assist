@@ -581,6 +581,51 @@ Only the human-visible exchange (user message, final answer) is stored — not t
 
 ---
 
+# Current LangGraph Flow
+
+```
+POST /agents/graph-chat  { prompt, conversation_id? }
+
+↓
+
+Agent Router  (generates a conversation_id if omitted)
+
+↓
+
+AgentGraphService.chat(prompt, conversation_id)
+
+↓
+
+compiled StateGraph.ainvoke(..., thread_id=conversation_id)
+
+↓
+
+┌─────────────────────────────────────────────┐
+│  call_model node                             │
+│    → LLMProvider.chat_with_tools()           │  same calls
+│                                               │  AgentService
+│  call_tools node                             │  already makes
+│    → Tool.execute()                          │
+│    → LLMProvider.tool_result_messages()      │
+└─────────────────────────────────────────────┘
+
+↓  (conditional edge: tool calls pending? loop back : end)
+
+MemorySaver checkpointer persists/reloads `messages`
+keyed by conversation_id — replaces ConversationMemory
+for this path
+
+↓
+
+final answer + conversation_id
+```
+
+This is a direct re-expression of the Current Agent Flow above: the same `LLMProvider`/`Tool` calls, the same conditional "loop or stop" logic — just as graph nodes and a conditional edge instead of a hand-written `for` loop, and a checkpointer instead of a hand-rolled memory store. `AgentGraphService`/`agent_graph.py` are entirely separate from `AgentService`/`ConversationMemory` — `POST /agents/chat` (hand-built) and `POST /agents/graph-chat` (LangGraph) are two independent implementations of the same capability, kept side by side for comparison rather than one replacing the other. LangGraph is confined to `app/agents/`, the same isolation Decision 013 already applies to LangChain in `app/rag/` — nodes never use a LangChain chat model or LangChain message types, only the project's own provider/tool abstractions.
+
+Known asymmetry, not yet reconciled: `MemorySaver` persists the *entire* graph state per turn (including intermediate tool-call round-trips), while `ConversationMemory` deliberately stores only the human-visible exchange. A `conversation_id` from one endpoint is meaningless to the other.
+
+---
+
 # Future Agent Flow
 
 ```
@@ -720,6 +765,7 @@ Current
 - AgentService
 - PlanningService
 - ReflectionService
+- AgentGraphService
 
 Future
 

@@ -700,6 +700,39 @@ Two design choices worth naming explicitly:
 
 ---
 
+## LangGraph: A Framework Should Read as Familiar, Not Magic
+
+The test of whether a framework has actually been *understood*, not just *used*: rebuild something you already hand-built, and see if the framework version is recognizable as "the same thing, now managed" — not a black box that happens to produce similar output.
+
+Concretely here: the Sprint 1 `AgentService` loop is —
+
+```
+while not done:
+    ask the model (with tools)
+    if it wants a tool: run it, feed the result back
+    else: done
+```
+
+The LangGraph version is the same three moves, relabeled:
+
+```
+node "call_model"  →  ask the model (with tools)
+node "call_tools"  →  run the tool, feed the result back
+conditional edge   →  "if it wants a tool → call_tools, else → end"
+```
+
+Nothing about *what* gets called changed — the graph's nodes call the identical `LLMProvider.chat_with_tools()` / `Tool.execute()` methods the hand-built loop calls. What LangGraph actually added: a checkpointer (`MemorySaver`) that persists the state (`messages`) across calls automatically, keyed by a `thread_id` — the exact capability Sprint 4 hand-built as `ConversationMemory`, now framework-managed. And a recursion limit that serves the same role as the hand-rolled `max_iterations` guard.
+
+**A structural lesson, not just a LangGraph one:** if a framework wants control over *how* the LLM gets called (e.g. a LangChain chat model bound to tools) rather than just *when* your own code runs, that's worth noticing and pushing back on — not because frameworks are bad, but because letting orchestration frameworks quietly own work an abstraction (Provider Pattern, here) already owns is how architecture erodes one convenient shortcut at a time.
+
+---
+
+## Dependency Pinning Across an Ecosystem
+
+Installing the latest version of a package in the same ecosystem as existing pinned packages (here: `langgraph` alongside an already-pinned `langchain`) can silently pull in a newer *shared* dependency (`langchain-core`) that the existing pinned packages don't support — `pip`'s resolver doesn't retroactively check that. The fix isn't to unpin everything to "latest" (that reintroduces the exact version-drift risk pinning exists to prevent) — it's to find the version of the *new* package whose own constraints are compatible with what's already pinned, and confirm with `pip check` before moving on.
+
+---
+
 # Model Context Protocol (MCP)
 
 MCP provides a standard way for AI applications to discover and interact with external tools.
