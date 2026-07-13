@@ -757,6 +757,42 @@ Benefits
 
 ---
 
+## A Well-Designed Abstraction Should Survive Contact With a New Protocol
+
+The real test of whether `Tool` (built in Module 6, Sprint 1: name, description, JSON-Schema parameters, `execute()`) was actually a *good* abstraction, not just a convenient one for the one use case it was built for: hand it to a completely different protocol and see if it needs to change.
+
+It didn't. `Tool.parameters` — a hand-written JSON Schema — maps onto MCP's `inputSchema` field with zero translation. `execute()` plugs directly into MCP's `call_tool` handler. The reason this worked: `Tool` was designed around a schema-first contract (what does the caller need to know to call this?) rather than around any particular caller's calling convention (OpenAI's tool-calling format, a Python function signature, or anything else). A schema-first design travels between protocols; a design implicitly shaped by one specific caller doesn't.
+
+---
+
+## Two Ways to Build an MCP Server, and Why the Choice Matters
+
+The official Python SDK offers `FastMCP` (a decorator, `@mcp.tool()`, that infers a tool's schema from a Python function's type hints) and the low-level `Server` (you register `list_tools()`/`call_tool()` handlers yourself, supplying the schema explicitly).
+
+`FastMCP` is the right choice when tools are being *defined* fresh, in Python, for MCP specifically — the decorator's inference is a genuine convenience there. It's the wrong choice when a schema *already exists* elsewhere (as `Tool.parameters` did) — the inference has nothing to infer from a generic `**kwargs` function signature, and would fight, not save, work already done. The low-level API isn't the "harder" option here; it's the one that matches the shape of the problem.
+
+General lesson: a framework's "easy" high-level API optimizes for its own common case. When a project's own abstraction already solves the problem the high-level API is trying to solve, reach for the low-level API instead of contorting the existing abstraction to fit the framework's assumptions.
+
+---
+
+## Validate Third-Party API Shape Before Designing Around It
+
+Two SDK inspection steps happened before any production code was written: checking `FastMCP.tool()`'s actual signature (confirming it infers from type hints, not a supplied schema) and running a full smoke test of the low-level `Server` + an in-memory client session (confirming `inputSchema` really does accept an arbitrary JSON Schema dict, and that discovery + execution round-trip correctly). Only after both were confirmed did `app/mcp/server.py` get written.
+
+This is the same discipline Sprint 5's LangGraph work used (a throwaway smoke script before the real `agent_graph.py`), applied again here. The pattern generalizes: when adopting an SDK whose exact behavior isn't already known, spend five minutes confirming the shape of the thing before spending an hour designing around a guess.
+
+---
+
+## A CLI Convenience Wrapper Is Not the Same as the Protocol Itself
+
+The Python MCP SDK ships a `mcp dev` command that launches the Inspector — but it explicitly refuses to run against anything but a `FastMCP` server; it errors out against the low-level `Server` this project uses. That looked, briefly, like "the Inspector doesn't support our design."
+
+It wasn't true. The Inspector itself (`@modelcontextprotocol/inspector`, a separate npm package) speaks MCP — the protocol — not "whatever `FastMCP` happens to expose." Run directly (`npx @modelcontextprotocol/inspector python -m app.mcp.run_server`), bypassing the SDK's own convenience wrapper, it connects to our low-level server without any issue, because from its point of view it's just talking to *an* MCP server, not specifically a `FastMCP` one.
+
+The general lesson: a language SDK's CLI tooling is often built around that SDK's own preferred high-level pattern, and its limitations reflect that convenience layer's choices — not the underlying spec's. When a "the tool doesn't support my approach" wall shows up, check whether the wall belongs to the protocol or just to one wrapper around it before concluding the approach itself needs to change.
+
+---
+
 # Evaluation
 
 A production AI system must be measured.

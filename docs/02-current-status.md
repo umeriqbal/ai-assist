@@ -21,7 +21,7 @@ Enterprise AI Assistant
 | AI Platform | ✅ Complete |
 | Enterprise RAG | ✅ Complete |
 | AI Agents | ✅ Complete |
-| MCP | ⏳ Pending |
+| MCP | 🚧 In Progress |
 | Infrastructure | ⏳ Pending |
 | Evaluation | ⏳ Pending |
 | Capstone | ⏳ Pending |
@@ -34,15 +34,21 @@ Enterprise AI Assistant
 
 Status:
 
-⏳ Not Started
+🚧 In Progress
+
+Completed Sprints
+
+- **Sprint 1 – MCP Server Foundations:** `mcp==1.28.1` added (required an explicit `starlette==0.47.3` pin alongside it — installing `mcp` alone pulls in a `starlette` that conflicts with `fastapi==0.116.1`'s pin, same class of issue as Sprint 5's `langgraph`/`langchain-core` conflict); `app/mcp/server.py` (`build_mcp_server()`) — uses the low-level MCP `Server` API rather than `FastMCP`, because `Tool.parameters` is already a hand-written JSON Schema and maps directly onto MCP's `inputSchema` with zero adaptation, whereas `FastMCP`'s decorator infers schemas from Python type hints and would fight that; unknown tool names return an error `TextContent` rather than crashing, mirroring `AgentService`'s convention; `app/mcp/run_server.py` — standalone stdio-transport server exposing `EchoTool` and the real `KnowledgeBaseSearchTool`; live-verified by spawning it as an actual subprocess and connecting a real MCP client over stdio (not just the in-memory test harness) — both tools discovered correctly, `EchoTool` executed correctly, `KnowledgeBaseSearchTool` correctly hit the real embedding/retrieval pipeline
+
+Per the roadmap, Module 7's remaining topics are: MCP Client, Tool Discovery, Remote Execution — to be scoped the same way Sprint 1 was, at the start of the sprint rather than in advance.
 
 ---
 
 # Current Sprint
 
-Not yet defined.
+**Sprint 2 – MCP Client + Tool Discovery**
 
-Module 7 hasn't been broken into sprints yet — that scoping happens the same way every prior module's did, at the start of the module rather than in advance. Per the roadmap, Module 7's topics are: MCP Specification, MCP Server, MCP Client, Tool Discovery, Remote Execution.
+Not yet scoped into increments.
 
 ---
 
@@ -194,7 +200,10 @@ models/
 database/
 agents/
 tools/
+mcp/
 ```
+
+`mcp/` (new, Module 7 Sprint 1) — `server.py` (`build_mcp_server()`) and `run_server.py` (standalone stdio entry point). Not a FastAPI endpoint: an MCP server is a separate process a client spawns/connects to, so it has no entry in the endpoints table below. Confined the same way `rag/` and `agents/` confine their respective frameworks — the low-level `mcp` SDK never leaks outside this folder.
 
 `agents/` grew across every sprint of Module 6: `plan.py`/`planner.py` (Sprint 2), `critique.py`/`reflector.py` (Sprint 3), `memory.py`/`in_memory_conversation_memory.py` (Sprint 4), `agent_graph.py` (Sprint 5), `supervisor_decision.py`/`supervisor.py`/`multi_agent_graph.py` (Sprint 6) — holds the planning/reflection/memory/graph building blocks, the same way `rag/` holds RAG building blocks. LangGraph is confined to this layer, same isolation principle as LangChain and `rag/`. The services that orchestrate them for DI/router use (`AgentService`, `PlanningService`, `ReflectionService`, `AgentGraphService`, `MultiAgentService`) still live in `services/`, consistent with Decision 003.
 
@@ -210,6 +219,7 @@ Backend
 - OpenAI SDK
 - LangChain (confined to `app/rag/`)
 - LangGraph (confined to `app/agents/`, same isolation principle as LangChain)
+- MCP (`mcp==1.28.1`, confined to `app/mcp/`, same isolation principle)
 - Structlog
 
 Upcoming
@@ -241,7 +251,7 @@ The project follows these principles throughout the codebase.
 
 ## High Priority
 
-- Module 7 – Model Context Protocol (scoping not yet started)
+- Module 7, Sprint 2 – MCP Client + Tool Discovery (scoping not yet started)
 
 ---
 
@@ -279,6 +289,8 @@ Planned improvements include:
 - `POST /agents/collaborate` (Module 6, Sprint 6) has no cross-call memory at all — each request is a fresh collaboration with no `conversation_id`. Intentional scope decision (Sprints 4–5 already covered that capability), not an oversight, but worth knowing before assuming feature parity with the other `/agents/*` endpoints.
 - `FaithfulnessService` parses the LLM judge's verdict from prompt-instructed JSON text, not a guaranteed schema. Malformed responses are reported as `is_faithful: null` rather than silently misreported, but this is best-effort parsing, not a guaranteed contract. `LLMProvider.generate_structured()` (added in Module 6, Sprint 2) now provides exactly the robust mechanism this needed — retrofitting `FaithfulnessService` to use it is an optional, non-blocking cleanup, not yet done.
 - DOCX/HTML/Markdown loaders are not implemented — only PDF and raw text ingestion currently work.
+- `mcp==1.28.1` required an explicit `starlette==0.47.3` pin in `requirements.txt` to avoid a conflict with `fastapi==0.116.1` (`mcp`'s own dependency has no upper bound on `starlette`, and a fresh `pip install -r requirements.txt` could otherwise drift to an incompatible version over time). Same class of issue as Sprint 5's `langgraph`/`langchain-core` conflict, resolved the same way.
+- The MCP server (`app/mcp/run_server.py`) runs as a separate process over stdio — it currently shares no state with the FastAPI app's `KnowledgeBaseSearchTool`/vector store; each process gets its own in-memory instance. Fine for the current foundational sprint; will matter once the MCP-exposed tool needs to reflect data indexed through the API.
 
 These are intentional future enhancements rather than defects.
 
@@ -288,34 +300,33 @@ These are intentional future enhancements rather than defects.
 
 Latest Completed Milestone
 
-Module 6 – AI Agents (all 6 sprints)
+Module 7, Sprint 1 – MCP Server Foundations
 
 Recommended Tag
 
 ```
-v0.6.0
+v0.7.0-sprint1
 ```
 
 ---
 
 # Next Development Task
 
-Module 7 – Model Context Protocol (MCP)
+Module 7, Sprint 2 – MCP Client + Tool Discovery
 
-Not yet broken into sprints/increments.
+Not yet broken into increments.
 
 Goal (module-level, per the roadmap):
 
-Build and consume MCP servers, covering the MCP specification, an MCP server, an MCP client, tool discovery, and remote execution. Module 6 (AI Agents) is fully complete: agent architecture, planning, reflection, memory, LangGraph/state management, and multi-agent collaboration, all built and live-verified. The first step when this resumes is scoping Module 7 into sprints the same way every prior module was — starting with a concept walkthrough and a plan for Sprint 1, before any code changes.
+Build and consume MCP servers, covering the MCP specification, an MCP server, an MCP client, tool discovery, and remote execution. Sprint 1 (MCP Server Foundations) is complete — our own `Tool` instances are now exposed over the real MCP protocol, live-verified across a genuine process boundary. The next step is scoping Sprint 2 the same way — a concept walkthrough and increment plan, before any code changes: build an MCP client that connects to this server, discovers its tools at runtime, and adapts each into our own `Tool` interface.
 
 ---
 
 # Success Criteria
 
-Module 7 is ready to scope when:
+Module 7, Sprint 2 is ready to scope when:
 
-- Module 6's full agent system is confirmed stable (it is — 98/98 tests passing, every sprint live-verified against the real OpenAI API, including Sprint 6's multi-agent collaboration).
-- A decision is made on whether to first close out the Medium Priority backlog (DOCX/HTML/Markdown loaders) or move straight into MCP.
+- Sprint 1's MCP server is confirmed stable (it is — 102/102 tests passing, live-verified by spawning the real server as a subprocess and connecting a real MCP client over stdio).
 
 ---
 
@@ -328,4 +339,4 @@ If continuing this project in a new conversation:
 3. Read this document (`02-current-status.md`)
 4. Continue with:
 
-**Module 7 – Model Context Protocol → scope Sprint 1 (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.
+**Module 7, Sprint 2 – MCP Client + Tool Discovery → scope into increments (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.

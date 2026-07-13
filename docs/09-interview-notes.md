@@ -601,9 +601,25 @@ Benefits:
 
 ---
 
+## Q45. Why did an existing abstraction (`Tool`) turn out to map directly onto MCP, with no changes? (Sprint 1)
+
+### Answer
+
+`Tool` (built in Module 6, Sprint 1) was designed schema-first: name, description, a JSON Schema of parameters, and `execute()` — a contract about what a caller needs to know, not about any one caller's specific calling convention. MCP's tool registration wants exactly that same information (`inputSchema` is a JSON Schema). Because `Tool` was never coupled to OpenAI's specific tool-calling wire format — that coupling was deliberately kept inside the provider layer (Decision 004) — handing a `Tool` instance to a completely different protocol required zero changes to `Tool` itself, only a small adapter (`build_mcp_server()`) around it.
+
+---
+
+## Q46. Why use the low-level MCP `Server` API instead of the higher-level `FastMCP`? (Sprint 1)
+
+### Answer
+
+`FastMCP`'s `@mcp.tool()` decorator infers a tool's JSON Schema from a Python function's type hints — convenient when a tool is being defined fresh for MCP. But `Tool.parameters` already *is* an explicit JSON Schema; forcing it through type-hint inference has nothing to infer from (`execute(**kwargs)` has no fixed signature) and would fight, not reuse, work already done. The low-level `Server` API takes the schema directly via `types.Tool(inputSchema=...)`, matching the shape of the problem exactly. Confirmed with a smoke test before writing any production code, rather than assumed.
+
+---
+
 # System Design Questions
 
-## Q45. How would you design an enterprise AI assistant?
+## Q47. How would you design an enterprise AI assistant?
 
 ### Talking Points
 
@@ -619,7 +635,7 @@ Benefits:
 
 ---
 
-## Q46. How do you reduce hallucinations?
+## Q48. How do you reduce hallucinations?
 
 ### Talking Points
 
@@ -632,7 +648,7 @@ Benefits:
 
 ---
 
-## Q47. How would you support multiple LLM providers?
+## Q49. How would you support multiple LLM providers?
 
 ### Answer
 
@@ -652,7 +668,7 @@ Business logic depends only on the interface.
 
 ---
 
-## Q48. What would you monitor in production?
+## Q50. What would you monitor in production?
 
 ### Metrics
 

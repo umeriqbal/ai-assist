@@ -17,6 +17,7 @@ The goal is not to use as many technologies as possible, but to use mature, well
 | AI Provider | OpenAI SDK |
 | RAG | LangChain |
 | Agents | LangGraph |
+| Tool Integration | MCP |
 | Database | PostgreSQL |
 | Vector Search | pgvector |
 | ORM | SQLAlchemy |
@@ -216,6 +217,31 @@ Extended in Sprint 6 to a multi-worker graph (`supervisor`/`researcher`/`writer`
 
 ---
 
+# Model Context Protocol
+
+## MCP (Anthropic's official Python SDK)
+
+Purpose
+
+Connect AI applications to external tools and data sources via an open, vendor-neutral standard.
+
+Used For
+
+- Exposing this project's own tools to any MCP-compatible client (server side)
+- Consuming tools from external MCP servers (client side, Sprint 2+)
+
+Reason
+
+Official SDK (Decision 014). Tool interfaces built for one AI application become reusable across any MCP-compatible one.
+
+Status
+
+Introduced in Module 7, Sprint 1. Version pinned at `1.28.1`, with an explicit `starlette==0.47.3` pin alongside it — `mcp` has no upper bound on its own `starlette` dependency, and installing it alone pulls in a release that conflicts with `fastapi==0.116.1`'s pin (same class of ecosystem conflict as `langgraph`/`langchain-core` in Sprint 5, resolved the same way and this time pinned explicitly to prevent future drift). Confined to `app/mcp/` — same isolation principle as LangChain in `app/rag/` and LangGraph in `app/agents/`.
+
+Important detail: uses the SDK's low-level `Server` API, not the higher-level `FastMCP`. This project's `Tool.parameters` is already a hand-written JSON Schema; `FastMCP`'s decorator infers schemas from Python type hints instead, which would fight an already-explicit schema rather than reuse it. The low-level API accepts the schema directly via `types.Tool(inputSchema=...)` — confirmed with a smoke test before any production code was written.
+
+---
+
 # Database
 
 ## PostgreSQL
@@ -317,7 +343,6 @@ Async HTTP client.
 Future Uses
 
 - Calling APIs
-- MCP
 - Tool integrations
 - Webhooks
 

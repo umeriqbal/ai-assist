@@ -34,9 +34,9 @@ This project follows real software engineering practices including:
 | Item | Value |
 |------|-------|
 | Current Module | Module 7 – Model Context Protocol (MCP) |
-| Current Sprint | Not yet defined |
+| Current Sprint | Sprint 2 – MCP Client + Tool Discovery (not yet scoped) |
 | Current Increment | Not yet defined |
-| Status | Module 6 (AI Agents) Complete — all 6 sprints, 98/98 tests passing, live-verified. Module 7 not yet scoped into sprints |
+| Status | Module 6 (AI Agents) Complete — all 6 sprints. Module 7, Sprint 1 (MCP Server Foundations) complete — 102/102 tests passing, live-verified over a real subprocess/stdio boundary |
 
 ---
 
@@ -222,6 +222,26 @@ Complete
 
 ---
 
+# Current Module (In Progress)
+
+## Module 7
+
+Model Context Protocol (MCP)
+
+Completed Sprints
+
+- **Sprint 1 – MCP Server Foundations:** `mcp==1.28.1` + an explicit `starlette==0.47.3` pin (same class of ecosystem conflict as Sprint 5's `langgraph`, resolved the same way); `app/mcp/` layer created (new top-level folder, reviewed before adding); `build_mcp_server()` — low-level MCP `Server` API, chosen over `FastMCP` because `Tool.parameters` already maps directly onto MCP's `inputSchema`, validated with a smoke test first; `run_server.py` — standalone stdio server exposing `EchoTool` and the real `KnowledgeBaseSearchTool`
+
+Live-verified by spawning `run_server.py` as a genuine subprocess and connecting a real MCP client over stdio — not just the in-memory test harness.
+
+Not yet scoped: Sprint 2 (MCP Client + Tool Discovery), Sprint 3 (Remote Execution / Agent Integration).
+
+Status
+
+🚧 In Progress
+
+---
+
 # Architecture
 
 The project follows a layered architecture.
@@ -314,13 +334,13 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 Module 7 – Model Context Protocol (MCP)
 
-Module 6 (AI Agents) is fully complete — all 6 sprints. Not yet scoped into sprints. First step when work resumes: a concept walkthrough and a concrete plan for Sprint 1, same approach used to start every prior module.
+Sprint 1 (MCP Server Foundations) complete. Next step: a concept walkthrough and concrete increment plan for Sprint 2 (MCP Client + Tool Discovery), same approach used for every prior sprint.
 
 ---
 
 # Next Milestones
 
-- Model Context Protocol (MCP)
+- Model Context Protocol (MCP): Sprints 2–3 (MCP Client + Tool Discovery, Remote Execution), not yet scoped
 - Production Infrastructure (Docker, PostgreSQL, pgvector, Terraform, AWS, CI/CD)
 - Evaluation & Observability (cost/latency/prompt versioning — system-wide, distinct from Module 5's RAG-quality evaluation)
 - Enterprise AI Assistant (final integration)

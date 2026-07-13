@@ -9,6 +9,9 @@ langchain-openai==0.3.31
 langchain-community==0.3.27
 langgraph==0.6.11
 
+mcp==1.28.1
+starlette==0.47.3
+
 pydantic==2.11.7
 pydantic-settings==2.10.1
 

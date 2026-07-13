@@ -17,7 +17,7 @@ Install the following software before starting.
 | VS Code | Latest |
 | Docker Desktop | Latest (later modules) |
 | PostgreSQL | Later modules |
-| Node.js | Latest LTS (frontend later) |
+| Node.js | Latest LTS (frontend later; also needed now for the MCP Inspector, Module 7) |
 
 ---
 
@@ -169,6 +169,30 @@ http://127.0.0.1:8000/openapi.json
 
 ---
 
+# MCP Server (Module 7)
+
+The MCP server (`app/mcp/run_server.py`) is **not** an HTTP endpoint and has no Swagger entry — it's a separate process that speaks the Model Context Protocol over stdio, not REST. `/docs` only reflects routes registered in `app/main.py`; there's nothing to add there for it.
+
+To explore it interactively (the closest equivalent to Swagger for MCP), use the official Inspector, from `backend/`:
+
+```bash
+npx -y @modelcontextprotocol/inspector python -m app.mcp.run_server
+```
+
+Requires Node.js/`npx` (see Prerequisites). This downloads the Inspector on first run, spawns the MCP server as a subprocess, and opens a browser UI where you can list tools (`echo`, `search_knowledge_base`) and call them directly, seeing the JSON Schema and results live.
+
+Note: the SDK's own `mcp dev` CLI wrapper only supports `FastMCP`-based servers — it will error against our low-level `Server`. The command above bypasses that wrapper and talks to the server directly over the protocol, which works regardless of which server API built it.
+
+To run the server standalone without the Inspector (e.g. to spawn it from your own MCP client):
+
+```bash
+python -m app.mcp.run_server
+```
+
+It communicates over stdin/stdout — running it directly in a terminal will appear to hang, waiting for a client to connect.
+
+---
+
 # Health Checks
 
 Verify
@@ -287,6 +311,8 @@ database/
 agents/
 
 tools/
+
+mcp/
 ```
 
 Do not create additional top-level folders without an architectural review.

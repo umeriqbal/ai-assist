@@ -236,12 +236,28 @@ app/tools/
 Responsibilities
 
 - Tool calling
-- MCP integration
 - External systems
 - Search
 - Calculator
 - GitHub
 - Filesystem
+
+---
+
+## MCP Layer
+
+Location
+
+```
+app/mcp/
+```
+
+Responsibilities
+
+- MCP server(s) — exposing this project's own `Tool` instances over the Model Context Protocol
+- MCP client(s) — discovering and consuming tools from external MCP servers (Sprint 2+)
+
+The `mcp` SDK exists only inside this layer, the same isolation principle Decision 013 gives LangChain in `app/rag/` and that was extended to LangGraph in `app/agents/`. Nothing outside `app/mcp/` imports `mcp` directly — `build_mcp_server()` takes plain `Tool` instances and adapts them, so `app/tools/` stays protocol-agnostic.
 
 ---
 
@@ -670,6 +686,32 @@ compiled StateGraph.ainvoke(...)
 ```
 
 This is the "Planner/Supervisor → Specialist Agents → Final Answer" idea this document sketched before Module 6 began — realized with two concrete specialists (Researcher, Writer) rather than an open-ended set, and no separate "Reviewer Agent": self-critique already exists as its own capability (`ReflectionService`, Sprint 3) and wasn't duplicated here. Each specialist is an ordinary `AgentService` instance — Sprint 6 added an optional `system_prompt` so an agent can have a role, not a new "specialist" class. The Supervisor routes via `generate_structured()` (Sprint 2's mechanism, reused a third time), and orchestration follows the exact graph pattern `agent_graph.py` established in Sprint 5 — a conditional edge and node-per-worker, just with more than one worker node this time. No checkpointer: this endpoint deliberately has no cross-call memory (Sprints 4–5 already covered that ground).
+
+---
+
+# Current MCP Server Flow
+
+```
+MCP Client (e.g. our own Sprint 2 client, or Claude Desktop)
+
+↓  spawns / connects over stdio
+
+app/mcp/run_server.py
+
+↓
+
+build_mcp_server(name, tools=[EchoTool(), KnowledgeBaseSearchTool()])
+
+↓
+
+low-level mcp.server.lowlevel.Server
+
+├── list_tools()  →  [types.Tool(name, description, inputSchema=Tool.parameters)]
+│
+└── call_tool(name, arguments)  →  Tool.execute(**arguments)  →  types.TextContent
+```
+
+`Tool.parameters` (a hand-written JSON Schema, built in Module 6 Sprint 1) maps directly onto MCP's `inputSchema` — no adapter logic needed, confirmed with a smoke test before writing any production code. This is why the low-level `Server` API was used instead of `FastMCP`: `FastMCP`'s decorator infers a tool's schema from Python type hints, which would fight an already-explicit schema rather than reuse it. Live-verified by spawning `run_server.py` as a genuine subprocess and connecting a real client over stdio — not just an in-memory test harness.
 
 ---
 

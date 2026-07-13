@@ -57,6 +57,7 @@ app/
 ├── models/
 ├── agents/
 ├── tools/
+├── mcp/
 ├── static/
 ├── templates/
 ├── __init__.py
@@ -295,7 +296,24 @@ tools/
 
 Purpose
 
-LLM tools and MCP integrations.
+LLM tools — this project's own `Tool` implementations, protocol-agnostic.
+
+---
+
+# MCP
+
+```
+mcp/
+│
+├── server.py
+├── run_server.py
+├── client.py            (future, Sprint 2)
+└── __init__.py
+```
+
+Purpose
+
+MCP server(s) and client(s). Confines the `mcp` SDK the same way `rag/` confines LangChain and `agents/` confines LangGraph — nothing outside this folder imports `mcp` directly. `server.py` adapts plain `Tool` instances (from `tools/`) onto the MCP protocol; `tools/` itself stays unaware that MCP exists.
 
 ---
 
@@ -423,6 +441,7 @@ The frontend will be introduced later in the bootcamp.
 | models | Database Models |
 | agents | AI Agents |
 | tools | Tool Calling |
+| mcp | Model Context Protocol (server/client) |
 | static | Frontend Assets |
 | templates | HTML Templates |
 | tests | Automated Testing |

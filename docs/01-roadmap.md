@@ -309,19 +309,36 @@ A modular multi-agent system.
 
 # Module 7 — Model Context Protocol (MCP)
 
-**Status:** ⏳ Planned
+**Status:** 🚧 Current
 
 ## Objectives
 
 Build and consume MCP servers.
 
-### Topics
+### Sprint 1
 
-- MCP Specification
-- MCP Server
-- MCP Client
-- Tool Discovery
-- Remote Execution
+MCP Server Foundations
+
+- `app/mcp/server.py` — `build_mcp_server()`, exposing existing `Tool` instances via the low-level MCP `Server` API (`Tool.parameters` maps directly onto `inputSchema`, no adaptation needed)
+- `app/mcp/run_server.py` — standalone stdio-transport server, real tools (`EchoTool`, `KnowledgeBaseSearchTool`)
+
+**Status:** ✅ Complete
+
+---
+
+### Sprint 2
+
+MCP Client + Tool Discovery
+
+*(not yet scoped)*
+
+---
+
+### Sprint 3
+
+Remote Execution / Agent Integration
+
+*(not yet scoped)*
 
 ### Outcome
 
@@ -416,7 +433,7 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 | 4 | Enterprise AI Platform | ✅ Complete |
 | 5 | Enterprise RAG | ✅ Complete |
 | 6 | AI Agents | ✅ Complete |
-| 7 | Model Context Protocol | ⏳ Planned |
+| 7 | Model Context Protocol | 🚧 Current |
 | 8 | Production Infrastructure | ⏳ Planned |
 | 9 | Evaluation & Observability | ⏳ Planned |
 | 10 | Enterprise AI Assistant | ⏳ Planned |
@@ -425,12 +442,16 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 
 # Current Focus
 
-**Module 6 – AI Agents: Complete**
+**Module 7 – Model Context Protocol (MCP)**
+
+Current Sprint:
+
+**Sprint 2 – MCP Client + Tool Discovery** *(not yet scoped)*
 
 Last Completed Sprint:
 
-**Sprint 6 – Multi-Agent Collaboration** — `Supervisor` (routes via Sprint 2's `generate_structured()`) coordinating two specialist `AgentService` instances (Researcher: knowledge-base tool; Writer: no tools, synthesis only) through a LangGraph graph, exposed as `POST /agents/collaborate`. Live-verified: the supervisor correctly sequenced researcher → writer → finish, each specialist producing genuinely distinct output.
+**Sprint 1 – MCP Server Foundations** — `app/mcp/server.py` (`build_mcp_server()`, low-level MCP `Server` API — `Tool.parameters` maps directly onto MCP's `inputSchema`, no adaptation needed) and `app/mcp/run_server.py` (standalone stdio server exposing `EchoTool` and `KnowledgeBaseSearchTool`). Live-verified by spawning it as a real subprocess and connecting a real MCP client over stdio — not just the in-memory test harness.
 
 Next milestone:
 
-**Module 7 – Model Context Protocol (MCP)**, not yet scoped into sprints. First step when this resumes: a concept walkthrough and concrete Sprint 1 plan, the same process used to start every prior module.
+**Scope Sprint 2 (MCP Client + Tool Discovery) into increments before writing any code.**

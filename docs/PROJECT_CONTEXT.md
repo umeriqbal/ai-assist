@@ -23,11 +23,11 @@ Module 7 – Model Context Protocol (MCP)
 
 Current Sprint:
 
-Not yet defined — Module 7 has not been broken into sprints yet.
+Sprint 2 – MCP Client + Tool Discovery (not yet scoped into increments)
 
 Status:
 
-Module 6 (AI Agents) is complete: all 6 sprints delivered (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management, Multi-Agent Collaboration), unit-tested, and live-verified against the real OpenAI API — 98/98 tests passing. Module 7 scoping has not started.
+Module 6 (AI Agents) is complete: all 6 sprints delivered (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management, Multi-Agent Collaboration), unit-tested, and live-verified against the real OpenAI API — 98/98 tests passing. Module 7, Sprint 1 (MCP Server Foundations) is complete — 102/102 tests passing, live-verified by spawning the real MCP server as a subprocess and connecting a real client over stdio. Sprint 2 scoping has not started.
 
 ---
 
@@ -127,6 +127,7 @@ Backend
 - OpenAI SDK
 - LangChain (confined to `app/rag/`)
 - LangGraph (confined to `app/agents/`, same isolation principle)
+- MCP (`mcp==1.28.1`, confined to `app/mcp/`, same isolation principle)
 - Structlog
 
 Future
@@ -315,6 +316,15 @@ Multi-Agent Collaboration (Module 6, Sprint 6 — final sprint of Module 6)
 - Live-verified: Supervisor correctly sequenced Researcher → Writer → finish, with two genuinely distinct specialist outputs
 - **Module 6 (AI Agents) is now fully complete.**
 
+MCP Server Foundations (Module 7, Sprint 1)
+
+- `mcp==1.28.1` + explicit `starlette==0.47.3` pin — same class of ecosystem dependency conflict as Sprint 5's `langgraph`, resolved the same way (find a compatible resolve, confirm with `pip check`)
+- `app/mcp/` layer created (new top-level folder, reviewed and confirmed before adding) — confines the `mcp` SDK the same way `rag/` confines LangChain and `agents/` confines LangGraph
+- `build_mcp_server()` (`app/mcp/server.py`) — low-level MCP `Server` API, not `FastMCP`: `Tool.parameters` (a hand-written JSON Schema) maps directly onto MCP's `inputSchema`, validated with a smoke test before writing production code
+- `app/mcp/run_server.py` — standalone stdio server exposing `EchoTool` and the real `KnowledgeBaseSearchTool`
+- Live-verified by spawning the server as a genuine subprocess and connecting a real MCP client over stdio — not just an in-memory test harness
+- Known limitation: the MCP server process and the FastAPI app each hold their own in-memory vector store; a document indexed via the API is invisible to the MCP-exposed search tool
+
 ---
 
 # Design Decisions
@@ -339,9 +349,9 @@ No framework-specific code inside routers.
 
 # Current Objective
 
-Begin Module 7 – Model Context Protocol (MCP).
+Continue Module 7 – Model Context Protocol (MCP).
 
-Module 6 (AI Agents) is fully complete — all 6 sprints. First step: scope Module 7 into sprints the same way every prior module was — a concept walkthrough and a concrete plan for Sprint 1 before any code changes. Topics per the roadmap: MCP Specification, MCP Server, MCP Client, Tool Discovery, Remote Execution.
+Sprint 1 (MCP Server Foundations) is complete. Next step: scope Sprint 2 (MCP Client + Tool Discovery) the same way every prior sprint was — a concept walkthrough and a concrete increment plan before any code changes: build an MCP client that connects to the Sprint 1 server, discovers its tools at runtime, and adapts each into the project's own `Tool` interface.
 
 Not yet decided: whether to close out the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first.
 
@@ -370,13 +380,13 @@ Not yet decided: whether to close out the remaining Medium Priority backlog (DOC
 - ~~State Management~~ ✅
 - ~~Multi-Agent Collaboration~~ ✅
 
-## Module 7 (Current — not yet scoped)
+## Module 7 (Current — Sprint 1 complete)
 
-- MCP Specification
-- MCP Server
-- MCP Client
-- Tool Discovery
-- Remote Execution
+- ~~MCP Specification~~ ✅ (learned by building the server)
+- ~~MCP Server~~ ✅
+- MCP Client (not yet scoped)
+- Tool Discovery (not yet scoped)
+- Remote Execution (not yet scoped)
 
 ---
 

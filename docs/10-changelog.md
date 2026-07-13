@@ -6,6 +6,27 @@ The format follows the principles of Keep a Changelog.
 
 ---
 
+# [0.7.0] - Model Context Protocol (MCP)
+
+**Status:** 🚧 In Progress
+
+### Added — Sprint 1: MCP Server Foundations (Complete)
+
+- `mcp==1.28.1` added to `requirements.txt`, plus an explicit `starlette==0.47.3` pin — installing `mcp` alone pulls in a `starlette` release that conflicts with `fastapi==0.116.1`'s pin (`starlette<0.48.0`); same class of ecosystem dependency conflict as Sprint 5's `langgraph`/`langchain-core` issue, resolved the same way (find a compatible resolve, confirm with `pip check`, and this time also pin the shared dependency explicitly so a future fresh install doesn't drift back into the conflict)
+- `app/mcp/` layer created (new top-level folder, reviewed and confirmed before adding, per [04-folder-structure.md](docs/04-folder-structure.md)'s explicit rule) — confines the `mcp` SDK the same way `rag/` confines LangChain and `agents/` confines LangGraph
+- `build_mcp_server()` (new, `app/mcp/server.py`) — uses the low-level MCP `Server` API rather than `FastMCP`, validated with a smoke test before committing to the design: `Tool.parameters` (a hand-written JSON Schema, from Module 6 Sprint 1) maps directly onto MCP's `inputSchema` with zero adaptation, whereas `FastMCP`'s decorator infers schemas from Python type hints and would fight an already-explicit schema. Unknown tool names return an error `TextContent` instead of crashing, mirroring `AgentService`'s existing convention
+- `app/mcp/run_server.py` (new) — standalone stdio-transport entry point exposing `EchoTool` and the real `KnowledgeBaseSearchTool` (wired to the actual `RetrievalService`)
+- Unit tests: tool discovery (name/description/schema fidelity), successful execution, unknown-tool graceful handling, multi-tool exposure — using the MCP SDK's in-memory client/server session harness, no subprocess needed for the automated suite
+- Live-verified beyond the in-memory harness: spawned `run_server.py` as a real subprocess and connected a real `ClientSession` over stdio — both tools discovered correctly, `EchoTool` executed correctly, `KnowledgeBaseSearchTool` correctly exercised the real embedding/retrieval pipeline (freshly empty vector store in the subprocess, correctly reported no results)
+- Known, not yet addressed: the MCP server process and the FastAPI app process each hold their own separate in-memory vector store — a document indexed via `POST /documents/index` is invisible to the MCP-exposed `search_knowledge_base` tool. Fine for this foundational sprint; will matter once real cross-process data sharing is needed
+- Addendum: since this server has no HTTP surface, it has no Swagger entry. Confirmed the official MCP Inspector (`npx @modelcontextprotocol/inspector python -m app.mcp.run_server`) works as the practical equivalent — a browser UI for listing and calling tools — despite the SDK's own `mcp dev` CLI wrapper explicitly refusing to run against a low-level `Server` (it only supports `FastMCP`). Documented in [07-development-guide.md](docs/07-development-guide.md)
+
+### Not Included
+
+- MCP Client, Tool Discovery, Remote Execution (Sprints 2–3, not yet scoped)
+
+---
+
 # [0.6.0] - AI Agents
 
 **Status:** ✅ Complete
@@ -348,18 +369,13 @@ Built the first OpenAI-powered application.
 
 ---
 
-## Version 0.7.0
+## Remainder of 0.7.0 - Model Context Protocol (MCP)
 
-### Planned
+### Planned (Sprints 2–3, not yet scoped)
 
-Model Context Protocol (MCP)
-
-Expected features
-
-- MCP Server
 - MCP Client
-- Tool discovery
-- Remote tools
+- Tool Discovery
+- Remote Execution
 
 ---
 
@@ -426,7 +442,7 @@ Expected features
 | 0.4.0 | Enterprise AI Platform | ✅ |
 | 0.5.0 | Enterprise RAG | ✅ |
 | 0.6.0 | AI Agents | ✅ |
-| 0.7.0 | MCP | ⏳ |
+| 0.7.0 | MCP | 🚧 |
 | 0.8.0 | Infrastructure | ⏳ |
 | 0.9.0 | Evaluation | ⏳ |
 | 1.0.0 | Enterprise AI Assistant | ⏳ |
@@ -438,7 +454,7 @@ Expected features
 Current Status
 
 - Modules Completed: 6 / 10
-- Current Module: 7 (not yet scoped)
+- Current Module: 7 (Sprint 1 of ~3 complete)
 - Architecture: Stable
 - Documentation: Complete
 - Production Readiness: Strong foundation established
