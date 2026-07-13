@@ -8,7 +8,20 @@ The format follows the principles of Keep a Changelog.
 
 # [0.7.0] - Model Context Protocol (MCP)
 
-**Status:** 🚧 In Progress
+**Status:** ✅ Complete
+
+### Added — Sprint 3: Remote Execution / Agent Integration (Complete)
+
+- `app/mcp/http_server.py` (new) — wraps `build_mcp_server()`'s low-level `Server` in a Starlette ASGI app served over MCP's streamable-HTTP transport, using `StreamableHTTPSessionManager` plus a ~3-line ASGI adapter written directly (not imported from `mcp.server.fastmcp`'s internals, which this project deliberately doesn't depend on). Validated with a full smoke test — real uvicorn server on a real port, real HTTP client — before writing this as production code
+- `app/mcp/run_http_server.py` (new) — standalone entry point serving the same tools (`EchoTool`, `KnowledgeBaseSearchTool`) over streamable-HTTP on its own port, genuinely network-addressable — unlike Sprints 1–2's stdio transport, this is not just a subprocess pipe
+- `connect_http_mcp_server(url)` (new, `app/mcp/client.py`) — mirrors `connect_stdio_mcp_server`, using `streamable_http_client` (not the deprecated `streamablehttp_client` alias, caught and switched during implementation)
+- Settings gained `mcp_server_host`/`mcp_server_port`/`mcp_server_url` (`app/core/config.py`), per Decision 009 — no hard-coded connection details
+- `create_app()` gained its first `lifespan` (`app/core/application.py`) — connects to the MCP HTTP server at startup via `connect_http_mcp_server()`, discovers its tools via `discover_tools()`, and builds an `AgentService` from them, held open for the app's entire lifetime. The first dependency in this project needing real async setup/teardown, not just a lazy `@lru_cache` constructor call — startup fails clearly if the MCP server isn't already running, since there's no sensible fallback for "the tools this agent needs don't exist yet"
+- `get_mcp_agent_service(request: Request)` (new, `app/dependencies/services.py`) — reads the lifespan-built `AgentService` off `request.app.state`; not `@lru_cache`, since the lifespan already populates it once per app lifetime
+- `POST /agents/mcp-chat` (new) — same `AgentChatRequest`/`AgentChatResponse` shape as `POST /agents/chat`, backed by an `AgentService` whose tools are entirely MCP-discovered
+- Integration test (`test_mcp_http_transport.py`, new) — a real uvicorn server on a real port, a real client connecting over HTTP; deliberately not mocked, since the whole point of this increment is proving the network transport actually works
+- Live-verified with both processes running for real: `run_http_server.py` and the FastAPI app started independently; a forced remote `echo` call round-tripped correctly (`REMOTE-MCP-ROUNDTRIP-CONFIRMED`); a knowledge-base question correctly triggered a real HTTP call to the MCP server and got back an honest "no results" (confirming the known cross-process vector-store gap, not a bug)
+- **Module 7 (Model Context Protocol) is now fully complete** — all 3 sprints (Server Foundations, Client + Tool Discovery, Remote Execution/Agent Integration) delivered, unit-tested, and live-verified across genuine process boundaries
 
 ### Added — Sprint 1: MCP Server Foundations (Complete)
 
@@ -30,10 +43,6 @@ The format follows the principles of Keep a Changelog.
 - Unit tests: schema-faithful discovery, successful execution through a real (in-memory) MCP session, multi-tool discovery, graceful surfacing of a remote tool error — using the same in-memory client/server harness as Sprint 1
 - Live-verified beyond the in-memory harness: connected to the real Sprint 1 `run_server.py` subprocess, discovered both `echo` and `search_knowledge_base` with no prior knowledge of their names, and executed both successfully — completing the full `Tool` → MCP server → subprocess boundary → MCP client → `Tool` round trip
 - Scope note: this sprint deliberately stops at proving the client + adapter in isolation. Wiring MCP-discovered tools into a running agent is Sprint 3's job, not duplicated here
-
-### Not Included
-
-- Remote Execution / Agent Integration (Sprint 3, not yet scoped)
 
 ---
 
@@ -379,14 +388,6 @@ Built the first OpenAI-powered application.
 
 ---
 
-## Remainder of 0.7.0 - Model Context Protocol (MCP)
-
-### Planned (Sprint 3, not yet scoped)
-
-- Remote Execution / Agent Integration
-
----
-
 ## Version 0.8.0
 
 ### Planned
@@ -450,7 +451,7 @@ Expected features
 | 0.4.0 | Enterprise AI Platform | ✅ |
 | 0.5.0 | Enterprise RAG | ✅ |
 | 0.6.0 | AI Agents | ✅ |
-| 0.7.0 | MCP | 🚧 |
+| 0.7.0 | MCP | ✅ |
 | 0.8.0 | Infrastructure | ⏳ |
 | 0.9.0 | Evaluation | ⏳ |
 | 1.0.0 | Enterprise AI Assistant | ⏳ |
@@ -461,8 +462,8 @@ Expected features
 
 Current Status
 
-- Modules Completed: 6 / 10
-- Current Module: 7 (Sprints 1–2 of 3 complete)
+- Modules Completed: 7 / 10
+- Current Module: 8 (not yet scoped)
 - Architecture: Stable
 - Documentation: Complete
 - Production Readiness: Strong foundation established

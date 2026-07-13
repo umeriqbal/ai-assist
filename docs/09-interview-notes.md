@@ -635,9 +635,33 @@ The payoff: `AgentService` needs zero changes to use a mix of local and MCP-disc
 
 ---
 
+## Q49. Why wasn't stdio transport already "remote execution"? (Sprint 3)
+
+### Answer
+
+Stdio is a subprocess pipe — the client spawns the server as a child process on the same machine and talks to it over stdin/stdout. Nothing crosses an actual network boundary; the server doesn't outlive the connection or exist independently of it. "Remote execution" means a standing service, reachable by address, running independently of whoever connects to it — which is what Sprint 3's streamable-HTTP transport actually provides: the MCP server runs on its own port as a persistent process, and any client that knows the URL can connect, call tools, and disconnect without the server's lifecycle depending on them at all.
+
+---
+
+## Q50. What changed, and what didn't, when switching from stdio to HTTP transport? (Sprint 3)
+
+### Answer
+
+Only the connection step: `connect_stdio_mcp_server()` became `connect_http_mcp_server()`, swapping `stdio_client` for `streamable_http_client`. Everything downstream of a `ClientSession` — `discover_tools()`, `MCPToolAdapter`, `Tool` itself — was completely unaware of which transport it was running over. That's the payoff of a properly layered protocol library: transport is the library's concern, not something that should leak into code that discovers and uses tools. If switching transports required touching business logic, the abstraction boundary would have been drawn in the wrong place.
+
+---
+
+## Q51. Why did wiring MCP tools into an agent need a new pattern (`lifespan`) instead of another `@lru_cache` function? (Sprint 3)
+
+### Answer
+
+Every dependency before this was a synchronous, lazy constructor — cheap to build, safe to build on first access. Connecting to a network service and discovering its tools is neither: it's async, it can fail, and it needs to happen once at startup and be cleanly torn down at shutdown, not whenever the first request happens to touch it. FastAPI's `lifespan` context manager is built for exactly that shape of problem. The general principle: a dependency's *lifecycle* (constructor-cheap vs. needs-real-setup-and-teardown) determines which pattern it belongs in — forcing a lifecycle-managed resource into a lazy-singleton pattern either blocks somewhere awkward or pushes connection risk onto whichever request arrives first.
+
+---
+
 # System Design Questions
 
-## Q49. How would you design an enterprise AI assistant?
+## Q52. How would you design an enterprise AI assistant?
 
 ### Talking Points
 
@@ -653,7 +677,7 @@ The payoff: `AgentService` needs zero changes to use a mix of local and MCP-disc
 
 ---
 
-## Q50. How do you reduce hallucinations?
+## Q53. How do you reduce hallucinations?
 
 ### Talking Points
 
@@ -666,7 +690,7 @@ The payoff: `AgentService` needs zero changes to use a mix of local and MCP-disc
 
 ---
 
-## Q51. How would you support multiple LLM providers?
+## Q54. How would you support multiple LLM providers?
 
 ### Answer
 
@@ -686,7 +710,7 @@ Business logic depends only on the interface.
 
 ---
 
-## Q52. What would you monitor in production?
+## Q55. What would you monitor in production?
 
 ### Metrics
 

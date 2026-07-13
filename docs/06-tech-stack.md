@@ -242,6 +242,8 @@ Important detail: uses the SDK's low-level `Server` API, not the higher-level `F
 
 Extended in Sprint 2 with the client side (`app/mcp/client.py`): `MCPToolAdapter`, `discover_tools()`, `connect_stdio_mcp_server()` — the mirror image of Sprint 1's server-side adapter, wrapping a remote MCP tool as this project's own `Tool` rather than the reverse. Live-verified against the real Sprint 1 server with zero hard-coded tool names anywhere in the client.
 
+Extended again in Sprint 3 with a genuinely networked transport: `app/mcp/http_server.py`/`run_http_server.py` serve the same tools over MCP's streamable-HTTP transport (a standing service on its own port, not a subprocess pipe), and `connect_http_mcp_server()` mirrors the stdio connector using `streamable_http_client`. `create_app()` gained its first `lifespan` — connecting to the MCP HTTP server at startup, discovering its tools, and building an `AgentService` from them (`POST /agents/mcp-chat`) — the first dependency in this project needing real async setup/teardown rather than a lazy `@lru_cache` constructor. **Module 7 (MCP) is now fully complete**, live-verified with the MCP server and the FastAPI app running as two independent, real processes.
+
 ---
 
 # Database

@@ -4,6 +4,7 @@ from typing import Any
 
 from mcp import ClientSession
 from mcp.client.stdio import StdioServerParameters, stdio_client
+from mcp.client.streamable_http import streamable_http_client
 
 from app.tools.tool import Tool
 
@@ -78,6 +79,19 @@ async def connect_stdio_mcp_server(
     params = StdioServerParameters(command=command, args=args)
 
     async with stdio_client(params) as (read_stream, write_stream):
+        async with ClientSession(read_stream, write_stream) as session:
+            await session.initialize()
+            yield session
+
+
+@asynccontextmanager
+async def connect_http_mcp_server(url: str) -> AsyncIterator[ClientSession]:
+    """
+    Connect to an MCP server over streamable HTTP — a genuine network
+    boundary, unlike `connect_stdio_mcp_server`'s subprocess pipe.
+    """
+
+    async with streamable_http_client(url) as (read_stream, write_stream, _):
         async with ClientSession(read_stream, write_stream) as session:
             await session.initialize()
             yield session

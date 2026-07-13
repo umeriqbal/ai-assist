@@ -745,6 +745,38 @@ adapter.execute(**kwargs)  →  session.call_tool(name, kwargs)  →  joined tex
 
 ---
 
+# Current Remote Execution Flow
+
+```
+Process 1: python -m app.mcp.run_http_server
+    build_mcp_server(tools=[EchoTool(), KnowledgeBaseSearchTool()])
+    → wrapped in a Starlette app (StreamableHTTPSessionManager)
+    → served on its own port — a real network service, not a subprocess pipe
+
+Process 2: uvicorn app.main:create_app --factory
+    create_app()'s lifespan (new in Sprint 3):
+        connect_http_mcp_server(settings.mcp_server_url)  →  ClientSession
+        discover_tools(session)  →  list[Tool]  (no names hard-coded)
+        app.state.mcp_agent_service = AgentService(provider, tools, memory)
+        ── held open for the app's entire lifetime ──
+
+    POST /agents/mcp-chat
+        → get_mcp_agent_service(request)  →  request.app.state.mcp_agent_service
+        → AgentService.chat(prompt, conversation_id)
+        → (Current Agent Flow, as always) ── except a tool call now means
+          a real HTTP request from Process 2 to Process 1 and back
+```
+
+The only thing that changed from the Current Agent Flow already documented above: some of `AgentService`'s tools now execute on a completely different process, reached over a real network boundary, instead of in-process. `AgentService` itself needed zero changes — it was never written to know or care where a tool's `execute()` actually runs.
+
+**Why a `lifespan`, when nothing before this needed one:** every other DI singleton (`@lru_cache` functions in `dependencies/`) constructs lazily and synchronously on first access. Connecting to a network service and discovering its tools is genuine async setup that must happen once, at startup, and be torn down at shutdown — the first dependency in this project with a real connection lifecycle, not just a constructor call.
+
+**Two independent processes, deliberately not merged:** the MCP server (tool provider) and the FastAPI app (agent) are separate services, mirroring a real remote-tool-provider architecture rather than embedding everything in one process. If the MCP server isn't running when the FastAPI app starts, startup fails clearly — there's no sensible fallback for "the tools this agent needs don't exist yet."
+
+**Known limitation, confirmed live rather than just assumed:** the MCP server process and the FastAPI app process each hold their own in-memory vector store. A question requiring a document indexed via `POST /documents/index` correctly returned "no results" through `POST /agents/mcp-chat` — the remote call itself worked, the data just wasn't there. Not fixed in this sprint.
+
+---
+
 # Dependency Injection
 
 Object creation is centralised.

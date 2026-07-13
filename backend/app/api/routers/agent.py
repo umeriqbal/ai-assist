@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.dependencies.services import (
     get_agent_graph_service,
     get_agent_service,
+    get_mcp_agent_service,
     get_multi_agent_service,
     get_planning_service,
     get_reflection_service,
@@ -73,6 +74,31 @@ async def agent_graph_chat(
         request.prompt,
         conversation_id=conversation_id,
     )
+
+    return AgentChatResponse(
+        response=response,
+        conversation_id=conversation_id,
+    )
+
+
+@router.post(
+    "/mcp-chat",
+    response_model=AgentChatResponse,
+)
+async def agent_mcp_chat(
+    request: AgentChatRequest,
+    service: AgentService = Depends(get_mcp_agent_service),
+) -> AgentChatResponse:
+
+    conversation_id = request.conversation_id or str(uuid.uuid4())
+
+    try:
+        response = await service.chat(
+            request.prompt,
+            conversation_id=conversation_id,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     return AgentChatResponse(
         response=response,

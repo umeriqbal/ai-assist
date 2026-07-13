@@ -19,15 +19,15 @@ The completed project should demonstrate the skills expected of an AI Engineer.
 
 Current Module:
 
-Module 7 – Model Context Protocol (MCP)
+Module 8 – Production Infrastructure
 
 Current Sprint:
 
-Sprint 3 – Remote Execution / Agent Integration (not yet scoped into increments)
+Not yet defined — Module 8 has not been broken into sprints yet.
 
 Status:
 
-Module 6 (AI Agents) is complete: all 6 sprints delivered (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management, Multi-Agent Collaboration), unit-tested, and live-verified against the real OpenAI API — 98/98 tests passing. Module 7, Sprints 1–2 (MCP Server Foundations, MCP Client + Tool Discovery) are complete — 106/106 tests passing, live-verified by spawning the real MCP server as a subprocess and, from a fresh client, discovering and executing both of its tools with zero hard-coded tool names. Sprint 3 scoping has not started.
+Module 7 (MCP) is complete: all 3 sprints delivered (MCP Server Foundations, MCP Client + Tool Discovery, Remote Execution/Agent Integration), unit-tested, and live-verified across genuine process boundaries — 107/107 tests passing, including a real two-process HTTP round trip in Sprint 3. Module 8 scoping has not started.
 
 ---
 
@@ -41,8 +41,8 @@ Module 6 (AI Agents) is complete: all 6 sprints delivered (Agent Architecture, P
 | Module 4 - Enterprise AI Platform | Complete |
 | Module 5 - Enterprise RAG | Complete |
 | Module 6 - AI Agents | Complete |
-| Module 7 - Model Context Protocol (MCP) | Current |
-| Module 8 - Production Infrastructure | Pending |
+| Module 7 - Model Context Protocol (MCP) | Complete |
+| Module 8 - Production Infrastructure | Current |
 | Module 9 - Evaluation & Observability | Pending |
 | Module 10 - Enterprise AI Assistant | Pending |
 
@@ -334,6 +334,15 @@ MCP Client + Tool Discovery (Module 7, Sprint 2)
 - Live-verified against the real Sprint 1 server: both `echo` and `search_knowledge_base` discovered and executed correctly, completing the full `Tool` → MCP server → subprocess boundary → MCP client → `Tool` round trip
 - Deliberately out of scope: wiring these tools into a running agent (Sprint 3's job)
 
+Remote Execution / Agent Integration (Module 7, Sprint 3 — final sprint of Module 7)
+
+- `app/mcp/http_server.py` + `run_http_server.py` — MCP server upgraded to streamable-HTTP, a genuinely network-addressable service (not a subprocess pipe like Sprints 1–2)
+- `connect_http_mcp_server(url)` — mirrors `connect_stdio_mcp_server`, using `streamable_http_client`
+- `create_app()` gained its first `lifespan` — connects to the MCP HTTP server at startup, discovers tools, builds an `AgentService`, held open for the app's lifetime; startup fails clearly if the MCP server isn't already running
+- `get_mcp_agent_service(request)` + `POST /agents/mcp-chat` — same request/response shape as `POST /agents/chat`, backed entirely by MCP-discovered tools
+- Live-verified with both processes running for real: a forced remote `echo` call round-tripped correctly; a knowledge-base question correctly triggered a real HTTP call and got back an honest "no results" (confirming the known cross-process vector-store gap, not a bug)
+- **Module 7 (Model Context Protocol) is now fully complete.**
+
 ---
 
 # Design Decisions
@@ -358,9 +367,9 @@ No framework-specific code inside routers.
 
 # Current Objective
 
-Continue Module 7 – Model Context Protocol (MCP).
+Begin Module 8 – Production Infrastructure.
 
-Sprints 1–2 (MCP Server Foundations, MCP Client + Tool Discovery) are complete. Next step: scope Sprint 3 (Remote Execution / Agent Integration) — the last sprint in Module 7 — the same way every prior sprint was: wire MCP-discovered tools into a running agent, and, per the roadmap's "Remote Execution" topic, likely upgrade from stdio to a genuinely networked transport.
+Module 7 (MCP) is fully complete — all 3 sprints. First step: scope Module 8 into sprints the same way every prior module was — a concept walkthrough and a concrete plan for Sprint 1 before any code changes. Topics per the roadmap: Docker, Docker Compose, PostgreSQL, pgvector, Redis, Terraform, AWS, CI/CD, Monitoring, Secrets Management.
 
 Not yet decided: whether to close out the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first.
 
@@ -389,13 +398,26 @@ Not yet decided: whether to close out the remaining Medium Priority backlog (DOC
 - ~~State Management~~ ✅
 - ~~Multi-Agent Collaboration~~ ✅
 
-## Module 7 (Current — Sprints 1–2 complete)
+## Module 7 (Complete)
 
 - ~~MCP Specification~~ ✅ (learned by building the server)
 - ~~MCP Server~~ ✅
 - ~~MCP Client~~ ✅
 - ~~Tool Discovery~~ ✅
-- Remote Execution (not yet scoped — last sprint in Module 7)
+- ~~Remote Execution~~ ✅
+
+## Module 8 (Current — not yet scoped)
+
+- Docker
+- Docker Compose
+- PostgreSQL
+- pgvector
+- Redis
+- Terraform
+- AWS
+- CI/CD
+- Monitoring
+- Secrets Management
 
 ---
 

@@ -1,5 +1,7 @@
 from functools import lru_cache
 
+from fastapi import Request
+
 from app.agents.planner import Planner
 from app.agents.reflector import Reflector
 from app.dependencies.llm import (
@@ -204,3 +206,16 @@ def get_multi_agent_service() -> MultiAgentService:
         researcher=get_researcher_agent_service(),
         writer=get_writer_agent_service(),
     )
+
+
+def get_mcp_agent_service(request: Request) -> AgentService:
+    """
+    Return the `AgentService` built at startup from the MCP HTTP
+    server's discovered tools (see `core/application.py`'s lifespan).
+
+    Not `@lru_cache`: this reads `request.app.state`, which the
+    lifespan already populates once for the app's lifetime — caching
+    here would add nothing.
+    """
+
+    return request.app.state.mcp_agent_service

@@ -33,10 +33,10 @@ This project follows real software engineering practices including:
 
 | Item | Value |
 |------|-------|
-| Current Module | Module 7 – Model Context Protocol (MCP) |
-| Current Sprint | Sprint 3 – Remote Execution / Agent Integration (not yet scoped) |
+| Current Module | Module 8 – Production Infrastructure |
+| Current Sprint | Not yet defined |
 | Current Increment | Not yet defined |
-| Status | Module 6 (AI Agents) Complete — all 6 sprints. Module 7, Sprints 1–2 (MCP Server Foundations, MCP Client + Tool Discovery) complete — 106/106 tests passing, live-verified over a real subprocess/stdio boundary in both directions |
+| Status | Module 7 (MCP) Complete — all 3 sprints, 107/107 tests passing, live-verified across genuine process boundaries (stdio and real HTTP, two independent processes). Module 8 not yet scoped into sprints |
 
 ---
 
@@ -88,8 +88,8 @@ The completed application will include:
 | module-04.md | Complete |
 | module-05.md | Complete |
 | module-06.md | Complete |
-| module-07.md | Current |
-| module-08.md | Pending |
+| module-07.md | Complete |
+| module-08.md | Current |
 | module-09.md | Pending |
 | module-10.md | Pending |
 
@@ -222,8 +222,6 @@ Complete
 
 ---
 
-# Current Module (In Progress)
-
 ## Module 7
 
 Model Context Protocol (MCP)
@@ -232,14 +230,13 @@ Completed Sprints
 
 - **Sprint 1 – MCP Server Foundations:** `mcp==1.28.1` + an explicit `starlette==0.47.3` pin (same class of ecosystem conflict as Sprint 5's `langgraph`, resolved the same way); `app/mcp/` layer created (new top-level folder, reviewed before adding); `build_mcp_server()` — low-level MCP `Server` API, chosen over `FastMCP` because `Tool.parameters` already maps directly onto MCP's `inputSchema`, validated with a smoke test first; `run_server.py` — standalone stdio server exposing `EchoTool` and the real `KnowledgeBaseSearchTool`
 - **Sprint 2 – MCP Client + Tool Discovery:** `MCPToolAdapter` (`app/mcp/client.py`) — the mirror image of Sprint 1's server-side adapter, wrapping a remote MCP tool as this project's own `Tool`; `discover_tools()` — zero hard-coded tool names anywhere in the client; `connect_stdio_mcp_server()` — spawns an MCP server subprocess and returns an initialized session
+- **Sprint 3 – Remote Execution / Agent Integration:** MCP server upgraded to streamable-HTTP (`http_server.py`/`run_http_server.py`) — a genuinely network-addressable service, not a subprocess pipe; `connect_http_mcp_server()`; `create_app()` gained its first `lifespan` (connects to the MCP HTTP server at startup, discovers tools, builds an `AgentService`); `POST /agents/mcp-chat`
 
-Live-verified both sprints by spawning `run_server.py` as a genuine subprocess and connecting a real client over stdio (Sprint 1), then discovering and executing both of its tools from a fresh client with no prior knowledge of their names (Sprint 2) — not just the in-memory test harness either time.
-
-Not yet scoped: Sprint 3 (Remote Execution / Agent Integration) — the last sprint in Module 7.
+Live-verified across genuine process boundaries every sprint: stdio subprocess (Sprints 1–2), and real HTTP between two independently-running processes (Sprint 3) — a forced remote tool call round-tripped correctly end to end.
 
 Status
 
-🚧 In Progress
+Complete
 
 ---
 
@@ -333,15 +330,14 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 # Current Milestone
 
-Module 7 – Model Context Protocol (MCP)
+Module 8 – Production Infrastructure
 
-Sprints 1–2 (MCP Server Foundations, MCP Client + Tool Discovery) complete. Next step: a concept walkthrough and concrete increment plan for Sprint 3 (Remote Execution / Agent Integration) — the last sprint in Module 7, same approach used for every prior sprint.
+Module 7 (MCP) is fully complete — all 3 sprints. Not yet scoped into sprints. First step when work resumes: a concept walkthrough and a concrete plan for Sprint 1, same approach used to start every prior module.
 
 ---
 
 # Next Milestones
 
-- Model Context Protocol (MCP): Sprint 3 (Remote Execution / Agent Integration), not yet scoped — last sprint in the module
 - Production Infrastructure (Docker, PostgreSQL, pgvector, Terraform, AWS, CI/CD)
 - Evaluation & Observability (cost/latency/prompt versioning — system-wide, distinct from Module 5's RAG-quality evaluation)
 - Enterprise AI Assistant (final integration)

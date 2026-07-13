@@ -82,6 +82,24 @@ class Settings(BaseSettings):
         alias="LOG_LEVEL",
     )
 
+    #
+    # MCP
+    #
+
+    mcp_server_host: str = Field(
+        default="127.0.0.1",
+        alias="MCP_SERVER_HOST",
+    )
+
+    mcp_server_port: int = Field(
+        default=8765,
+        alias="MCP_SERVER_PORT",
+    )
+
+    @property
+    def mcp_server_url(self) -> str:
+        return f"http://{self.mcp_server_host}:{self.mcp_server_port}/mcp"
+
 
 @lru_cache
 def get_settings() -> Settings:

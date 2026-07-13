@@ -803,6 +803,22 @@ Noticing that symmetry before writing any code is what kept Sprint 2 small: ther
 
 ---
 
+## "Remote" Isn't a Feature Flag — It's a Different Transport
+
+Sprints 1–2's stdio transport is a subprocess pipe: same machine, spawned per connection, gone when the parent process exits. Calling that "remote execution" would have been technically working but conceptually dishonest — nothing actually crossed a network boundary. Sprint 3 fixed that by switching to streamable-HTTP: the MCP server becomes a standing service on its own port, reachable by URL, running independently of whatever connects to it.
+
+The interesting part is how little else changed. `MCPToolAdapter`, `discover_tools()`, `Tool` — none of it cared whether the underlying transport was a pipe or a socket. Only the *connection* function changed (`connect_stdio_mcp_server` → `connect_http_mcp_server`); everything built on top of a `ClientSession` stayed identical. That's what a well-drawn abstraction boundary buys: transport is an implementation detail the protocol library owns, not something that should leak into the code that discovers and uses tools.
+
+---
+
+## When a Dependency Needs a Lifecycle, Reach for `lifespan`, Not a Bigger `@lru_cache`
+
+Every dependency built before this sprint was a synchronous, lazy constructor call — `@lru_cache` on a function that returns `SomeService(...)`. That pattern quietly assumes construction is cheap and instantaneous. Connecting to a network service and discovering its tools is neither: it's genuinely async, it can fail, and it needs to happen once at startup and be torn down at shutdown — not on whatever request happens to touch it first.
+
+Trying to force that into an `@lru_cache` function would mean either blocking synchronous code doing async work (awkward at best) or lazily connecting on first request (meaning the first real user request pays the connection cost and risk, not startup). FastAPI's `lifespan` context manager exists precisely for this shape of problem: it's the tool for "this needs setting up once, kept alive, and torn down cleanly" — not a variant of dependency injection, a different lifecycle entirely. Recognizing which shape a new dependency has (constructor-cheap vs. lifecycle-managed) determines which of the two patterns it belongs in.
+
+---
+
 # Evaluation
 
 A production AI system must be measured.

@@ -113,6 +113,10 @@ OPENAI_API_KEY=your_openai_key
 OPENAI_CHAT_MODEL=gpt-4.1
 
 LOG_LEVEL=INFO
+
+MCP_SERVER_HOST=127.0.0.1
+
+MCP_SERVER_PORT=8765
 ```
 
 Never commit:
@@ -190,6 +194,24 @@ python -m app.mcp.run_server
 ```
 
 It communicates over stdin/stdout — running it directly in a terminal will appear to hang, waiting for a client to connect.
+
+---
+
+# MCP HTTP Server + `/agents/mcp-chat` (Module 7, Sprint 3)
+
+`POST /agents/mcp-chat` is backed by an `AgentService` whose tools are discovered from a **separate, real network service** at FastAPI startup — not the stdio server above. This requires two processes, started in order, from `backend/`:
+
+```bash
+# Terminal 1 — the MCP server, over real HTTP (default port 8765)
+python -m app.mcp.run_http_server
+
+# Terminal 2 — the FastAPI app (connects to the MCP server during startup)
+python -m uvicorn app.main:app --reload
+```
+
+If Terminal 1 isn't running (or isn't reachable) when Terminal 2 starts, FastAPI **startup fails outright** — there's no fallback for "the tools this agent needs don't exist yet." Configurable via `MCP_SERVER_HOST`/`MCP_SERVER_PORT` in `.env` (defaults: `127.0.0.1:8765`).
+
+Known limitation: the two processes hold separate in-memory vector stores. A document indexed via `POST /documents/index` (against the FastAPI app's store) won't be found by `/agents/mcp-chat`'s knowledge-base tool (which queries the MCP server's own, separate store) — the tool call still succeeds, it just correctly reports no results.
 
 ---
 

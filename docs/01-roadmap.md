@@ -309,7 +309,7 @@ A modular multi-agent system.
 
 # Module 7 — Model Context Protocol (MCP)
 
-**Status:** 🚧 Current
+**Status:** ✅ Complete
 
 ## Objectives
 
@@ -341,7 +341,13 @@ MCP Client + Tool Discovery
 
 Remote Execution / Agent Integration
 
-*(not yet scoped)*
+- `app/mcp/http_server.py` + `app/mcp/run_http_server.py` — MCP server over streamable-HTTP, a genuinely network-addressable service (not just a subprocess pipe like Sprints 1–2's stdio transport)
+- `connect_http_mcp_server()` added to `app/mcp/client.py`
+- `create_app()` gains a `lifespan` — connects to the MCP HTTP server at startup, discovers its tools, builds an `AgentService` from them
+- `POST /agents/mcp-chat` — an agent using tools it never knew about at compile time, discovered over a real network boundary
+- Live-verified with both servers running as separate real processes: a forced remote tool call round-tripped correctly end to end
+
+**Status:** ✅ Complete
 
 ### Outcome
 
@@ -436,7 +442,7 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 | 4 | Enterprise AI Platform | ✅ Complete |
 | 5 | Enterprise RAG | ✅ Complete |
 | 6 | AI Agents | ✅ Complete |
-| 7 | Model Context Protocol | 🚧 Current |
+| 7 | Model Context Protocol | ✅ Complete |
 | 8 | Production Infrastructure | ⏳ Planned |
 | 9 | Evaluation & Observability | ⏳ Planned |
 | 10 | Enterprise AI Assistant | ⏳ Planned |
@@ -445,16 +451,12 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 
 # Current Focus
 
-**Module 7 – Model Context Protocol (MCP)**
-
-Current Sprint:
-
-**Sprint 3 – Remote Execution / Agent Integration** *(not yet scoped)*
+**Module 7 – Model Context Protocol (MCP): Complete**
 
 Last Completed Sprint:
 
-**Sprint 2 – MCP Client + Tool Discovery** — `MCPToolAdapter` (adapts a remote MCP tool into this project's own `Tool` interface), `discover_tools()`, `connect_stdio_mcp_server()`. Live-verified against the real Sprint 1 server: both tools discovered and executed correctly with zero hard-coded tool names anywhere in the client code — completing the full `Tool` → MCP server → subprocess boundary → MCP client → `Tool` round trip.
+**Sprint 3 – Remote Execution / Agent Integration** — MCP server upgraded to streamable-HTTP (`http_server.py`/`run_http_server.py`), a genuinely network-addressable service; `connect_http_mcp_server()`; `create_app()` gained its first `lifespan` (connects to the MCP HTTP server at startup, discovers tools, builds an `AgentService`); `POST /agents/mcp-chat`. Live-verified with both servers running as real, separate processes: a forced remote tool call round-tripped correctly end to end.
 
 Next milestone:
 
-**Scope Sprint 3 (Remote Execution / Agent Integration) into increments before writing any code.**
+**Module 8 – Production Infrastructure**, not yet scoped into sprints. First step when this resumes: a concept walkthrough and concrete Sprint 1 plan, the same process used to start every prior module.
