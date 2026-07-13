@@ -330,7 +330,10 @@ MCP Server Foundations
 
 MCP Client + Tool Discovery
 
-*(not yet scoped)*
+- `app/mcp/client.py` — `MCPToolAdapter` (remote MCP tool → this project's `Tool` interface), `discover_tools()`, `connect_stdio_mcp_server()`
+- Live-verified against the real Sprint 1 server: tools discovered with zero hard-coded names, executed correctly
+
+**Status:** ✅ Complete
 
 ---
 
@@ -446,12 +449,12 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 
 Current Sprint:
 
-**Sprint 2 – MCP Client + Tool Discovery** *(not yet scoped)*
+**Sprint 3 – Remote Execution / Agent Integration** *(not yet scoped)*
 
 Last Completed Sprint:
 
-**Sprint 1 – MCP Server Foundations** — `app/mcp/server.py` (`build_mcp_server()`, low-level MCP `Server` API — `Tool.parameters` maps directly onto MCP's `inputSchema`, no adaptation needed) and `app/mcp/run_server.py` (standalone stdio server exposing `EchoTool` and `KnowledgeBaseSearchTool`). Live-verified by spawning it as a real subprocess and connecting a real MCP client over stdio — not just the in-memory test harness.
+**Sprint 2 – MCP Client + Tool Discovery** — `MCPToolAdapter` (adapts a remote MCP tool into this project's own `Tool` interface), `discover_tools()`, `connect_stdio_mcp_server()`. Live-verified against the real Sprint 1 server: both tools discovered and executed correctly with zero hard-coded tool names anywhere in the client code — completing the full `Tool` → MCP server → subprocess boundary → MCP client → `Tool` round trip.
 
 Next milestone:
 
-**Scope Sprint 2 (MCP Client + Tool Discovery) into increments before writing any code.**
+**Scope Sprint 3 (Remote Execution / Agent Integration) into increments before writing any code.**

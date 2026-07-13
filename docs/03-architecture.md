@@ -255,7 +255,7 @@ app/mcp/
 Responsibilities
 
 - MCP server(s) — exposing this project's own `Tool` instances over the Model Context Protocol
-- MCP client(s) — discovering and consuming tools from external MCP servers (Sprint 2+)
+- MCP client(s) — discovering and consuming tools from external MCP servers
 
 The `mcp` SDK exists only inside this layer, the same isolation principle Decision 013 gives LangChain in `app/rag/` and that was extended to LangGraph in `app/agents/`. Nothing outside `app/mcp/` imports `mcp` directly — `build_mcp_server()` takes plain `Tool` instances and adapts them, so `app/tools/` stays protocol-agnostic.
 
@@ -712,6 +712,36 @@ low-level mcp.server.lowlevel.Server
 ```
 
 `Tool.parameters` (a hand-written JSON Schema, built in Module 6 Sprint 1) maps directly onto MCP's `inputSchema` — no adapter logic needed, confirmed with a smoke test before writing any production code. This is why the low-level `Server` API was used instead of `FastMCP`: `FastMCP`'s decorator infers a tool's schema from Python type hints, which would fight an already-explicit schema rather than reuse it. Live-verified by spawning `run_server.py` as a genuine subprocess and connecting a real client over stdio — not just an in-memory test harness.
+
+---
+
+# Current MCP Client Flow
+
+```
+connect_stdio_mcp_server(command="python", args=["-m", "app.mcp.run_server"])
+
+↓  spawns the Sprint 1 server as a subprocess, over stdio
+
+ClientSession (initialized)
+
+↓
+
+discover_tools(session)
+
+↓
+
+session.list_tools()  →  [types.Tool(name, description, inputSchema), ...]
+
+↓  for each remote tool, with no names hard-coded anywhere in this code
+
+MCPToolAdapter(session, name, description, parameters)  →  a plain `Tool`
+
+↓
+
+adapter.execute(**kwargs)  →  session.call_tool(name, kwargs)  →  joined text content
+```
+
+`MCPToolAdapter` is the mirror image of Sprint 1's server-side adaptation: instead of wrapping a local `Tool` to look like an MCP tool, it wraps a remote MCP tool to look like a local `Tool`. This is why the round trip works end to end without either side needing to know about the other's internals — `AgentService` can receive a list of `MCPToolAdapter` instances and use them exactly like `KnowledgeBaseSearchTool`, never knowing (or needing to know) that execution happens on another process. Remote tool errors surface as plain text (`CallToolResult.content`), not exceptions — consistent with how `AgentService` already treats "Error: ..." tool output as ordinary text, not a crash. Live-verified against the real Sprint 1 server: both tools discovered and executed correctly.
 
 ---
 

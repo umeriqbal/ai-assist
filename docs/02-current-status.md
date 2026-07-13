@@ -39,14 +39,15 @@ Status:
 Completed Sprints
 
 - **Sprint 1 – MCP Server Foundations:** `mcp==1.28.1` added (required an explicit `starlette==0.47.3` pin alongside it — installing `mcp` alone pulls in a `starlette` that conflicts with `fastapi==0.116.1`'s pin, same class of issue as Sprint 5's `langgraph`/`langchain-core` conflict); `app/mcp/server.py` (`build_mcp_server()`) — uses the low-level MCP `Server` API rather than `FastMCP`, because `Tool.parameters` is already a hand-written JSON Schema and maps directly onto MCP's `inputSchema` with zero adaptation, whereas `FastMCP`'s decorator infers schemas from Python type hints and would fight that; unknown tool names return an error `TextContent` rather than crashing, mirroring `AgentService`'s convention; `app/mcp/run_server.py` — standalone stdio-transport server exposing `EchoTool` and the real `KnowledgeBaseSearchTool`; live-verified by spawning it as an actual subprocess and connecting a real MCP client over stdio (not just the in-memory test harness) — both tools discovered correctly, `EchoTool` executed correctly, `KnowledgeBaseSearchTool` correctly hit the real embedding/retrieval pipeline
+- **Sprint 2 – MCP Client + Tool Discovery:** `MCPToolAdapter` (`app/mcp/client.py`) — adapts a remote MCP tool into this project's own `Tool` interface (mirror image of Sprint 1's server-side adapter); `discover_tools()` — lists a connected session's tools and wraps each, with zero hard-coded tool names anywhere in the client; `connect_stdio_mcp_server()` — async context manager spawning an MCP server subprocess and returning an initialized `ClientSession`; remote tool errors surface as plain text (`isError` respected, no exception), consistent with how `AgentService` already treats tool errors as ordinary output, not a crash; live-verified against the real Sprint 1 server: both `echo` and `search_knowledge_base` discovered and executed correctly, completing the full `Tool` → MCP server → subprocess boundary → MCP client → `Tool` round trip
 
-Per the roadmap, Module 7's remaining topics are: MCP Client, Tool Discovery, Remote Execution — to be scoped the same way Sprint 1 was, at the start of the sprint rather than in advance.
+Per the roadmap, Module 7's remaining topic is: Remote Execution / Agent Integration — to be scoped the same way Sprints 1–2 were, at the start of the sprint rather than in advance.
 
 ---
 
 # Current Sprint
 
-**Sprint 2 – MCP Client + Tool Discovery**
+**Sprint 3 – Remote Execution / Agent Integration**
 
 Not yet scoped into increments.
 
@@ -203,7 +204,7 @@ tools/
 mcp/
 ```
 
-`mcp/` (new, Module 7 Sprint 1) — `server.py` (`build_mcp_server()`) and `run_server.py` (standalone stdio entry point). Not a FastAPI endpoint: an MCP server is a separate process a client spawns/connects to, so it has no entry in the endpoints table below. Confined the same way `rag/` and `agents/` confine their respective frameworks — the low-level `mcp` SDK never leaks outside this folder.
+`mcp/` (Module 7) — `server.py`/`run_server.py` (Sprint 1) and `client.py` (Sprint 2, `MCPToolAdapter`/`discover_tools()`/`connect_stdio_mcp_server()`). Not a FastAPI endpoint: an MCP server is a separate process a client spawns/connects to, so it has no entry in the endpoints table below. Confined the same way `rag/` and `agents/` confine their respective frameworks — the low-level `mcp` SDK never leaks outside this folder.
 
 `agents/` grew across every sprint of Module 6: `plan.py`/`planner.py` (Sprint 2), `critique.py`/`reflector.py` (Sprint 3), `memory.py`/`in_memory_conversation_memory.py` (Sprint 4), `agent_graph.py` (Sprint 5), `supervisor_decision.py`/`supervisor.py`/`multi_agent_graph.py` (Sprint 6) — holds the planning/reflection/memory/graph building blocks, the same way `rag/` holds RAG building blocks. LangGraph is confined to this layer, same isolation principle as LangChain and `rag/`. The services that orchestrate them for DI/router use (`AgentService`, `PlanningService`, `ReflectionService`, `AgentGraphService`, `MultiAgentService`) still live in `services/`, consistent with Decision 003.
 
@@ -251,7 +252,7 @@ The project follows these principles throughout the codebase.
 
 ## High Priority
 
-- Module 7, Sprint 2 – MCP Client + Tool Discovery (scoping not yet started)
+- Module 7, Sprint 3 – Remote Execution / Agent Integration (scoping not yet started)
 
 ---
 
@@ -300,33 +301,33 @@ These are intentional future enhancements rather than defects.
 
 Latest Completed Milestone
 
-Module 7, Sprint 1 – MCP Server Foundations
+Module 7, Sprint 2 – MCP Client + Tool Discovery
 
 Recommended Tag
 
 ```
-v0.7.0-sprint1
+v0.7.0-sprint2
 ```
 
 ---
 
 # Next Development Task
 
-Module 7, Sprint 2 – MCP Client + Tool Discovery
+Module 7, Sprint 3 – Remote Execution / Agent Integration
 
 Not yet broken into increments.
 
 Goal (module-level, per the roadmap):
 
-Build and consume MCP servers, covering the MCP specification, an MCP server, an MCP client, tool discovery, and remote execution. Sprint 1 (MCP Server Foundations) is complete — our own `Tool` instances are now exposed over the real MCP protocol, live-verified across a genuine process boundary. The next step is scoping Sprint 2 the same way — a concept walkthrough and increment plan, before any code changes: build an MCP client that connects to this server, discovers its tools at runtime, and adapts each into our own `Tool` interface.
+Build and consume MCP servers, covering the MCP specification, an MCP server, an MCP client, tool discovery, and remote execution. Sprints 1–2 are complete — our own tools are exposed over real MCP (Sprint 1), and a client can discover and execute remote MCP tools with zero hard-coded names (Sprint 2), both live-verified across a genuine subprocess boundary. The next step is scoping Sprint 3 the same way — wiring MCP-discovered tools into a running agent, and (per the roadmap's "Remote Execution" topic) likely upgrading from stdio to a genuinely networked transport.
 
 ---
 
 # Success Criteria
 
-Module 7, Sprint 2 is ready to scope when:
+Module 7, Sprint 3 is ready to scope when:
 
-- Sprint 1's MCP server is confirmed stable (it is — 102/102 tests passing, live-verified by spawning the real server as a subprocess and connecting a real MCP client over stdio).
+- Sprint 2's MCP client is confirmed stable (it is — 106/106 tests passing, live-verified against the real Sprint 1 server with zero hard-coded tool names in the client).
 
 ---
 
@@ -339,4 +340,4 @@ If continuing this project in a new conversation:
 3. Read this document (`02-current-status.md`)
 4. Continue with:
 
-**Module 7, Sprint 2 – MCP Client + Tool Discovery → scope into increments (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.
+**Module 7, Sprint 3 – Remote Execution / Agent Integration → scope into increments (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.

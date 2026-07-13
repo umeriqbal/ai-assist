@@ -240,6 +240,8 @@ Introduced in Module 7, Sprint 1. Version pinned at `1.28.1`, with an explicit `
 
 Important detail: uses the SDK's low-level `Server` API, not the higher-level `FastMCP`. This project's `Tool.parameters` is already a hand-written JSON Schema; `FastMCP`'s decorator infers schemas from Python type hints instead, which would fight an already-explicit schema rather than reuse it. The low-level API accepts the schema directly via `types.Tool(inputSchema=...)` — confirmed with a smoke test before any production code was written.
 
+Extended in Sprint 2 with the client side (`app/mcp/client.py`): `MCPToolAdapter`, `discover_tools()`, `connect_stdio_mcp_server()` — the mirror image of Sprint 1's server-side adapter, wrapping a remote MCP tool as this project's own `Tool` rather than the reverse. Live-verified against the real Sprint 1 server with zero hard-coded tool names anywhere in the client.
+
 ---
 
 # Database

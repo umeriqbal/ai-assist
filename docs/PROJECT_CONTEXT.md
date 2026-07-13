@@ -23,11 +23,11 @@ Module 7 – Model Context Protocol (MCP)
 
 Current Sprint:
 
-Sprint 2 – MCP Client + Tool Discovery (not yet scoped into increments)
+Sprint 3 – Remote Execution / Agent Integration (not yet scoped into increments)
 
 Status:
 
-Module 6 (AI Agents) is complete: all 6 sprints delivered (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management, Multi-Agent Collaboration), unit-tested, and live-verified against the real OpenAI API — 98/98 tests passing. Module 7, Sprint 1 (MCP Server Foundations) is complete — 102/102 tests passing, live-verified by spawning the real MCP server as a subprocess and connecting a real client over stdio. Sprint 2 scoping has not started.
+Module 6 (AI Agents) is complete: all 6 sprints delivered (Agent Architecture, Planning, Reflection, Memory, LangGraph + State Management, Multi-Agent Collaboration), unit-tested, and live-verified against the real OpenAI API — 98/98 tests passing. Module 7, Sprints 1–2 (MCP Server Foundations, MCP Client + Tool Discovery) are complete — 106/106 tests passing, live-verified by spawning the real MCP server as a subprocess and, from a fresh client, discovering and executing both of its tools with zero hard-coded tool names. Sprint 3 scoping has not started.
 
 ---
 
@@ -325,6 +325,15 @@ MCP Server Foundations (Module 7, Sprint 1)
 - Live-verified by spawning the server as a genuine subprocess and connecting a real MCP client over stdio — not just an in-memory test harness
 - Known limitation: the MCP server process and the FastAPI app each hold their own in-memory vector store; a document indexed via the API is invisible to the MCP-exposed search tool
 
+MCP Client + Tool Discovery (Module 7, Sprint 2)
+
+- `MCPToolAdapter` (`app/mcp/client.py`) — mirror image of Sprint 1's server-side adapter: wraps a remote MCP tool as this project's own `Tool`, rather than the reverse
+- `discover_tools(session)` — lists a connected session's tools and wraps each, with zero hard-coded tool names anywhere in the client
+- `connect_stdio_mcp_server(command, args)` — spawns an MCP server subprocess and returns an initialized `ClientSession`
+- Remote tool errors surface as plain text, not exceptions — consistent with `AgentService`'s existing convention
+- Live-verified against the real Sprint 1 server: both `echo` and `search_knowledge_base` discovered and executed correctly, completing the full `Tool` → MCP server → subprocess boundary → MCP client → `Tool` round trip
+- Deliberately out of scope: wiring these tools into a running agent (Sprint 3's job)
+
 ---
 
 # Design Decisions
@@ -351,7 +360,7 @@ No framework-specific code inside routers.
 
 Continue Module 7 – Model Context Protocol (MCP).
 
-Sprint 1 (MCP Server Foundations) is complete. Next step: scope Sprint 2 (MCP Client + Tool Discovery) the same way every prior sprint was — a concept walkthrough and a concrete increment plan before any code changes: build an MCP client that connects to the Sprint 1 server, discovers its tools at runtime, and adapts each into the project's own `Tool` interface.
+Sprints 1–2 (MCP Server Foundations, MCP Client + Tool Discovery) are complete. Next step: scope Sprint 3 (Remote Execution / Agent Integration) — the last sprint in Module 7 — the same way every prior sprint was: wire MCP-discovered tools into a running agent, and, per the roadmap's "Remote Execution" topic, likely upgrade from stdio to a genuinely networked transport.
 
 Not yet decided: whether to close out the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first.
 
@@ -380,13 +389,13 @@ Not yet decided: whether to close out the remaining Medium Priority backlog (DOC
 - ~~State Management~~ ✅
 - ~~Multi-Agent Collaboration~~ ✅
 
-## Module 7 (Current — Sprint 1 complete)
+## Module 7 (Current — Sprints 1–2 complete)
 
 - ~~MCP Specification~~ ✅ (learned by building the server)
 - ~~MCP Server~~ ✅
-- MCP Client (not yet scoped)
-- Tool Discovery (not yet scoped)
-- Remote Execution (not yet scoped)
+- ~~MCP Client~~ ✅
+- ~~Tool Discovery~~ ✅
+- Remote Execution (not yet scoped — last sprint in Module 7)
 
 ---
 

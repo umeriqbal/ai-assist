@@ -21,9 +21,19 @@ The format follows the principles of Keep a Changelog.
 - Known, not yet addressed: the MCP server process and the FastAPI app process each hold their own separate in-memory vector store — a document indexed via `POST /documents/index` is invisible to the MCP-exposed `search_knowledge_base` tool. Fine for this foundational sprint; will matter once real cross-process data sharing is needed
 - Addendum: since this server has no HTTP surface, it has no Swagger entry. Confirmed the official MCP Inspector (`npx @modelcontextprotocol/inspector python -m app.mcp.run_server`) works as the practical equivalent — a browser UI for listing and calling tools — despite the SDK's own `mcp dev` CLI wrapper explicitly refusing to run against a low-level `Server` (it only supports `FastMCP`). Documented in [07-development-guide.md](docs/07-development-guide.md)
 
+### Added — Sprint 2: MCP Client + Tool Discovery (Complete)
+
+- `MCPToolAdapter` (new, `app/mcp/client.py`) — adapts a tool discovered on a remote MCP server into this project's own `Tool` interface; the mirror image of Sprint 1's `build_mcp_server()` (which adapted a local `Tool` to look like an MCP tool). Remote tool errors surface as plain text content, not exceptions — respects `CallToolResult.isError` without special-casing it, consistent with how `AgentService` already treats "Error: ..." tool output as ordinary text
+- `discover_tools(session)` (new) — lists every tool a connected `ClientSession` exposes and wraps each into an `MCPToolAdapter`, with zero hard-coded tool names anywhere in this code
+- `connect_stdio_mcp_server(command, args)` (new) — async context manager wrapping `stdio_client` + `ClientSession.initialize()`, spawning an MCP server as a subprocess and yielding a ready-to-use session
+- Validated with a smoke test before writing production code (same discipline as every SDK integration this module): confirmed `CallToolResult`'s `content`/`isError` shape, and that our own server's "unknown tool" handling comes back as plain text with `isError=False`
+- Unit tests: schema-faithful discovery, successful execution through a real (in-memory) MCP session, multi-tool discovery, graceful surfacing of a remote tool error — using the same in-memory client/server harness as Sprint 1
+- Live-verified beyond the in-memory harness: connected to the real Sprint 1 `run_server.py` subprocess, discovered both `echo` and `search_knowledge_base` with no prior knowledge of their names, and executed both successfully — completing the full `Tool` → MCP server → subprocess boundary → MCP client → `Tool` round trip
+- Scope note: this sprint deliberately stops at proving the client + adapter in isolation. Wiring MCP-discovered tools into a running agent is Sprint 3's job, not duplicated here
+
 ### Not Included
 
-- MCP Client, Tool Discovery, Remote Execution (Sprints 2–3, not yet scoped)
+- Remote Execution / Agent Integration (Sprint 3, not yet scoped)
 
 ---
 
@@ -371,11 +381,9 @@ Built the first OpenAI-powered application.
 
 ## Remainder of 0.7.0 - Model Context Protocol (MCP)
 
-### Planned (Sprints 2–3, not yet scoped)
+### Planned (Sprint 3, not yet scoped)
 
-- MCP Client
-- Tool Discovery
-- Remote Execution
+- Remote Execution / Agent Integration
 
 ---
 
@@ -454,7 +462,7 @@ Expected features
 Current Status
 
 - Modules Completed: 6 / 10
-- Current Module: 7 (Sprint 1 of ~3 complete)
+- Current Module: 7 (Sprints 1–2 of 3 complete)
 - Architecture: Stable
 - Documentation: Complete
 - Production Readiness: Strong foundation established

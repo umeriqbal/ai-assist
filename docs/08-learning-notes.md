@@ -793,6 +793,16 @@ The general lesson: a language SDK's CLI tooling is often built around that SDK'
 
 ---
 
+## The Client Side Is the Server Side's Adapter, Mirrored
+
+Sprint 1 built `build_mcp_server()`: given a local `Tool`, produce something that looks like an MCP tool to a client (`inputSchema`, `call_tool`). Sprint 2 built `MCPToolAdapter`: given a remote MCP tool, produce something that looks like a local `Tool` (`.name`, `.parameters`, `.execute()`). Same translation, opposite direction.
+
+Noticing that symmetry before writing any code is what kept Sprint 2 small: there was no need to invent new concepts for "how does a remote tool's schema get represented" or "what happens when a remote tool errors" — those questions were already answered in Sprint 1, just facing the other way. When a new sprint's problem turns out to be the mirror image of a solved one, look for the reflection before designing something new.
+
+**Consequence worth naming:** because both directions go through the exact same `Tool` interface, `AgentService` needs zero changes to use a mix of local and MCP-sourced tools in the same `tools` list — it was never written to know or care where a tool's `execute()` actually runs.
+
+---
+
 # Evaluation
 
 A production AI system must be measured.

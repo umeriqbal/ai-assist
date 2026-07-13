@@ -307,7 +307,7 @@ mcp/
 │
 ├── server.py
 ├── run_server.py
-├── client.py            (future, Sprint 2)
+├── client.py
 └── __init__.py
 ```
 

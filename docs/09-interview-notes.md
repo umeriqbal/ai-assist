@@ -617,9 +617,27 @@ Benefits:
 
 ---
 
+## Q47. How does an MCP client turn a remote tool into something an agent can use? (Sprint 2)
+
+### Answer
+
+Three steps: connect (spawn or dial the server and open a session), discover (`session.list_tools()` returns each tool's name, description, and JSON Schema), and adapt (wrap each discovered tool in something that implements the project's own `Tool` interface — `MCPToolAdapter` — so `execute()` just calls `session.call_tool()` under the hood). The key property: none of this code hard-codes a tool name anywhere. Whatever the server happens to expose is what gets discovered and used.
+
+---
+
+## Q48. Why is the MCP client side described as a "mirror image" of the server side? (Sprint 2)
+
+### Answer
+
+Sprint 1 built an adapter that takes a local `Tool` and makes it *look like* an MCP tool to a client (`build_mcp_server()`). Sprint 2 built the opposite adapter — one that takes a remote MCP tool and makes it *look like* a local `Tool` (`MCPToolAdapter`) to the rest of the codebase. Same translation, opposite direction, both sides of the same interface. Recognizing that symmetry before writing code is what kept Sprint 2 small — questions like "how do we represent a tool's schema" or "what happens when a tool call fails" were already answered in Sprint 1, just facing the other way.
+
+The payoff: `AgentService` needs zero changes to use a mix of local and MCP-discovered tools in the same `tools` list. It was never written to know or care where a tool's `execute()` actually runs — local, or over stdio to a subprocess.
+
+---
+
 # System Design Questions
 
-## Q47. How would you design an enterprise AI assistant?
+## Q49. How would you design an enterprise AI assistant?
 
 ### Talking Points
 
@@ -635,7 +653,7 @@ Benefits:
 
 ---
 
-## Q48. How do you reduce hallucinations?
+## Q50. How do you reduce hallucinations?
 
 ### Talking Points
 
@@ -648,7 +666,7 @@ Benefits:
 
 ---
 
-## Q49. How would you support multiple LLM providers?
+## Q51. How would you support multiple LLM providers?
 
 ### Answer
 
@@ -668,7 +686,7 @@ Business logic depends only on the interface.
 
 ---
 
-## Q50. What would you monitor in production?
+## Q52. What would you monitor in production?
 
 ### Metrics
 
