@@ -27,7 +27,7 @@ Not yet defined — Module 8 has not been broken into sprints yet.
 
 Status:
 
-Module 7 (MCP) is complete: all 3 sprints delivered (MCP Server Foundations, MCP Client + Tool Discovery, Remote Execution/Agent Integration), unit-tested, and live-verified across genuine process boundaries — 107/107 tests passing, including a real two-process HTTP round trip in Sprint 3. Module 8 scoping has not started.
+Module 7 (MCP) is complete: all 3 sprints delivered (MCP Server Foundations, MCP Client + Tool Discovery, Remote Execution/Agent Integration), unit-tested, and live-verified across genuine process boundaries — 107/107 tests passing, including a real two-process HTTP round trip in Sprint 3. Module 8 scoping has not started. Module 9 (Evaluation & Observability) was scoped down to a concrete Sprint 1 plan and then deliberately deferred, not built — see the Module 9 section below for the full reasoning. A standalone `ClaudeProvider` was built alongside this (proving the Provider Pattern generalizes to a second vendor) but isn't wired into any active service.
 
 ---
 
@@ -43,7 +43,7 @@ Module 7 (MCP) is complete: all 3 sprints delivered (MCP Server Foundations, MCP
 | Module 6 - AI Agents | Complete |
 | Module 7 - Model Context Protocol (MCP) | Complete |
 | Module 8 - Production Infrastructure | Current |
-| Module 9 - Evaluation & Observability | Pending |
+| Module 9 - Evaluation & Observability | Deferred (deliberately — see below) |
 | Module 10 - Enterprise AI Assistant | Pending |
 
 ---
@@ -128,6 +128,7 @@ Backend
 - LangChain (confined to `app/rag/`)
 - LangGraph (confined to `app/agents/`, same isolation principle)
 - MCP (`mcp==1.28.1`, confined to `app/mcp/`, same isolation principle)
+- Anthropic SDK (`anthropic==0.116.0`) — `ClaudeProvider`, built standalone (not tied to a module), not wired into any active service
 - Structlog
 
 Future
@@ -418,6 +419,12 @@ Not yet decided: whether to close out the remaining Medium Priority backlog (DOC
 - CI/CD
 - Monitoring
 - Secrets Management
+
+## Module 9 (Deferred — deliberately not building this yet)
+
+Scoped to a concrete Sprint 1 plan (`CostTracker` as an injected recorder, a new `app/observability/` layer), then explicitly not implemented. Every capability here — cost tracking, latency monitoring, model comparison, prompt versioning — only has real value against ongoing real traffic, or when something automated acts on the data; neither exists yet. A smaller "compare OpenAI vs. Claude on one prompt" endpoint was also considered and rejected — a comparison result that doesn't change what the system does next has no lasting effect.
+
+**Revisit when:** there's real production traffic worth watching (likely post-Module 8), or provider selection becomes a genuine runtime decision. `ClaudeProvider` already exists for exactly that reason — built and tested, not wired in, so switching later is a config change away rather than a rewrite.
 
 ---
 

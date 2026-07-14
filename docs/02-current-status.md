@@ -209,6 +209,7 @@ Backend
 - LangChain (confined to `app/rag/`)
 - LangGraph (confined to `app/agents/`, same isolation principle as LangChain)
 - MCP (`mcp==1.28.1`, confined to `app/mcp/`, same isolation principle)
+- Anthropic SDK (`anthropic==0.116.0`) — `ClaudeProvider` implements `LLMProvider` alongside `OpenAIProvider`; built standalone (not tied to a module's sprint sequence) to prove the Provider Pattern generalizes to a second vendor. Not wired into any active service — `get_openai_provider()` remains what every `get_*_service()` actually uses
 - Structlog
 
 Upcoming
@@ -258,7 +259,7 @@ The project follows these principles throughout the codebase.
 - pgvector
 - Hybrid Search
 - Reranking
-- Production Infrastructure
+- Module 9 – Evaluation & Observability (deliberately deferred, see Known Technical Debt below — not a priority item, revisit only once there's real production traffic)
 
 ---
 
@@ -281,6 +282,8 @@ Planned improvements include:
 - `mcp==1.28.1` required an explicit `starlette==0.47.3` pin in `requirements.txt` to avoid a conflict with `fastapi==0.116.1` (`mcp`'s own dependency has no upper bound on `starlette`, and a fresh `pip install -r requirements.txt` could otherwise drift to an incompatible version over time). Same class of issue as Sprint 5's `langgraph`/`langchain-core` conflict, resolved the same way.
 - The MCP server (`app/mcp/run_server.py` and `run_http_server.py` alike) runs as a separate process — it shares no state with the FastAPI app's `KnowledgeBaseSearchTool`/vector store; each process gets its own in-memory instance. Confirmed live in Sprint 3: a question requiring a document indexed via `POST /documents/index` correctly got "no results" through `POST /agents/mcp-chat`, because the MCP server process's vector store is empty — the remote call itself worked correctly, it just had nothing to find. Will matter once the MCP-exposed tool needs to reflect data indexed through the API; not addressed yet.
 - `create_app()`'s `lifespan` (Module 7, Sprint 3) requires the MCP HTTP server to already be running and reachable at `settings.mcp_server_url` — if it isn't, FastAPI app startup fails outright rather than degrading gracefully. Intentional (there's no sensible fallback for "the tools this agent needs don't exist yet"), but it does mean two processes must be started in order: `run_http_server.py` first, then the FastAPI app.
+- **Module 9 (Evaluation & Observability) is deliberately deferred, not built.** Scoped to a concrete Sprint 1 plan (`CostTracker` as an injected recorder, a new `app/observability/` layer) and then explicitly not implemented: every capability in it — cost tracking, latency monitoring, model comparison, prompt versioning — only has real value against ongoing real traffic, or when something automated acts on the data. Neither exists yet. Building it now would be speculative infrastructure with a real recurring cost (pricing tables go stale) and nothing observing it. Revisit once there's real production traffic (likely post-Module 8) or provider selection becomes a genuine runtime decision. Full reasoning in [01-roadmap.md](docs/01-roadmap.md)'s Module 9 section.
+- `ClaudeProvider` (`app/providers/claude_provider.py`) exists and is fully tested against the `LLMProvider` contract, but isn't wired into any active service — `get_openai_provider()` remains what `dependencies/services.py` actually uses everywhere. Built standalone to prove the Provider Pattern generalizes to a second vendor, and to keep a config-driven provider switch (`LLM_PROVIDER=openai|claude`) available as a cheap future option without committing to it now.
 
 These are intentional future enhancements rather than defects.
 

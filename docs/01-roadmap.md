@@ -384,7 +384,7 @@ Cloud-hosted production deployment.
 
 # Module 9 — Evaluation & Observability
 
-**Status:** ⏳ Planned
+**Status:** ⏸️ Deferred — deliberately not building this yet
 
 ## Objectives
 
@@ -403,6 +403,14 @@ Measure AI system quality.
 ### Outcome
 
 A measurable AI platform with production observability.
+
+### Why deferred
+
+Scoped down to a concrete Sprint 1 plan (`CostTracker` as an injected recorder, `app/observability/` as a new layer), then deliberately not built. Every capability in this module — cost tracking, latency monitoring, model comparison, prompt versioning — only has real value against *ongoing real traffic*, or when something *automated acts* on the data (e.g. routing requests to whichever provider is cheaper). Neither exists yet: this app has no production traffic, and provider selection is still a hard-coded constructor call, not a runtime decision anything could route against. Building the tracking apparatus now would be speculative infrastructure with a real, recurring cost (pricing tables alone go stale) and no offsetting benefit yet.
+
+A single-prompt "compare OpenAI vs. Claude" endpoint was considered as a smaller alternative and rejected for the same reason: a comparison result that doesn't change what the system does next has no lasting effect — you'd look at it once, then nothing.
+
+**Revisit when:** the app has real production traffic worth watching (likely after Module 8 deployment), or provider selection becomes a genuine runtime decision rather than a hard-coded one. If revisited, the leaner starting point is making the provider a config choice (`LLM_PROVIDER=openai|claude` deciding which `get_*_provider()` DI wiring uses) — `ClaudeProvider` already exists (built standalone, outside any module's sprint sequence, to prove the Provider Pattern generalizes) but isn't wired into any active service, precisely so that door stays open without committing to it now.
 
 ---
 
@@ -444,7 +452,7 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 | 6 | AI Agents | ✅ Complete |
 | 7 | Model Context Protocol | ✅ Complete |
 | 8 | Production Infrastructure | ⏳ Planned |
-| 9 | Evaluation & Observability | ⏳ Planned |
+| 9 | Evaluation & Observability | ⏸️ Deferred |
 | 10 | Enterprise AI Assistant | ⏳ Planned |
 
 ---

@@ -724,6 +724,30 @@ Business logic depends only on the interface.
 
 ---
 
+## Q56. You scoped Module 9 (observability) in detail and then didn't build it — why?
+
+### Answer
+
+Because scoping revealed it had no payoff yet, not because it ran out of time. Cost tracking, latency monitoring, model comparison, and prompt versioning all share one precondition: they only create value against *ongoing real traffic*, or when something *automated* acts on what they measure. This project has neither — no production traffic, and provider selection is a hard-coded constructor call, not a runtime decision anything could route against. Building the tracking apparatus now would mean carrying a real, recurring cost (a pricing table alone goes stale) with nothing observing it. The right engineering call was to design it, confirm it was sound, and then not build it — "we might need this later" isn't sufficient justification on its own, especially for infrastructure whose entire value is watching something over time.
+
+---
+
+## Q57. If observability wasn't worth building, why build `ClaudeProvider` at all?
+
+### Answer
+
+Different shape of value. `ClaudeProvider` isn't infrastructure waiting for future traffic — it's a one-time proof that an abstraction already believed to be sound (the Provider Pattern, built in Module 4) actually holds up against a second real vendor, not just a hypothetical one. It cost one file and zero changes to any of its 10 existing consumers. And it leaves a door open cheaply: if provider choice ever needs to become a real decision, swapping is a config change, not a rewrite. That's a materially smaller bet than building a tracking system for traffic that doesn't exist yet.
+
+---
+
+## Q58. What would make Module 9 worth revisiting?
+
+### Answer
+
+Two concrete triggers, not a timeline: real production traffic worth watching (most likely once Module 8's deployment work ships this to somewhere users actually hit it), or provider selection becoming a genuine runtime decision rather than a hard-coded one. Absent either, the module stays deferred — revisiting it earlier would mean building for a hypothetical, which is exactly what got rejected here.
+
+---
+
 # Practical Questions
 
 You should be able to explain the architecture you built during this bootcamp, including:

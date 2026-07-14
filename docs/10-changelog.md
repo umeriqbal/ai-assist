@@ -6,6 +6,25 @@ The format follows the principles of Keep a Changelog.
 
 ---
 
+# Unreleased — Standalone Work Between Modules 7 and 8
+
+Not tied to a module's sprint sequence; recorded here since it's real, tested code and a real scoping decision.
+
+### Added
+
+- `ClaudeProvider` (`app/providers/claude_provider.py`) — Anthropic implementation of `LLMProvider`, all 6 methods (`chat`, `stream_chat`, `chat_with_tools`, `tool_result_messages`, `generate_structured`, `health_check`). Built to prove the Provider Pattern actually generalizes to a second vendor, not just in theory. API shape validated by SDK introspection before writing any code (same discipline as every other new SDK integration in this project) — `anthropic==0.116.0` checked against pinned `httpx`/`pydantic` first, no conflict this time.
+- Real difference worth recording: Claude's Messages API takes a system prompt via its own top-level `system=` parameter, not as a `{"role": "system", ...}` entry inside `messages` the way OpenAI's Responses API allows. `ClaudeProvider.chat_with_tools()` pulls system-role entries out of the incoming generic `messages` list and redirects them — exactly the class of problem `tool_result_messages()` already existed to absorb per-provider.
+- `ANTHROPIC_API_KEY` (optional, unlike the required `OPENAI_API_KEY`) and `ANTHROPIC_CHAT_MODEL` settings; `get_claude_provider()` added to `dependencies/llm.py`, alongside — not replacing — `get_openai_provider()`.
+- **Not wired into any active service.** Every `get_*_service()` in `dependencies/services.py` still calls `get_openai_provider()`. `ClaudeProvider` exists so a future provider switch is a config change, not a rewrite.
+
+### Scoped, then deliberately not built
+
+- **Module 9 — Evaluation & Observability.** Scoped to a concrete Sprint 1 plan: `CostTracker` as an injected recorder (optional constructor arg on providers, reporting usage as a side effect rather than changing `chat()`'s return type), a new `app/observability/` layer, `InMemoryCostTracker`, a pricing table, a `GET /observability/costs` endpoint. Design was sound; built nothing, on reflection. Every capability in this module — cost tracking, latency monitoring, model comparison, prompt versioning — only has real value against ongoing real traffic, or when something automated acts on the data (e.g. routing requests to whichever provider is cheaper). Neither exists yet: no production traffic, and provider selection is a hard-coded constructor call, not a runtime decision.
+- A smaller alternative was also considered and rejected: a single `POST /evaluate/compare` endpoint calling OpenAI and Claude on one prompt, no persistent tracking. Rejected because a comparison result that doesn't change what the system does next has no lasting effect — it's looked at once, then nothing.
+- Revisit trigger: real production traffic worth watching (likely after Module 8's deployment work), or provider selection becoming a genuine runtime decision. `ClaudeProvider` above exists specifically so that door stays open cheaply.
+
+---
+
 # [0.7.0] - Model Context Protocol (MCP)
 
 **Status:** ✅ Complete

@@ -117,6 +117,13 @@ LOG_LEVEL=INFO
 MCP_SERVER_HOST=127.0.0.1
 
 MCP_SERVER_PORT=8765
+
+# Optional — only needed to exercise ClaudeProvider directly (not
+# used by any active service; see Known Technical Debt in
+# 02-current-status.md)
+ANTHROPIC_API_KEY=your_anthropic_key
+
+ANTHROPIC_CHAT_MODEL=claude-sonnet-5
 ```
 
 Never commit:

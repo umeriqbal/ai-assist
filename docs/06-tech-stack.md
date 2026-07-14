@@ -159,6 +159,26 @@ Best compatibility.
 
 ---
 
+## Anthropic Python SDK
+
+Purpose
+
+A second `LLMProvider` implementation (`ClaudeProvider`), proving the Provider Pattern generalizes beyond OpenAI.
+
+Used For
+
+- Chat, streaming, tool-calling, structured output — the same 6-method contract `OpenAIProvider` implements
+
+Reason
+
+Official SDK. Built standalone, not tied to a module's sprint sequence.
+
+Status
+
+Installed (`anthropic==0.116.0`) and implemented, but **not wired into any active service** — `get_openai_provider()` remains what every service actually uses. Exists so a provider switch is a future config change, not a rewrite. See [02-current-status.md](docs/02-current-status.md)'s Known Technical Debt and [01-roadmap.md](docs/01-roadmap.md)'s Module 9 section for the full reasoning.
+
+---
+
 # RAG Framework
 
 ## LangChain

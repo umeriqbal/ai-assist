@@ -36,7 +36,7 @@ This project follows real software engineering practices including:
 | Current Module | Module 8 – Production Infrastructure |
 | Current Sprint | Not yet defined |
 | Current Increment | Not yet defined |
-| Status | Module 7 (MCP) Complete — all 3 sprints, 107/107 tests passing, live-verified across genuine process boundaries (stdio and real HTTP, two independent processes). Module 8 not yet scoped into sprints |
+| Status | Module 7 (MCP) Complete — all 3 sprints, 107/107 tests passing, live-verified across genuine process boundaries (stdio and real HTTP, two independent processes). Module 8 not yet scoped into sprints. Module 9 scoped then deliberately deferred (see below) |
 
 ---
 
@@ -90,7 +90,7 @@ The completed application will include:
 | module-06.md | Complete |
 | module-07.md | Complete |
 | module-08.md | Current |
-| module-09.md | Pending |
+| module-09.md | Deferred |
 | module-10.md | Pending |
 
 ---
@@ -339,8 +339,9 @@ Module 7 (MCP) is fully complete — all 3 sprints. Not yet scoped into sprints.
 # Next Milestones
 
 - Production Infrastructure (Docker, PostgreSQL, pgvector, Terraform, AWS, CI/CD)
-- Evaluation & Observability (cost/latency/prompt versioning — system-wide, distinct from Module 5's RAG-quality evaluation)
 - Enterprise AI Assistant (final integration)
+
+**Evaluation & Observability (Module 9) — deliberately deferred, not on the near-term path.** Scoped to a concrete Sprint 1 plan, then explicitly not built: cost tracking, latency monitoring, model comparison, and prompt versioning only have real value against ongoing real traffic or an automated decision acting on the data — neither exists yet. A standalone `ClaudeProvider` was built alongside this discussion (proving the Provider Pattern generalizes) but isn't wired into any service. Revisit once there's real production traffic (likely post-Module 8) or provider selection becomes a genuine runtime decision.
 
 Also still open, non-blocking: DOCX/HTML/Markdown loaders (Medium Priority backlog carried over from Module 5).
 

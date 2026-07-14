@@ -838,6 +838,18 @@ Evaluation is an engineering discipline, not an optional extra.
 
 ---
 
+## Observability Has a Precondition: Something to Observe
+
+Module 9 (cost tracking, latency monitoring, model comparison, prompt versioning) was scoped down to a real, concrete Sprint 1 plan — and then deliberately not built. Working through *why* is the actual lesson, more than the metrics list above.
+
+Every one of those capabilities only pays for itself in one of two situations: there's **ongoing real traffic** to watch (so a trend, a spike, a regression means something), or there's an **automated mechanism that acts** on what's measured (traffic gets routed to whichever provider is cheaper, an alert fires, something changes). Neither existed here. No production traffic. No automated provider routing — provider selection was (and still is) a hard-coded constructor call.
+
+A smaller version was considered — a single endpoint comparing OpenAI and Claude on one prompt — and rejected for a sharper reason: a comparison whose result doesn't change what the system does next has no lasting effect. You look at it once, and the system is exactly the same afterward. That's not a smaller version of the same value; it's a demo with none of it.
+
+**The general principle:** "we might need this later" is not, by itself, a reason to build something now — *especially* infrastructure whose entire purpose is watching something over time. It has zero payoff until the "over time" part exists, and a real ongoing cost before that (a pricing table that goes stale is a maintenance burden with no offsetting benefit yet). The cheap version of "staying ready" is leaving the door open — here, that meant proving the abstraction that would matter later (`ClaudeProvider`, showing the Provider Pattern actually generalizes) without building the system that would consume it before there's any traffic to feed it.
+
+---
+
 # AI Engineering Principles
 
 Throughout this bootcamp we follow these principles:
