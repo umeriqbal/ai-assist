@@ -50,6 +50,20 @@ class Settings(BaseSettings):
         alias="OPENAI_CHAT_MODEL",
     )
 
+    #
+    # Anthropic
+    #
+
+    anthropic_api_key: str | None = Field(
+        default=None,
+        alias="ANTHROPIC_API_KEY",
+    )
+
+    anthropic_chat_model: str = Field(
+        default="claude-sonnet-5",
+        alias="ANTHROPIC_CHAT_MODEL",
+    )
+
     embedding_model: str = Field(
         default="text-embedding-3-small",
         alias="OPENAI_EMBEDDING_MODEL",
