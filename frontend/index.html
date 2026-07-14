@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enterprise AI Assistant</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <span class="topbar-title">Enterprise AI Assistant</span>
+    <span id="backend-status" class="status status-pending">Checking backend&hellip;</span>
+  </header>
+
+  <main class="page">
+    <h1>Frontend foundations</h1>
+    <p>
+      This page proves the pipe works: a static site, served on its own
+      origin, calling the FastAPI backend over CORS. Nothing else lives
+      here yet — chat, knowledge base, and agent screens arrive in later
+      sprints.
+    </p>
+
+    <section class="card">
+      <h2>Backend connection</h2>
+      <dl id="health-details" class="details"></dl>
+    </section>
+  </main>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

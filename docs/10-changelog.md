@@ -6,6 +6,28 @@ The format follows the principles of Keep a Changelog.
 
 ---
 
+# [1.0.0] - Enterprise AI Assistant (In Progress)
+
+**Status:** 🚧 In Progress
+
+Taken up out of the original roadmap order, at the user's direction — Module 8 (Production Infrastructure) is still not started, and Module 9 (Evaluation & Observability) was scoped then deliberately deferred (see the Unreleased entry below).
+
+### Added — Sprint 1: Frontend Foundations (Complete)
+
+- **Stack decision, made before any code:** standalone static frontend — plain HTML/CSS/JS, no build tooling, no framework. React, Vue, and Svelte were all considered and declined, consistent with this project's running theme of understanding a layer by hand before reaching for a framework (Module 3's semantic search, Module 6's hand-built ReAct loop before LangGraph)
+- `CORSMiddleware` added to `create_app()` (`app/core/application.py`) — **the first client in this entire project served from a different origin than the backend.** Every prior caller (curl, Swagger's own UI, another Python process via `connect_stdio_mcp_server`/`connect_http_mcp_server`) was same-origin or not a browser at all, so nothing before this ever triggered a browser's CORS enforcement
+- `FRONTEND_URL` setting (`app/core/config.py`) — the allowed origin is named explicitly, not `allow_origins=["*"]`
+- `frontend/index.html`, `css/styles.css`, `js/api.js` (shared `fetch()` wrapper — `apiGet`/`apiPost` — every later sprint's page will reuse this), `js/main.js` (calls `GET /health` on load, renders the result into the DOM). Native ES modules (`<script type="module">`), not a bundler — standard browser JS
+- Live-verified in a **real headless browser**, not a curl simulation: `chromium-cli` doesn't exist in this environment and no project run-skill covered launching this app yet, so a one-off Playwright driver script was written (Playwright's Chromium binaries were already cached locally). Confirmed: real CORS negotiation succeeded, the health data rendered correctly into the DOM, zero console errors, and a screenshot showed correct visual layout (a green "Backend: reachable" pill, all four `/health` fields listed)
+- Surfaced a real operational dependency along the way: `create_app()`'s `lifespan` (Module 7, Sprint 3) requires the MCP HTTP server already running, so exercising the full stack needs **three processes in order** — `app.mcp.run_http_server`, then the FastAPI app, then the `frontend/` static server. No single command starts all three yet
+- Recommended follow-up, not yet done: generate a project run-skill (`/run-skill-generator`) capturing this three-process startup order and the Playwright driver pattern, before Module 10 has many more UI sprints to verify the same way repeatedly
+
+### Not Included
+
+- Enterprise Chat UI, Knowledge Base UI, Website Crawling, Agents UI, Evaluation Dashboard, Admin Interface (Sprints 2+, not yet scoped)
+
+---
+
 # Unreleased — Standalone Work Between Modules 7 and 8
 
 Not tied to a module's sprint sequence; recorded here since it's real, tested code and a real scoping decision.
@@ -472,8 +494,8 @@ Expected features
 | 0.6.0 | AI Agents | ✅ |
 | 0.7.0 | MCP | ✅ |
 | 0.8.0 | Infrastructure | ⏳ |
-| 0.9.0 | Evaluation | ⏳ |
-| 1.0.0 | Enterprise AI Assistant | ⏳ |
+| 0.9.0 | Evaluation | ⏸️ Deferred |
+| 1.0.0 | Enterprise AI Assistant | 🚧 |
 
 ---
 
@@ -482,7 +504,7 @@ Expected features
 Current Status
 
 - Modules Completed: 7 / 10
-- Current Module: 8 (not yet scoped)
+- Current Module: 10 (Sprint 1 of ~6 complete) — taken up out of order; Module 8 not yet started, Module 9 deliberately deferred
 - Architecture: Stable
 - Documentation: Complete
 - Production Readiness: Strong foundation established

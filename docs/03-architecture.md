@@ -261,6 +261,25 @@ The `mcp` SDK exists only inside this layer, the same isolation principle Decisi
 
 ---
 
+## Frontend Layer
+
+Location
+
+```
+frontend/
+```
+
+(Repo root, sibling to `backend/` — not inside the backend app at all.)
+
+Responsibilities
+
+- Everything a user or admin directly sees and interacts with: chat UI, knowledge base management, agent screens, evaluation dashboard
+- Calls the backend exclusively over HTTP (`fetch()`), same as any external API consumer — no shared code, no shared process, no privileged access
+
+Plain HTML/CSS/JS, no framework, no build tooling — a deliberate Module 10 decision (React/Vue/Svelte all considered), consistent with this project's habit of understanding a layer by hand before reaching for a framework. Talks to the backend across a real origin boundary, enforced by `CORSMiddleware` naming the frontend's exact origin — the first place in this project where that boundary exists at all.
+
+---
+
 # Request Flow
 
 Every HTTP request follows this path.
@@ -774,6 +793,34 @@ The only thing that changed from the Current Agent Flow already documented above
 **Two independent processes, deliberately not merged:** the MCP server (tool provider) and the FastAPI app (agent) are separate services, mirroring a real remote-tool-provider architecture rather than embedding everything in one process. If the MCP server isn't running when the FastAPI app starts, startup fails clearly — there's no sensible fallback for "the tools this agent needs don't exist yet."
 
 **Known limitation, confirmed live rather than just assumed:** the MCP server process and the FastAPI app process each hold their own in-memory vector store. A question requiring a document indexed via `POST /documents/index` correctly returned "no results" through `POST /agents/mcp-chat` — the remote call itself worked, the data just wasn't there. Not fixed in this sprint.
+
+---
+
+# Current Frontend Flow
+
+```
+frontend/  (plain HTML/CSS/JS, no build tooling, no framework)
+    served independently — e.g. `python -m http.server 5500` from inside frontend/
+    on its own origin (http://127.0.0.1:5500)
+
+        js/main.js
+            → apiGet("/health")   (js/api.js — shared fetch() wrapper)
+            → fetch("http://127.0.0.1:8000/health")   ── cross-origin request ──
+
+Backend (uvicorn, port 8000)
+    CORSMiddleware(allow_origins=[settings.frontend_url])
+        → request accepted only because the Origin header matches FRONTEND_URL
+    GET /health  →  {status, timestamp, environment, version}
+
+        ← response carries Access-Control-Allow-Origin: http://127.0.0.1:5500
+    js/main.js renders the result into the DOM
+```
+
+This is the first client in the entire project that isn't same-origin with the backend. Every previous caller — curl, Swagger's UI (served by the backend itself), another Python process via `connect_http_mcp_server`/`connect_stdio_mcp_server` — never triggered a browser's CORS check, because CORS is a browser-enforced rule, not a server-side one; a server can be called from anywhere by curl or Python, but a browser refuses to expose a cross-origin response to page JavaScript unless the server explicitly allows it. `CORSMiddleware` is that explicit allowance — and it names one specific origin (`settings.frontend_url`), not `*`, matching this project's habit of not defaulting to permissive-because-it's-only-dev-for-now settings.
+
+**Verification note:** no browser automation tool was available at first (`chromium-cli` doesn't exist in this environment, and no project run-skill covered launching this app yet). Playwright was already cached locally, so Sprint 1's verification used an ad hoc driver script — real headless Chromium, real `fetch()`, real CORS negotiation — rather than a curl-only simulation, which can only prove the server's headers are correct, not that a browser actually accepts them.
+
+**Operational dependency worth naming:** getting this flow running requires three processes started in a specific order — `app.mcp.run_http_server` (Module 7's dependency, since `create_app()`'s `lifespan` requires it), then the FastAPI app, then the `frontend/` static server. No single command starts all three yet.
 
 ---
 

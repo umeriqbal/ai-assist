@@ -23,26 +23,34 @@ Enterprise AI Assistant
 | AI Agents | ✅ Complete |
 | MCP | ✅ Complete |
 | Infrastructure | ⏳ Pending |
-| Evaluation | ⏳ Pending |
-| Capstone | ⏳ Pending |
+| Evaluation | ⏸️ Deferred |
+| Capstone | 🚧 In Progress |
 
 ---
 
 # Current Module
 
-**Module 8 – Production Infrastructure**
+**Module 10 – Enterprise AI Assistant**
 
 Status:
 
-⏳ Not Started
+🚧 In Progress
+
+Taken up out of the original roadmap order, at the user's direction — Module 8 (Production Infrastructure) remains not-yet-started, and Module 9 (Evaluation & Observability) was scoped then deliberately deferred (see Known Technical Debt below).
+
+Completed Sprints
+
+- **Sprint 1 – Frontend Foundations:** stack decision made first — standalone static frontend, plain HTML/CSS/JS, no framework (React/Vue/Svelte all considered, declined), served independently from the backend over CORS, consistent with this project's "understand before framework" thread. `CORSMiddleware` added to `create_app()` — the first client in this project ever served from a different origin than the backend; every prior client (curl, Swagger, another Python process) was same-origin, so nothing needed this before. `FRONTEND_URL` setting (explicit allowed origin, not `*`). `frontend/index.html`, `css/styles.css`, `js/api.js` (shared `fetch()` wrapper every later sprint reuses), `js/main.js` — calls `GET /health` on load and renders the result. Live-verified in a real headless Chromium browser via Playwright (no `chromium-cli` or project run-skill existed yet, so a driver script was written ad hoc): real CORS negotiation, zero console errors, screenshot confirmed correct rendering. Also surfaced a real operational dependency: the FastAPI app's `lifespan` (Module 7, Sprint 3) requires the MCP HTTP server running first — `run_http_server.py`, then the backend, then the frontend.
+
+Per the roadmap, Module 10's remaining topics are: Enterprise Chat UI, Knowledge Base UI, Website Crawling, Agents UI, Evaluation Dashboard, Admin Interface — to be scoped sprint by sprint the same way every prior module was.
 
 ---
 
 # Current Sprint
 
-Not yet defined.
+**Sprint 2 – Enterprise Chat UI**
 
-Module 8 hasn't been broken into sprints yet — that scoping happens the same way every prior module's did, at the start of the module rather than in advance. Per the roadmap, Module 8's topics are: Docker, Docker Compose, PostgreSQL, pgvector, Redis, Terraform, AWS, CI/CD, Monitoring, Secrets Management.
+Not yet scoped into increments.
 
 ---
 
@@ -196,6 +204,20 @@ mcp/
 
 `agents/` grew across every sprint of Module 6: `plan.py`/`planner.py` (Sprint 2), `critique.py`/`reflector.py` (Sprint 3), `memory.py`/`in_memory_conversation_memory.py` (Sprint 4), `agent_graph.py` (Sprint 5), `supervisor_decision.py`/`supervisor.py`/`multi_agent_graph.py` (Sprint 6) — holds the planning/reflection/memory/graph building blocks, the same way `rag/` holds RAG building blocks. LangGraph is confined to this layer, same isolation principle as LangChain and `rag/`. The services that orchestrate them for DI/router use (`AgentService`, `PlanningService`, `ReflectionService`, `AgentGraphService`, `MultiAgentService`) still live in `services/`, consistent with Decision 003.
 
+**`frontend/`** (repo root, sibling to `backend/`, Module 10 Sprint 1) has real content for the first time:
+
+```
+frontend/
+index.html
+css/
+  styles.css
+js/
+  api.js
+  main.js
+```
+
+Plain HTML/CSS/JS, no build tooling, no framework — served independently (Python's built-in `http.server`) and calling the backend over CORS. `js/api.js` is the shared `fetch()` wrapper every later Module 10 sprint's page will reuse.
+
 ---
 
 # Current Technology Stack
@@ -211,6 +233,11 @@ Backend
 - MCP (`mcp==1.28.1`, confined to `app/mcp/`, same isolation principle)
 - Anthropic SDK (`anthropic==0.116.0`) — `ClaudeProvider` implements `LLMProvider` alongside `OpenAIProvider`; built standalone (not tied to a module's sprint sequence) to prove the Provider Pattern generalizes to a second vendor. Not wired into any active service — `get_openai_provider()` remains what every `get_*_service()` actually uses
 - Structlog
+
+Frontend
+
+- Plain HTML/CSS/JS (`frontend/`) — no framework, no build tooling. React/Vue/Svelte all considered and declined at the start of Module 10.
+- Native ES modules (`<script type="module">`) for splitting JS into files without a bundler — standard browser JS, not a framework.
 
 Upcoming
 
@@ -241,7 +268,8 @@ The project follows these principles throughout the codebase.
 
 ## High Priority
 
-- Module 8 – Production Infrastructure (scoping not yet started)
+- Module 10, Sprint 2 – Enterprise Chat UI (scoping not yet started)
+- Module 8 – Production Infrastructure (scoping not yet started, taken up out of order)
 
 ---
 
@@ -284,6 +312,8 @@ Planned improvements include:
 - `create_app()`'s `lifespan` (Module 7, Sprint 3) requires the MCP HTTP server to already be running and reachable at `settings.mcp_server_url` — if it isn't, FastAPI app startup fails outright rather than degrading gracefully. Intentional (there's no sensible fallback for "the tools this agent needs don't exist yet"), but it does mean two processes must be started in order: `run_http_server.py` first, then the FastAPI app.
 - **Module 9 (Evaluation & Observability) is deliberately deferred, not built.** Scoped to a concrete Sprint 1 plan (`CostTracker` as an injected recorder, a new `app/observability/` layer) and then explicitly not implemented: every capability in it — cost tracking, latency monitoring, model comparison, prompt versioning — only has real value against ongoing real traffic, or when something automated acts on the data. Neither exists yet. Building it now would be speculative infrastructure with a real recurring cost (pricing tables go stale) and nothing observing it. Revisit once there's real production traffic (likely post-Module 8) or provider selection becomes a genuine runtime decision. Full reasoning in [01-roadmap.md](docs/01-roadmap.md)'s Module 9 section.
 - `ClaudeProvider` (`app/providers/claude_provider.py`) exists and is fully tested against the `LLMProvider` contract, but isn't wired into any active service — `get_openai_provider()` remains what `dependencies/services.py` actually uses everywhere. Built standalone to prove the Provider Pattern generalizes to a second vendor, and to keep a config-driven provider switch (`LLM_PROVIDER=openai|claude`) available as a cheap future option without committing to it now.
+- Running Module 10's frontend against the live backend requires **three processes started in a specific order**: `app.mcp.run_http_server`, then the FastAPI app, then the `frontend/` static server (e.g. `python -m http.server 5500` from inside `frontend/`). No orchestration script exists yet to start all three together — a real operational rough edge, not addressed in Sprint 1.
+- No `chromium-cli` or project run-skill existed for driving this app in a browser — Sprint 1's live verification used an ad hoc Playwright script instead. Worth generating a proper project run-skill (`/run-skill-generator`) before Module 10 has many more UI sprints to verify the same way repeatedly.
 
 These are intentional future enhancements rather than defects.
 
@@ -293,34 +323,33 @@ These are intentional future enhancements rather than defects.
 
 Latest Completed Milestone
 
-Module 7 – Model Context Protocol (all 3 sprints)
+Module 10, Sprint 1 – Frontend Foundations
 
 Recommended Tag
 
 ```
-v0.7.0
+v1.0.0-sprint1
 ```
 
 ---
 
 # Next Development Task
 
-Module 8 – Production Infrastructure
+Module 10, Sprint 2 – Enterprise Chat UI
 
-Not yet broken into sprints/increments.
+Not yet broken into increments.
 
 Goal (module-level, per the roadmap):
 
-Deploy the platform to production — Docker, Docker Compose, PostgreSQL, pgvector, Redis, Terraform, AWS, CI/CD, Monitoring, Secrets Management. Module 7 (MCP) is fully complete: server foundations, client + tool discovery, and remote execution/agent integration, all built and live-verified across genuine process boundaries (stdio and real HTTP). The first step when this resumes is scoping Module 8 into sprints the same way every prior module was — starting with a concept walkthrough and a plan for Sprint 1, before any code changes.
+Combine everything into one application — Enterprise Chat, Knowledge Base, Website Crawling, PDF Search, Agents, Tool Calling, MCP, Evaluation Dashboard, Admin Interface. Taken up out of the original roadmap order at the user's direction (Module 8 remains not-yet-started; Module 9 was scoped then deliberately deferred). Sprint 1 (Frontend Foundations) is complete: CORS enabled, the static site skeleton built, connectivity proven in a real browser. The next step is scoping Sprint 2 the same way — wiring `/chat`, `/chat/stream`, and `/agents/chat` into an actual chat interface.
 
 ---
 
 # Success Criteria
 
-Module 8 is ready to scope when:
+Module 10, Sprint 2 is ready to scope when:
 
-- Module 7's full MCP integration is confirmed stable (it is — 107/107 tests passing, every sprint live-verified across a genuine process boundary, including Sprint 3's real two-process HTTP round trip).
-- A decision is made on whether to first close out the Medium Priority backlog (DOCX/HTML/Markdown loaders) or move straight into infrastructure.
+- Sprint 1's frontend foundations are confirmed stable (they are — 107/107 backend tests passing, unaffected by the CORS change; frontend verified in a real headless browser via Playwright, zero console errors, screenshot-confirmed correct rendering).
 
 ---
 
@@ -333,4 +362,4 @@ If continuing this project in a new conversation:
 3. Read this document (`02-current-status.md`)
 4. Continue with:
 
-**Module 8 – Production Infrastructure → scope Sprint 1 (not yet defined)**, or address the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.
+**Module 10, Sprint 2 – Enterprise Chat UI → scope into increments (not yet defined)**, or address Module 8 / the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first if preferred.

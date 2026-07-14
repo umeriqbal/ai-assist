@@ -819,6 +819,36 @@ Trying to force that into an `@lru_cache` function would mean either blocking sy
 
 ---
 
+# Frontend & Browser Clients
+
+## CORS Is a Browser Rule, Not a Server Rule
+
+The Same-Origin Policy — and CORS, the mechanism that relaxes it — is enforced entirely by the browser, not the server. A `curl` request or a backend integration test hits the API directly and never triggers it, because there's no browser in the loop deciding whether to expose the response to calling JavaScript. `CORSMiddleware` doesn't protect the server from anything; it's the server telling browsers "this origin is allowed to read my responses," and only browsers listen.
+
+The practical consequence: a "the frontend can't reach the backend" bug can look completely healthy from every backend-side check (logs show 200s, `curl` works fine) while genuinely failing for the one client that matters — the browser — because the error surfaces only in its console, as a blocked response the JavaScript never gets to see. Debugging this from the server side alone is looking in the wrong place; the browser console is the actual source of truth.
+
+`allow_origins=["*"]` would have made this invisible during development, but it's also a wildcard permission — this project set `FRONTEND_URL` as an explicit configured origin instead, on the same "don't hide problems, don't over-grant access" reasoning that shaped every other config default (e.g. `mcp_server_host`/`port`).
+
+---
+
+## Verifying a UI Change Means Opening an Actual Browser
+
+Every prior sprint's "live verification" meant hitting an endpoint — `curl`, Swagger, a Python smoke script — and reading the JSON back. That works because the client and the correctness criterion were the same thing: valid response body in, valid response body confirmed.
+
+A frontend breaks that equivalence. `GET /health` returning 200 says nothing about whether `js/main.js` actually parsed the response, updated the right DOM node, or whether CSS rendered the status pill in a readable color — none of that is visible to `curl`. Real verification needed an actual browser executing the actual JavaScript against the actual CSS: a headless Chromium instance (via Playwright), loading the real page, checking the console for errors, and a screenshot inspected for correct rendering, not merely "did it not crash."
+
+The general principle: the verification method has to match what the client actually is. A JSON API's client is any HTTP caller — curl is a faithful stand-in. A browser UI's client is a browser — nothing else is a faithful stand-in for it.
+
+---
+
+## Operational Ordering Can Be a Real Dependency, Not Just a Convenience
+
+Module 7 Sprint 3 already established that the backend depends on the MCP HTTP server being up first (its `lifespan` connects to it at startup and fails hard otherwise). Adding a frontend didn't remove that dependency — it added a third link to the same chain: MCP server → backend → frontend, in that order, across three independent processes.
+
+This is easy to treat as a documentation footnote, but it's a real architectural fact worth naming: whenever one running process's startup (or a request it serves) depends on another already being reachable, that ordering isn't optional detail — it's part of the system's actual behavior, and skipping it produces a failure (`ExceptionGroup`/`httpx.ConnectError` here) that looks unrelated to its real cause unless the dependency chain is already understood.
+
+---
+
 # Evaluation
 
 A production AI system must be measured.

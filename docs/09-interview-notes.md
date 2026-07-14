@@ -748,6 +748,46 @@ Two concrete triggers, not a timeline: real production traffic worth watching (m
 
 ---
 
+## Q59. Why was Module 10 (the frontend) taken up before Module 8 (infrastructure) or a completed Module 9?
+
+### Answer
+
+The user's own call, and it's a defensible one: nothing in Modules 1–7's architecture (routers → services → providers/RAG/agents/MCP) depends on Docker, Terraform, AWS, or an observability layer existing first. A browser client only needs a running API to call — it doesn't need that API containerized, deployed, or measured. Module 8 (infra) and Module 9 (deferred) are both "how this gets operated and watched," which is orthogonal to "does a real UI exist yet." Sequencing bootcamp modules by actual dependency rather than by their listed order is itself the more realistic engineering practice — real projects rarely execute a roadmap in the order it was written.
+
+---
+
+## Q60. Why a standalone static frontend instead of having FastAPI serve it (e.g. via Jinja2 templates or a `StaticFiles` mount)?
+
+### Answer
+
+Because the two are genuinely different architectures with different consequences, not a style preference. A FastAPI-served frontend means one process, one origin, no CORS — simpler locally, but it couples deployment: the frontend can't be pushed to a CDN independently, can't be cached at the edge, and every backend deploy redeploys the UI whether it changed or not. A standalone static site decouples those lifecycles — which is how frontends are actually deployed in most production systems (a CDN/static host, separate from the API) — at the cost of needing CORS, since the browser now treats them as different origins. This project chose to pay that cost deliberately, to practice the pattern that matches real deployments rather than the path of least local friction.
+
+---
+
+## Q61. Why did FastAPI startup fail the first time the frontend and backend were run together, and what does that reveal?
+
+### Answer
+
+Not a frontend bug — a pre-existing dependency surfacing in a new context. Since Module 7 Sprint 3, `create_app()`'s `lifespan` connects to the MCP HTTP server at startup and fails hard if it isn't reachable; that was already true before the frontend existed. Running three processes for the first time (MCP server, backend, frontend) just made an ordering mistake newly possible: starting the backend before the MCP server produces an `ExceptionGroup`/`httpx.ConnectError` that reads as unrelated to its actual cause unless you already know the chain. The lesson is general — adding a new process to a system doesn't create new dependencies by itself, but it multiplies the ways an existing one can be triggered by the wrong startup order.
+
+---
+
+## Q62. How would you debug a report that "the frontend can't reach the backend," given everything looks fine in the backend logs?
+
+### Answer
+
+Start in the browser, not the server. If CORS is blocking the response, the backend logs will often show a normal 200 — the request succeeded, the browser just refuses to hand the response to the page's JavaScript. `curl`ing the same endpoint will also succeed, because `curl` isn't a browser and CORS isn't a server-side check; the block happens client-side, after a valid response comes back. The actual signal is in the browser's own console (a CORS error naming the blocked origin) — checking that first would have ruled out or confirmed CORS in seconds, versus a lot of unproductive time staring at server-side logs that were never going to show the problem.
+
+---
+
+## Q63. What's the real difference between testing a JSON API endpoint and testing a browser UI?
+
+### Answer
+
+The client itself. A JSON API's real client is "any HTTP caller" — a `curl` request or a Python `httpx` call is a faithful stand-in, because correctness is fully captured by the response body and status code. A browser UI's real client is a browser executing real JavaScript against real CSS — `curl` hitting the same endpoint proves the API works, but says nothing about whether the page's script parsed the response, updated the right element, or whether it's even readable once styled. That gap is why this project's frontend was verified with an actual headless Chromium browser (via Playwright) — loading the real page, checking the console for errors, and inspecting a screenshot — rather than treating a passing `curl` command as proof the feature works.
+
+---
+
 # Practical Questions
 
 You should be able to explain the architecture you built during this bootcamp, including:

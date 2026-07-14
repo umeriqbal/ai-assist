@@ -118,6 +118,10 @@ MCP_SERVER_HOST=127.0.0.1
 
 MCP_SERVER_PORT=8765
 
+# The frontend's origin — must match exactly what it's served from,
+# since CORSMiddleware checks this instead of allowing "*"
+FRONTEND_URL=http://127.0.0.1:5500
+
 # Optional — only needed to exercise ClaudeProvider directly (not
 # used by any active service; see Known Technical Debt in
 # 02-current-status.md)
@@ -219,6 +223,29 @@ python -m uvicorn app.main:app --reload
 If Terminal 1 isn't running (or isn't reachable) when Terminal 2 starts, FastAPI **startup fails outright** — there's no fallback for "the tools this agent needs don't exist yet." Configurable via `MCP_SERVER_HOST`/`MCP_SERVER_PORT` in `.env` (defaults: `127.0.0.1:8765`).
 
 Known limitation: the two processes hold separate in-memory vector stores. A document indexed via `POST /documents/index` (against the FastAPI app's store) won't be found by `/agents/mcp-chat`'s knowledge-base tool (which queries the MCP server's own, separate store) — the tool call still succeeds, it just correctly reports no results.
+
+---
+
+# Frontend (Module 10, Sprint 1)
+
+The frontend (`frontend/`) is a standalone static site — it is never served by FastAPI (no Jinja2, no `StaticFiles` mount for it). It is its own process, calling the backend over CORS. This means a full local run is **three processes**, and they must start in this order from the repository root:
+
+```bash
+# Terminal 1 — MCP HTTP server (backend startup depends on this)
+cd backend && python -m app.mcp.run_http_server
+
+# Terminal 2 — FastAPI backend (connects to the MCP server during startup)
+cd backend && python -m uvicorn app.main:app --reload
+
+# Terminal 3 — the static frontend, any static file server
+cd frontend && python -m http.server 5500
+```
+
+Then open `http://127.0.0.1:5500` in a browser.
+
+If Terminal 3's origin doesn't match `FRONTEND_URL` in `backend/.env` exactly (scheme, host, and port), the browser will block the request with a CORS error visible only in the browser console — `curl` against the same endpoint will succeed, because CORS is enforced by the browser, not the server. When debugging a "frontend can't reach backend" report, check the browser console first, not the backend logs.
+
+Starting Terminal 2 before Terminal 1 fails FastAPI startup outright (see MCP HTTP Server section above) — the same ordering dependency applies here since the frontend depends on the backend being up.
 
 ---
 

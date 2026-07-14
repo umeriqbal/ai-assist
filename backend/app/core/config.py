@@ -114,6 +114,15 @@ class Settings(BaseSettings):
     def mcp_server_url(self) -> str:
         return f"http://{self.mcp_server_host}:{self.mcp_server_port}/mcp"
 
+    #
+    # Frontend
+    #
+
+    frontend_url: str = Field(
+        default="http://127.0.0.1:5500",
+        alias="FRONTEND_URL",
+    )
+
 
 @lru_cache
 def get_settings() -> Settings:

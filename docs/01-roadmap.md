@@ -416,7 +416,7 @@ A single-prompt "compare OpenAI vs. Claude" endpoint was considered as a smaller
 
 # Module 10 — Enterprise AI Assistant
 
-**Status:** ⏳ Planned
+**Status:** 🚧 Current
 
 ## Objectives
 
@@ -433,6 +433,19 @@ Combine everything into one application.
 - MCP
 - Evaluation Dashboard
 - Admin Interface
+
+### Stack decision
+
+Standalone static frontend — plain HTML/CSS/JS, no build tooling, no framework (React/Vue/Svelte all considered and declined), served independently from the backend and calling it over CORS. Consistent with this project's running theme of understanding a layer by hand before reaching for a framework (Module 3's semantic search, Module 6's hand-built ReAct loop before LangGraph).
+
+### Sprint 1 — Frontend Foundations
+
+- `CORSMiddleware` added to `create_app()` — the first request in this project to ever need permission to be called from a different origin; every prior client (curl, Swagger, another Python process) was same-origin
+- `FRONTEND_URL` setting, explicit allowed origin (not `*`)
+- `frontend/index.html`, `css/styles.css`, `js/api.js` (shared `fetch()` wrapper reused by every later sprint), `js/main.js` — calls `GET /health` on load and renders the result
+- Live-verified in a real headless Chromium browser (Playwright, since no `chromium-cli`/project run-skill existed yet) — real fetch, real CORS negotiation, zero console errors, screenshot confirmed correct rendering
+
+**Status:** ✅ Complete
 
 ### Outcome
 
@@ -453,18 +466,24 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 | 7 | Model Context Protocol | ✅ Complete |
 | 8 | Production Infrastructure | ⏳ Planned |
 | 9 | Evaluation & Observability | ⏸️ Deferred |
-| 10 | Enterprise AI Assistant | ⏳ Planned |
+| 10 | Enterprise AI Assistant | 🚧 Current |
 
 ---
 
 # Current Focus
 
-**Module 7 – Model Context Protocol (MCP): Complete**
+**Module 10 – Enterprise AI Assistant**
+
+Current Sprint:
+
+**Sprint 2 – Enterprise Chat UI** *(not yet scoped)*
 
 Last Completed Sprint:
 
-**Sprint 3 – Remote Execution / Agent Integration** — MCP server upgraded to streamable-HTTP (`http_server.py`/`run_http_server.py`), a genuinely network-addressable service; `connect_http_mcp_server()`; `create_app()` gained its first `lifespan` (connects to the MCP HTTP server at startup, discovers tools, builds an `AgentService`); `POST /agents/mcp-chat`. Live-verified with both servers running as real, separate processes: a forced remote tool call round-tripped correctly end to end.
+**Sprint 1 – Frontend Foundations** — `CORSMiddleware` added to `create_app()` (the first client in this project ever served from a different origin), `frontend/` static site skeleton (plain HTML/CSS/JS, no build step), `js/api.js` shared fetch wrapper, a health-check page proving the whole pipe. Live-verified in a real headless browser via Playwright — real CORS negotiation, zero console errors, screenshot confirmed.
 
 Next milestone:
 
-**Module 8 – Production Infrastructure**, not yet scoped into sprints. First step when this resumes: a concept walkthrough and concrete Sprint 1 plan, the same process used to start every prior module.
+**Scope Sprint 2 (Enterprise Chat UI) into increments before writing any code.**
+
+Module 8 (Production Infrastructure) and Module 9 (deferred — see its own section above) remain open, taken up out of the original order at the user's direction.

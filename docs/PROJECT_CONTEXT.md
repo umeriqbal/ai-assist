@@ -19,15 +19,15 @@ The completed project should demonstrate the skills expected of an AI Engineer.
 
 Current Module:
 
-Module 8 – Production Infrastructure
+Module 10 – Enterprise AI Assistant
 
 Current Sprint:
 
-Not yet defined — Module 8 has not been broken into sprints yet.
+Sprint 2 – Enterprise Chat UI (not yet scoped into increments)
 
 Status:
 
-Module 7 (MCP) is complete: all 3 sprints delivered (MCP Server Foundations, MCP Client + Tool Discovery, Remote Execution/Agent Integration), unit-tested, and live-verified across genuine process boundaries — 107/107 tests passing, including a real two-process HTTP round trip in Sprint 3. Module 8 scoping has not started. Module 9 (Evaluation & Observability) was scoped down to a concrete Sprint 1 plan and then deliberately deferred, not built — see the Module 9 section below for the full reasoning. A standalone `ClaudeProvider` was built alongside this (proving the Provider Pattern generalizes to a second vendor) but isn't wired into any active service.
+Module 7 (MCP) is complete: all 3 sprints delivered (MCP Server Foundations, MCP Client + Tool Discovery, Remote Execution/Agent Integration), unit-tested, and live-verified across genuine process boundaries — 107/107 tests passing, including a real two-process HTTP round trip in Sprint 3. Module 10 was taken up next, out of the original roadmap order, at the user's direction — Module 8 (Production Infrastructure) has not started, and Module 9 (Evaluation & Observability) was scoped down to a concrete Sprint 1 plan and then deliberately deferred, not built (see the Module 9 section below for the full reasoning). A standalone `ClaudeProvider` was built alongside that discussion (proving the Provider Pattern generalizes to a second vendor) but isn't wired into any active service. Module 10, Sprint 1 (Frontend Foundations) is complete — a standalone static frontend (plain HTML/CSS/JS, no framework), CORS enabled on the backend, connectivity live-verified in a real headless browser.
 
 ---
 
@@ -42,9 +42,9 @@ Module 7 (MCP) is complete: all 3 sprints delivered (MCP Server Foundations, MCP
 | Module 5 - Enterprise RAG | Complete |
 | Module 6 - AI Agents | Complete |
 | Module 7 - Model Context Protocol (MCP) | Complete |
-| Module 8 - Production Infrastructure | Current |
+| Module 8 - Production Infrastructure | Pending (taken up out of order — not started) |
 | Module 9 - Evaluation & Observability | Deferred (deliberately — see below) |
-| Module 10 - Enterprise AI Assistant | Pending |
+| Module 10 - Enterprise AI Assistant | Current |
 
 ---
 
@@ -130,6 +130,11 @@ Backend
 - MCP (`mcp==1.28.1`, confined to `app/mcp/`, same isolation principle)
 - Anthropic SDK (`anthropic==0.116.0`) — `ClaudeProvider`, built standalone (not tied to a module), not wired into any active service
 - Structlog
+
+Frontend
+
+- Plain HTML/CSS/JS (`frontend/`) — no framework, no build tooling; React/Vue/Svelte considered and declined at the start of Module 10
+- Native ES modules for splitting JS across files without a bundler
 
 Future
 
@@ -344,6 +349,15 @@ Remote Execution / Agent Integration (Module 7, Sprint 3 — final sprint of Mod
 - Live-verified with both processes running for real: a forced remote `echo` call round-tripped correctly; a knowledge-base question correctly triggered a real HTTP call and got back an honest "no results" (confirming the known cross-process vector-store gap, not a bug)
 - **Module 7 (Model Context Protocol) is now fully complete.**
 
+Frontend Foundations (Module 10, Sprint 1 — taken up out of the original roadmap order, at the user's direction, ahead of Module 8/9)
+
+- Stack decision made before any code: standalone static frontend, plain HTML/CSS/JS, no build tooling, no framework — React/Vue/Svelte all considered and declined
+- `CORSMiddleware` added to `create_app()` — the first client in this project ever served from a different origin than the backend; every prior caller was same-origin or not a browser
+- `FRONTEND_URL` setting, explicit allowed origin (not `*`)
+- `frontend/index.html`, `css/styles.css`, `js/api.js` (shared `fetch()` wrapper reused by every later sprint), `js/main.js` — calls `GET /health` on load, renders the result
+- Live-verified in a real headless Chromium browser via an ad hoc Playwright driver script (no `chromium-cli`/project run-skill existed yet): real CORS negotiation, zero console errors, screenshot confirmed correct rendering
+- Surfaced a real operational dependency: exercising the full stack needs three processes started in order — `app.mcp.run_http_server`, then the FastAPI app, then the `frontend/` static server
+
 ---
 
 # Design Decisions
@@ -368,11 +382,11 @@ No framework-specific code inside routers.
 
 # Current Objective
 
-Begin Module 8 – Production Infrastructure.
+Continue Module 10 – Enterprise AI Assistant (taken up out of the original roadmap order, at the user's direction).
 
-Module 7 (MCP) is fully complete — all 3 sprints. First step: scope Module 8 into sprints the same way every prior module was — a concept walkthrough and a concrete plan for Sprint 1 before any code changes. Topics per the roadmap: Docker, Docker Compose, PostgreSQL, pgvector, Redis, Terraform, AWS, CI/CD, Monitoring, Secrets Management.
+Sprint 1 (Frontend Foundations) is complete. Next step: scope Sprint 2 (Enterprise Chat UI) the same way every prior sprint was — `/chat`, `/chat/stream`, and `/agents/chat` wired into an actual chat interface.
 
-Not yet decided: whether to close out the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) first.
+Module 8 (Production Infrastructure) remains not-yet-started; Module 9 (Evaluation & Observability) was scoped then deliberately deferred. Not yet decided: whether to close out the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) at some point.
 
 ---
 
@@ -407,7 +421,7 @@ Not yet decided: whether to close out the remaining Medium Priority backlog (DOC
 - ~~Tool Discovery~~ ✅
 - ~~Remote Execution~~ ✅
 
-## Module 8 (Current — not yet scoped)
+## Module 8 (Not yet started — taken up out of order, after Module 10 for now)
 
 - Docker
 - Docker Compose
@@ -425,6 +439,17 @@ Not yet decided: whether to close out the remaining Medium Priority backlog (DOC
 Scoped to a concrete Sprint 1 plan (`CostTracker` as an injected recorder, a new `app/observability/` layer), then explicitly not implemented. Every capability here — cost tracking, latency monitoring, model comparison, prompt versioning — only has real value against ongoing real traffic, or when something automated acts on the data; neither exists yet. A smaller "compare OpenAI vs. Claude on one prompt" endpoint was also considered and rejected — a comparison result that doesn't change what the system does next has no lasting effect.
 
 **Revisit when:** there's real production traffic worth watching (likely post-Module 8), or provider selection becomes a genuine runtime decision. `ClaudeProvider` already exists for exactly that reason — built and tested, not wired in, so switching later is a config change away rather than a rewrite.
+
+## Module 10 (Current — Sprint 1 complete, taken up out of order)
+
+- ~~Frontend Foundations~~ ✅ (Sprint 1 — not itself a roadmap feature, but the prerequisite for all of them)
+- Enterprise Chat (Sprint 2, not yet scoped)
+- Knowledge Base (not yet scoped)
+- PDF Search (not yet scoped)
+- Website Crawling — the one genuinely new backend capability in this module (not yet scoped)
+- Agents / Tool Calling / MCP UI (not yet scoped)
+- Evaluation Dashboard — scoped down to Module 5's data only, since Module 9 is deferred (not yet scoped)
+- Admin Interface (not yet scoped)
 
 ---
 

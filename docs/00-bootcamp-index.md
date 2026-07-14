@@ -33,10 +33,10 @@ This project follows real software engineering practices including:
 
 | Item | Value |
 |------|-------|
-| Current Module | Module 8 – Production Infrastructure |
-| Current Sprint | Not yet defined |
+| Current Module | Module 10 – Enterprise AI Assistant (taken up out of order) |
+| Current Sprint | Sprint 2 – Enterprise Chat UI (not yet scoped) |
 | Current Increment | Not yet defined |
-| Status | Module 7 (MCP) Complete — all 3 sprints, 107/107 tests passing, live-verified across genuine process boundaries (stdio and real HTTP, two independent processes). Module 8 not yet scoped into sprints. Module 9 scoped then deliberately deferred (see below) |
+| Status | Module 7 (MCP) Complete — all 3 sprints. Module 8 not yet started; Module 9 scoped then deliberately deferred (see below). Module 10, Sprint 1 (Frontend Foundations) complete — 107/107 backend tests passing, frontend live-verified in a real headless browser |
 
 ---
 
@@ -89,9 +89,9 @@ The completed application will include:
 | module-05.md | Complete |
 | module-06.md | Complete |
 | module-07.md | Complete |
-| module-08.md | Current |
+| module-08.md | Pending (taken up out of order) |
 | module-09.md | Deferred |
-| module-10.md | Pending |
+| module-10.md | Current |
 
 ---
 
@@ -240,6 +240,26 @@ Complete
 
 ---
 
+## Module 10 (In Progress — taken up out of the original roadmap order)
+
+Enterprise AI Assistant
+
+Taken up next at the user's direction, ahead of Module 8 (Production Infrastructure, not yet started) and Module 9 (Evaluation & Observability, scoped then deliberately deferred — see [01-roadmap.md](docs/01-roadmap.md)).
+
+Completed Sprints
+
+- **Sprint 1 – Frontend Foundations:** stack decision first — standalone static frontend, plain HTML/CSS/JS, no framework (React/Vue/Svelte considered, declined), consistent with this project's "understand before framework" thread; `CORSMiddleware` added to `create_app()` — the first client in this project ever served from a different origin than the backend; `FRONTEND_URL` setting (explicit allowed origin, not `*`); `frontend/index.html`/`css/styles.css`/`js/api.js` (shared `fetch()` wrapper)/`js/main.js` — calls `GET /health` on load and renders the result
+
+Live-verified in a real headless Chromium browser via an ad hoc Playwright driver script (`chromium-cli` and a project run-skill both didn't exist yet): real CORS negotiation, zero console errors, screenshot confirmed correct rendering. Also surfaced a real operational dependency — three processes must start in order (`app.mcp.run_http_server`, then the backend, then the frontend server).
+
+Not yet scoped: Sprint 2 (Enterprise Chat UI) onward.
+
+Status
+
+🚧 In Progress
+
+---
+
 # Architecture
 
 The project follows a layered architecture.
@@ -330,16 +350,16 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 # Current Milestone
 
-Module 8 – Production Infrastructure
+Module 10 – Enterprise AI Assistant (taken up out of the original roadmap order, at the user's direction)
 
-Module 7 (MCP) is fully complete — all 3 sprints. Not yet scoped into sprints. First step when work resumes: a concept walkthrough and a concrete plan for Sprint 1, same approach used to start every prior module.
+Sprint 1 (Frontend Foundations) complete. Next step: a concept walkthrough and concrete increment plan for Sprint 2 (Enterprise Chat UI) — wiring `/chat`, `/chat/stream`, and `/agents/chat` into an actual chat interface.
 
 ---
 
 # Next Milestones
 
-- Production Infrastructure (Docker, PostgreSQL, pgvector, Terraform, AWS, CI/CD)
-- Enterprise AI Assistant (final integration)
+- Enterprise AI Assistant (Sprints 2+ — Enterprise Chat, Knowledge Base, Website Crawling, Agents UI, Evaluation Dashboard, Admin Interface)
+- Production Infrastructure (Docker, PostgreSQL, pgvector, Terraform, AWS, CI/CD) — not yet started, picked up after Module 10 or sooner if priorities change
 
 **Evaluation & Observability (Module 9) — deliberately deferred, not on the near-term path.** Scoped to a concrete Sprint 1 plan, then explicitly not built: cost tracking, latency monitoring, model comparison, and prompt versioning only have real value against ongoing real traffic or an automated decision acting on the data — neither exists yet. A standalone `ClaudeProvider` was built alongside this discussion (proving the Provider Pattern generalizes) but isn't wired into any service. Revisit once there's real production traffic (likely post-Module 8) or provider selection becomes a genuine runtime decision.
 
