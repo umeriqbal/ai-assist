@@ -22,6 +22,13 @@ export function apiPost(path, body) {
   });
 }
 
+export function apiPostForm(path, formData) {
+  return request(path, {
+    method: "POST",
+    body: formData,
+  });
+}
+
 export async function apiPostStream(path, body, onChunk) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",

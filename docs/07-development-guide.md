@@ -241,7 +241,7 @@ cd backend && python -m uvicorn app.main:app --reload
 cd frontend && python -m http.server 5500
 ```
 
-Then open `http://127.0.0.1:5500` in a browser. `index.html` is the backend status page (Sprint 1); `chat.html` (Sprint 2) is a live chat interface wired to `POST /chat/stream` — both link to each other via the top-bar nav.
+Then open `http://127.0.0.1:5500` in a browser. `index.html` is the backend status page (Sprint 1); `chat.html` (Sprint 2) is a live chat interface wired to `POST /chat/stream`; `kb.html` (Sprint 3) uploads documents (`POST /documents/upload`, **PDF only** — no `.txt`/`.docx`/`.html`/`.md` loader is registered yet) and semantically searches them (`POST /documents/search`). All three pages link to each other via the top-bar nav.
 
 If Terminal 3's origin doesn't match `FRONTEND_URL` in `backend/.env` exactly (scheme, host, and port), the browser will block the request with a CORS error visible only in the browser console — `curl` against the same endpoint will succeed, because CORS is enforced by the browser, not the server. When debugging a "frontend can't reach backend" report, check the browser console first, not the backend logs.
 

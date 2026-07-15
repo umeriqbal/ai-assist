@@ -234,3 +234,98 @@ p {
   opacity: 0.6;
   cursor: default;
 }
+
+.kb-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.kb-text-input {
+  font: inherit;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+}
+
+.kb-text-input-grow {
+  flex: 1;
+  min-width: 200px;
+}
+
+.kb-submit {
+  font: inherit;
+  font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  cursor: pointer;
+}
+
+.kb-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.kb-hint {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: var(--ink-muted);
+}
+
+.kb-notice {
+  margin-top: 14px;
+  font-size: 14px;
+}
+
+.kb-notice-pending {
+  color: var(--pending);
+}
+
+.kb-notice-ok {
+  color: var(--ok);
+}
+
+.kb-notice-error {
+  color: var(--error);
+}
+
+.kb-results {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kb-result {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: var(--bg);
+}
+
+.kb-result-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-bottom: 8px;
+}
+
+.kb-result-source {
+  font-weight: 600;
+}
+
+.kb-result-content {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}

@@ -273,7 +273,7 @@ frontend/
 
 Responsibilities
 
-- Everything a user or admin directly sees and interacts with: chat UI (Sprint 2, live), knowledge base management, agent screens, evaluation dashboard (later sprints)
+- Everything a user or admin directly sees and interacts with: chat UI (Sprint 2, live), knowledge base upload/search (Sprint 3, live), agent screens, evaluation dashboard (later sprints)
 - Calls the backend exclusively over HTTP (`fetch()`), same as any external API consumer — no shared code, no shared process, no privileged access
 
 Plain HTML/CSS/JS, no framework, no build tooling — a deliberate Module 10 decision (React/Vue/Svelte all considered), consistent with this project's habit of understanding a layer by hand before reaching for a framework. Talks to the backend across a real origin boundary, enforced by `CORSMiddleware` naming the frontend's exact origin — the first place in this project where that boundary exists at all.
@@ -848,6 +848,49 @@ Backend (uvicorn, port 8000)
 Deliberately wired to `POST /chat/stream` (Module 4's `ChatService`/`StreamingService`), not `POST /agents/chat` (Module 6's `AgentService`) — the scoping trade-off made before writing any code: live token-by-token streaming, at the cost of cross-turn memory. `/chat/stream` takes only `{prompt}` — no `conversation_id`, no history — so a follow-up message gets zero context from the previous one. `/agents/chat` has real memory via `conversation_id` but no streaming variant today; adding one would be a backend change, out of scope for a frontend sprint. Nothing here required a backend change — the endpoint already existed, unmodified, since Module 4.
 
 **Verification note:** live-verified the same way as Sprint 1 — a real headless browser, not a curl simulation — since curl can confirm the endpoint streams correctly but says nothing about whether `chat.js` actually renders the chunks into the right DOM node as they arrive.
+
+---
+
+# Current Knowledge Base Flow (Module 10, Sprint 3)
+
+```
+frontend/kb.html
+    Upload panel:
+        user picks a .pdf file, optional source name, submits
+
+            js/kb.js
+                → apiPostForm("/documents/upload", formData)   (js/api.js)
+                → fetch(..., {method: "POST", body: formData})   ── no Content-Type set ──
+                ← browser sets the multipart boundary itself
+
+        Backend: POST /documents/upload  (app/api/routers/document.py)
+            → DocumentUploadService.upload(file_path, source, ...)
+                → DocumentLoaderFactory picks a loader by file extension (PDFLoader only, today)
+                → chunk → embed → store in the vector store
+            ← {source, pages_loaded, chunks_indexed}
+
+        js/kb.js renders a confirmation card, or the backend's real error
+        (e.g. "No loader registered for '.txt'.") if the file type isn't supported
+
+    Search panel:
+        user types a query, submits
+
+            js/kb.js
+                → apiPost("/documents/search", {query, k: 4})   (js/api.js — plain JSON, Sprint 1's helper)
+
+        Backend: POST /documents/search
+            → RetrievalService.retrieve(query, k, source)
+                → embeds the query, runs similarity search against the vector store
+            ← {results: [{content, metadata, score}], result_count}
+
+        js/kb.js renders each result as a card (content, source badge, similarity score)
+```
+
+Deliberately wired to `POST /documents/upload` and `POST /documents/search` (Module 5's end-user-facing endpoints), not `POST /documents`, `/chunks`, `/embeddings`, or `/index` — those expose the RAG pipeline's individual internal stages, built for testing the pipeline itself, not for an end user. Nothing here required a backend change — both endpoints already existed, unmodified, since Module 5.
+
+A third distinct `js/api.js` request shape appears here: `apiPostForm()` sends a `FormData` body with no manually-set `Content-Type` header, letting the browser generate the multipart boundary itself — this can't reuse `apiPost()` (which always sets `Content-Type: application/json`) any more than `apiPostStream()` could in Sprint 2. Three genuinely different wire contracts (JSON, streamed text, multipart form) now live behind three narrow, purpose-built functions rather than one function branching on a flag.
+
+**Verification note:** live-verified with a real file — a minimal, hand-crafted PDF (the same technique `tests/conftest.py`'s `write_minimal_pdf()` uses, since no PDF-generation library or fixture file existed yet) — uploaded through the real browser, then searched for, confirming a real round trip through the actual vector store, not a mocked response.
 
 ---
 

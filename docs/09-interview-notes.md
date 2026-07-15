@@ -804,6 +804,30 @@ Because the response shapes are fundamentally different, not just different call
 
 ---
 
+## Q66. Why does `js/api.js` have three separate "POST" helpers (`apiPost`, `apiPostStream`, `apiPostForm`) instead of one function with an options flag?
+
+### Answer
+
+Because they don't share a wire contract, only an HTTP verb. `apiPost` sends a JSON body and parses a JSON response in one step. `apiPostStream` sends a JSON body but reads the response as a sequence of raw chunks over time, never calling `response.json()` at all. `apiPostForm` sends a `FormData` body and must *not* set a `Content-Type` header — the browser generates the multipart boundary itself, and setting it manually breaks the upload. Collapsing these into one function with a `mode` parameter would hide three genuinely different behaviors behind one signature, for the sake of a coincidence (all three happen to use `POST`). The right question when two things look similar isn't "do they share a verb" — it's "do they share a contract."
+
+---
+
+## Q67. The knowledge base UI only accepts PDF uploads. Is that a frontend limitation or a backend one, and how would you extend it?
+
+### Answer
+
+Backend. `POST /documents/upload` resolves a loader by file extension via `DocumentLoaderFactory`, which today only has `PDFLoader` registered — a gap dating back to Module 5, not introduced by this sprint. The frontend's `accept=".pdf"` on the file input and the visible "PDF only" hint are UX guidance, not enforcement — they steer users away from a failure that already exists server-side, and if someone bypasses them, the backend's real error (`"No loader registered for '.txt'."`) still surfaces correctly through the UI rather than failing silently. Extending it means registering additional loaders (DOCX/HTML/Markdown) in `DocumentLoaderFactory`, unrelated to anything in `frontend/`.
+
+---
+
+## Q68. How did you verify the file upload feature actually worked, given the backend only accepts PDFs?
+
+### Answer
+
+The first verification attempt used a `.txt` file and failed — correctly, because the backend has no loader for that extension. That wasn't a bug to fix; it revealed the test data was wrong for what the feature needed. Real verification required a real PDF: since no PDF-generation library or fixture file existed in the project yet, one was generated using the exact hand-crafted-PDF technique the backend's own test suite already uses (`tests/conftest.py`'s `write_minimal_pdf()` — a minimal valid PDF written as a raw byte template, no external library). That file, uploaded through the actual browser UI, produced a real indexed chunk; searching for its content afterward returned a real similarity-scored result. The lesson: testing a file-upload feature with a placeholder file only proves the form submits — it doesn't prove the feature works, because "works" depends on the file actually being the type the system is built to handle.
+
+---
+
 # Practical Questions
 
 You should be able to explain the architecture you built during this bootcamp, including:

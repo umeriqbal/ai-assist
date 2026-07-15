@@ -420,17 +420,21 @@ frontend/
 │
 ├── index.html
 ├── chat.html
+├── kb.html
 ├── css/
 │   └── styles.css
 └── js/
     ├── api.js
     ├── main.js
-    └── chat.js
+    ├── chat.js
+    └── kb.js
 ```
 
 Introduced in Module 10, Sprint 1. No `package.json`, no `src/`/`public/` split, no build step — plain HTML/CSS/JS was chosen deliberately over React/Vue/Svelte (see [01-roadmap.md](01-roadmap.md)'s Module 10 section), so there's no npm dependency tree to scaffold. `js/api.js` is the shared `fetch()` wrapper every page reuses; served independently from the backend (e.g. `python -m http.server 5500`), calling it over CORS.
 
 Sprint 2 (Enterprise Chat UI) added `chat.html` + `js/chat.js` — one HTML page + one JS file per feature, exactly as planned, rather than a component tree. `api.js` gained a second export, `apiPostStream()`, alongside `apiGet`/`apiPost` — needed because streaming a raw response body can't reuse the `response.json()`-based helper the other two share. Both pages now share a small top-bar nav linking between them (plain `<a href>`, no router).
+
+Sprint 3 (Knowledge Base UI) added `kb.html` + `js/kb.js` — a document upload panel and a semantic search panel on one page. `api.js` gained a third export, `apiPostForm()`, for `FormData` uploads (no manually-set `Content-Type`, unlike the other two helpers) — three genuinely different request shapes now live behind three distinct, narrow functions rather than one branching helper. All three pages share the same top-bar nav.
 
 Later sprints continue the same one-page-per-feature pattern (knowledge base, agents, evaluation, admin).
 

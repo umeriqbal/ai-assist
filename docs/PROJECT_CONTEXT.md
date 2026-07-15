@@ -23,11 +23,11 @@ Module 10 – Enterprise AI Assistant
 
 Current Sprint:
 
-Sprint 3 – Knowledge Base UI (not yet scoped into increments)
+Sprint 4 – Website Crawling (not yet scoped into increments)
 
 Status:
 
-Module 7 (MCP) is complete: all 3 sprints delivered (MCP Server Foundations, MCP Client + Tool Discovery, Remote Execution/Agent Integration), unit-tested, and live-verified across genuine process boundaries — 107/107 tests passing, including a real two-process HTTP round trip in Sprint 3. Module 10 was taken up next, out of the original roadmap order, at the user's direction — Module 8 (Production Infrastructure) has not started, and Module 9 (Evaluation & Observability) was scoped down to a concrete Sprint 1 plan and then deliberately deferred, not built (see the Module 9 section below for the full reasoning). A standalone `ClaudeProvider` was built alongside that discussion (proving the Provider Pattern generalizes to a second vendor) but isn't wired into any active service. Module 10, Sprint 1 (Frontend Foundations) and Sprint 2 (Enterprise Chat UI) are complete — a standalone static frontend (plain HTML/CSS/JS, no framework), CORS enabled on the backend, and a real streaming chat interface wired to `POST /chat/stream`, all connectivity live-verified in a real headless browser.
+Module 7 (MCP) is complete: all 3 sprints delivered (MCP Server Foundations, MCP Client + Tool Discovery, Remote Execution/Agent Integration), unit-tested, and live-verified across genuine process boundaries — 107/107 tests passing, including a real two-process HTTP round trip in Sprint 3. Module 10 was taken up next, out of the original roadmap order, at the user's direction — Module 8 (Production Infrastructure) has not started, and Module 9 (Evaluation & Observability) was scoped down to a concrete Sprint 1 plan and then deliberately deferred, not built (see the Module 9 section below for the full reasoning). A standalone `ClaudeProvider` was built alongside that discussion (proving the Provider Pattern generalizes to a second vendor) but isn't wired into any active service. Module 10, Sprint 1 (Frontend Foundations), Sprint 2 (Enterprise Chat UI), and Sprint 3 (Knowledge Base UI) are complete — a standalone static frontend (plain HTML/CSS/JS, no framework), CORS enabled on the backend, a real streaming chat interface wired to `POST /chat/stream`, and a document upload + semantic search UI wired to `POST /documents/upload`/`POST /documents/search`, all connectivity live-verified in a real headless browser.
 
 ---
 
@@ -366,6 +366,14 @@ Enterprise Chat UI (Module 10, Sprint 2)
 - Both pages gained a small top-bar nav (`Status`/`Chat`), plain `<a href>`, no router
 - Live-verified in a real headless browser: sent a message, watched the assistant bubble fill in as chunks arrived, zero real console errors, screenshot confirmed both pages render correctly
 
+Knowledge Base UI (Module 10, Sprint 3)
+
+- Scoping decision made before any code: wire to `POST /documents/upload` (multipart) + `POST /documents/search`, Module 5's two end-user-facing endpoints, rather than the pipeline-stage endpoints meant for testing the RAG pipeline itself
+- `frontend/kb.html` + `js/kb.js` — one page, two panels: upload (`.pdf`-restricted file picker, optional source name) and search (query input), the index → search round trip visible together
+- `js/api.js` gained `apiPostForm(path, formData)` — sends `FormData` with no manually-set `Content-Type`, a third distinct request shape after JSON and streamed-read
+- Knowledge Base nav link added to all three pages
+- Live-verified in a real headless browser with a real, hand-crafted minimal PDF fixture (same technique `tests/conftest.py`'s `write_minimal_pdf()` uses — no PDF library existed as a dependency yet): uploaded, indexed, then found again via search with a real similarity score. Also confirmed a non-PDF upload correctly surfaces the backend's real error through the UI rather than failing silently
+
 ---
 
 # Design Decisions
@@ -392,7 +400,7 @@ No framework-specific code inside routers.
 
 Continue Module 10 – Enterprise AI Assistant (taken up out of the original roadmap order, at the user's direction).
 
-Sprint 1 (Frontend Foundations) and Sprint 2 (Enterprise Chat UI) are complete. Next step: scope Sprint 3 (Knowledge Base UI) the same way every prior sprint was — document upload/search wired into an actual UI via the existing `/documents/*` endpoints.
+Sprint 1 (Frontend Foundations), Sprint 2 (Enterprise Chat UI), and Sprint 3 (Knowledge Base UI) are complete. Next step: scope Sprint 4 (Website Crawling) the same way every prior sprint was — this one is the first UI sprint that needs real backend work too, since website crawling doesn't exist anywhere in the codebase yet.
 
 Module 8 (Production Infrastructure) remains not-yet-started; Module 9 (Evaluation & Observability) was scoped then deliberately deferred. Not yet decided: whether to close out the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) at some point.
 
@@ -448,13 +456,13 @@ Scoped to a concrete Sprint 1 plan (`CostTracker` as an injected recorder, a new
 
 **Revisit when:** there's real production traffic worth watching (likely post-Module 8), or provider selection becomes a genuine runtime decision. `ClaudeProvider` already exists for exactly that reason — built and tested, not wired in, so switching later is a config change away rather than a rewrite.
 
-## Module 10 (Current — Sprints 1–2 complete, taken up out of order)
+## Module 10 (Current — Sprints 1–3 complete, taken up out of order)
 
 - ~~Frontend Foundations~~ ✅ (Sprint 1 — not itself a roadmap feature, but the prerequisite for all of them)
 - ~~Enterprise Chat~~ ✅ (Sprint 2 — `chat.html`, wired to `POST /chat/stream`; no cross-turn memory, a deliberate trade-off for live streaming)
-- Knowledge Base (Sprint 3, not yet scoped)
-- PDF Search (not yet scoped)
-- Website Crawling — the one genuinely new backend capability in this module (not yet scoped)
+- ~~Knowledge Base~~ ✅ (Sprint 3 — `kb.html`, wired to `POST /documents/upload` + `POST /documents/search`; PDF only, a pre-existing backend gap, not new to this sprint)
+- ~~PDF Search~~ ✅ (covered by Sprint 3's search panel — searching indexed PDFs is exactly what `POST /documents/search` does; not a separate feature)
+- Website Crawling — the one genuinely new backend capability in this module (Sprint 4, not yet scoped)
 - Agents / Tool Calling / MCP UI (not yet scoped)
 - Evaluation Dashboard — scoped down to Module 5's data only, since Module 9 is deferred (not yet scoped)
 - Admin Interface (not yet scoped)

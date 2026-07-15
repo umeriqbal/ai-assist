@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Knowledge Base — Enterprise AI Assistant</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <span class="topbar-title">Enterprise AI Assistant</span>
+    <div class="topbar-right">
+      <nav class="topbar-nav">
+        <a href="index.html" class="topbar-link">Status</a>
+        <a href="chat.html" class="topbar-link">Chat</a>
+        <a href="kb.html" class="topbar-link topbar-link-active">Knowledge Base</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <h1>Knowledge base</h1>
+    <p>
+      Upload a document to index it into the vector store, then search it
+      with a natural-language query.
+    </p>
+
+    <section class="card">
+      <h2>Upload a document</h2>
+      <form id="upload-form" class="kb-form">
+        <input type="file" id="upload-file" name="file" accept=".pdf" required />
+        <input
+          type="text"
+          id="upload-source"
+          class="kb-text-input"
+          placeholder="Source name (optional)"
+        />
+        <button type="submit" class="kb-submit">Upload</button>
+      </form>
+      <p class="kb-hint">PDF only — other formats aren't supported yet.</p>
+      <div id="upload-result"></div>
+    </section>
+
+    <section class="card">
+      <h2>Search the knowledge base</h2>
+      <form id="search-form" class="kb-form">
+        <input
+          type="text"
+          id="search-query"
+          class="kb-text-input kb-text-input-grow"
+          placeholder="What are you looking for?"
+          required
+        />
+        <button type="submit" class="kb-submit">Search</button>
+      </form>
+      <div id="search-results" class="kb-results"></div>
+    </section>
+  </main>
+
+  <script type="module" src="js/kb.js"></script>
+</body>
+</html>

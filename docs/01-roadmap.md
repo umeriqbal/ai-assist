@@ -457,6 +457,16 @@ Standalone static frontend — plain HTML/CSS/JS, no build tooling, no framework
 
 **Status:** ✅ Complete
 
+### Sprint 3 — Knowledge Base UI
+
+- Scoping decision: wire the page to `POST /documents/upload` (multipart file upload) and `POST /documents/search` (semantic search) — Module 5's end-user-facing endpoints — rather than the pipeline-stage endpoints (`/documents`, `/chunks`, `/embeddings`, `/index`) meant for testing the RAG pipeline itself
+- `frontend/kb.html` + `js/kb.js` — one page, two panels: upload (file picker restricted to `.pdf`, optional source name) and search (query input), so the index → search round trip is visible together
+- `js/api.js` gained `apiPostForm()` — sends `FormData` with no manually-set `Content-Type`, a third distinct request shape after JSON (`apiPost`) and streamed-read (`apiPostStream`)
+- Knowledge Base nav link added to all three pages
+- Live-verified in a real headless browser: uploaded a real (minimal, hand-crafted) PDF fixture, confirmed the indexing confirmation, searched for its content, confirmed real search results with real similarity scores rendered as cards. Also confirmed via a direct API call that a non-PDF upload correctly surfaces the backend's existing error through the UI
+
+**Status:** ✅ Complete
+
 ### Outcome
 
 A production-quality Enterprise AI Assistant suitable for portfolio demonstrations and real-world deployment.
@@ -486,14 +496,14 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 
 Current Sprint:
 
-**Sprint 3 – Knowledge Base UI** *(not yet scoped)*
+**Sprint 4 – Website Crawling** *(not yet scoped)*
 
 Last Completed Sprint:
 
-**Sprint 2 – Enterprise Chat UI** — `frontend/chat.html` + `js/chat.js` wired to `POST /chat/stream`, chosen over `POST /agents/chat` to get live token-by-token streaming (at the cost of cross-turn memory, deliberately deferred). `js/api.js` gained `apiPostStream()`. Live-verified in a real headless browser — a sent message streamed a real assistant reply into the page, zero real console errors, screenshot confirmed.
+**Sprint 3 – Knowledge Base UI** — `frontend/kb.html` + `js/kb.js` wired to `POST /documents/upload` and `POST /documents/search`. `js/api.js` gained `apiPostForm()`. Live-verified in a real headless browser — uploaded a real PDF, confirmed indexing, searched for its content, confirmed real search results rendered as cards.
 
 Next milestone:
 
-**Scope Sprint 3 (Knowledge Base UI) into increments before writing any code.**
+**Scope Sprint 4 (Website Crawling) into increments before writing any code.**
 
 Module 8 (Production Infrastructure) and Module 9 (deferred — see its own section above) remain open, taken up out of the original order at the user's direction.

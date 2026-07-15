@@ -868,6 +868,16 @@ Neither is specific to this project — both are the general class of "the error
 
 ---
 
+## A Wrapper's Job Is Its Wire Contract, Not Its HTTP Verb
+
+By Sprint 3, `js/api.js` had three "send data to the backend" functions — `apiPost` (JSON), `apiPostStream` (streamed text), `apiPostForm` (multipart form) — all technically `POST` requests, and it would be easy to see three functions doing "the same thing" and reach to collapse them into one with a `mode` flag. They don't actually do the same thing: each has a genuinely different request *and* response contract — JSON body in, parsed object out; JSON body in, chunks trickling out over time; `FormData` body in (with a browser-generated header the caller must *not* set), parsed object out. A shared HTTP verb is a coincidence, not a reason to unify the code that handles them. The right grouping key for a helper function is its wire contract, not its verb — the same lesson `tool_result_messages()` (Module 6) already taught for provider-specific wire formats, showing up again one layer down, in the browser.
+
+## Verifying File Upload Needs a Real File, Not a Description of One
+
+Sprint 3's upload panel looked complete and passed a first Playwright run cleanly — right up until the uploaded `.txt` file produced a real backend error (`"No loader registered for '.txt'."`), because the only loader registered is `PDFLoader`. That's not a bug the UI code could have caught; it's a fact about the backend that only surfaces when a real file of the right *type* is actually sent through the real pipeline. The fix wasn't writing more frontend code — it was generating a real, minimal, valid PDF (reusing `tests/conftest.py`'s hand-crafted-PDF technique, since no PDF-generation library was already a project dependency) and re-verifying with that. The general lesson: "upload a file and check it works" is only a real test if the file's *type* matches what the system under test actually expects — a placeholder file proves the form submits, not that the feature works.
+
+---
+
 # Evaluation
 
 A production AI system must be measured.

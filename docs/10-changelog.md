@@ -32,10 +32,20 @@ Taken up out of the original roadmap order, at the user's direction — Module 8
 - Live-verified in a real headless browser: sent a message, watched the assistant bubble fill in as chunks arrived, confirmed zero real console errors (only the expected `favicon.ico` 404 any static site gets) and a screenshot of both pages rendering correctly.
 - Confirmed working end to end on the user's own machine, all three processes run manually. Surfaced two real environment issues along the way (both now in [07-development-guide.md](07-development-guide.md)'s Common Issues): a bare `uvicorn` command resolving to a global Python 3.10 install instead of the project's `.venv` (fixed by running `python -m uvicorn` instead, which always uses the active interpreter), and `python -m http.server` returning a correct-but-confusing 404 when launched from the repo root instead of `frontend/` (the server's web root is whatever directory it was started from).
 
+### Added — Sprint 3: Knowledge Base UI (Complete)
+
+- Scoping decision, made before any code: wire the page to `POST /documents/upload` (multipart file upload) and `POST /documents/search` (semantic search) — Module 5's two end-user-facing endpoints — rather than `POST /documents`, `/documents/chunks`, `/documents/embeddings`, or `/documents/index`, which expose the RAG pipeline's individual internal stages for testing, not something an end user interacts with directly.
+- `frontend/kb.html` — one page, two sections: an upload panel (file picker restricted to `.pdf` via `accept`, optional source name, submit) and a search panel (query input, submit), so the index → search round trip is visible on one screen.
+- `frontend/js/kb.js` — upload renders a confirmation card (source, pages loaded, chunks indexed) or a surfaced backend error; search renders each result as a card (content, source badge from `metadata`, similarity score).
+- `frontend/js/api.js` gained `apiPostForm(path, formData)` — sends a `FormData` body with **no manually-set `Content-Type`** (the browser sets the multipart boundary itself); a third distinct request shape after `apiPost`'s JSON and `apiPostStream`'s streamed-read, each with a genuinely different wire contract.
+- `frontend/css/styles.css` gained form/input styling, an upload-result notice, and search-result cards; all three pages (`index.html`/`chat.html`/`kb.html`) gained a `Knowledge Base` nav link.
+- Live-verified in a real headless browser, end to end: uploaded a real (minimal, hand-crafted) PDF fixture, confirmed the indexing confirmation rendered correctly, searched for its content, and confirmed real search results (with real similarity scores) rendered as cards. Also confirmed, via a direct API call first, that uploading a non-PDF file correctly surfaces the backend's existing `"No loader registered for '.txt'."` error through the UI rather than silently failing — the file input's `accept=".pdf"` plus a visible hint now steer users away from hitting it in the first place.
+
 ### Not Included
 
-- Knowledge Base UI, Website Crawling, Agents UI, Evaluation Dashboard, Admin Interface (Sprints 3+, not yet scoped)
-- Cross-turn conversation memory in the chat UI (would require a streaming variant of `AgentService`, a backend change — deliberately deferred, see the scoping decision above)
+- Website Crawling, Agents UI, Evaluation Dashboard, Admin Interface (Sprints 4+, not yet scoped)
+- Cross-turn conversation memory in the chat UI (would require a streaming variant of `AgentService`, a backend change — deliberately deferred, see the Sprint 2 scoping decision above)
+- Non-PDF document upload in the UI (DOCX/HTML/Markdown loaders remain unimplemented on the backend — pre-existing, Medium Priority backlog item from Module 5, not addressed by this sprint)
 
 ---
 

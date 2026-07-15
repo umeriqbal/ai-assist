@@ -34,9 +34,9 @@ This project follows real software engineering practices including:
 | Item | Value |
 |------|-------|
 | Current Module | Module 10 – Enterprise AI Assistant (taken up out of order) |
-| Current Sprint | Sprint 3 – Knowledge Base UI (not yet scoped) |
+| Current Sprint | Sprint 4 – Website Crawling (not yet scoped) |
 | Current Increment | Not yet defined |
-| Status | Module 7 (MCP) Complete — all 3 sprints. Module 8 not yet started; Module 9 scoped then deliberately deferred (see below). Module 10, Sprint 1 (Frontend Foundations) and Sprint 2 (Enterprise Chat UI) complete — 107/107 backend tests passing, both pages live-verified in a real headless browser |
+| Status | Module 7 (MCP) Complete — all 3 sprints. Module 8 not yet started; Module 9 scoped then deliberately deferred (see below). Module 10, Sprint 1 (Frontend Foundations), Sprint 2 (Enterprise Chat UI), and Sprint 3 (Knowledge Base UI) complete — 107/107 backend tests passing, all three pages live-verified in a real headless browser |
 
 ---
 
@@ -250,10 +250,11 @@ Completed Sprints
 
 - **Sprint 1 – Frontend Foundations:** stack decision first — standalone static frontend, plain HTML/CSS/JS, no framework (React/Vue/Svelte considered, declined), consistent with this project's "understand before framework" thread; `CORSMiddleware` added to `create_app()` — the first client in this project ever served from a different origin than the backend; `FRONTEND_URL` setting (explicit allowed origin, not `*`); `frontend/index.html`/`css/styles.css`/`js/api.js` (shared `fetch()` wrapper)/`js/main.js` — calls `GET /health` on load and renders the result
 - **Sprint 2 – Enterprise Chat UI:** scoping decision first — wired to `POST /chat` + `POST /chat/stream` (live token-by-token streaming) rather than `POST /agents/chat` (real `conversation_id` memory, no streaming variant yet); `frontend/chat.html`/`js/chat.js` — message bubbles, a send form streaming the assistant's reply in chunk by chunk; `js/api.js` gained `apiPostStream()`; both pages gained a small top-bar nav
+- **Sprint 3 – Knowledge Base UI:** scoping decision first — wired to `POST /documents/upload` + `POST /documents/search` (Module 5's end-user-facing endpoints) rather than the pipeline-stage endpoints; `frontend/kb.html`/`js/kb.js` — an upload panel (`.pdf`-restricted) and a search panel on one page; `js/api.js` gained `apiPostForm()` for `FormData` uploads; Knowledge Base nav link added to all three pages
 
-Live-verified in a real headless Chromium browser via an ad hoc Playwright driver script (`chromium-cli` and a project run-skill both didn't exist yet): real CORS negotiation, zero console errors, screenshot confirmed correct rendering. Also surfaced a real operational dependency — three processes must start in order (`app.mcp.run_http_server`, then the backend, then the frontend server). Sprint 2 re-verified the same way: a sent message streamed a real assistant reply into the page.
+Live-verified in a real headless Chromium browser via an ad hoc Playwright driver script (`chromium-cli` and a project run-skill both didn't exist yet): real CORS negotiation, zero console errors, screenshot confirmed correct rendering. Also surfaced a real operational dependency — three processes must start in order (`app.mcp.run_http_server`, then the backend, then the frontend server). Sprint 2 re-verified the same way: a sent message streamed a real assistant reply into the page. Sprint 3 re-verified with a real, hand-crafted PDF fixture (no PDF-generation dependency existed yet, so one was built the same way the backend's own test suite does): uploaded, indexed, then found again via search with a real similarity score.
 
-Not yet scoped: Sprint 3 (Knowledge Base UI) onward.
+Not yet scoped: Sprint 4 (Website Crawling) onward.
 
 Status
 
@@ -353,13 +354,13 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 Module 10 – Enterprise AI Assistant (taken up out of the original roadmap order, at the user's direction)
 
-Sprint 1 (Frontend Foundations) and Sprint 2 (Enterprise Chat UI) complete. Next step: a concept walkthrough and concrete increment plan for Sprint 3 (Knowledge Base UI) — wiring document upload/search into an actual UI.
+Sprint 1 (Frontend Foundations), Sprint 2 (Enterprise Chat UI), and Sprint 3 (Knowledge Base UI) complete. Next step: a concept walkthrough and concrete increment plan for Sprint 4 (Website Crawling) — the one genuinely new backend capability remaining in this module, not yet built at all.
 
 ---
 
 # Next Milestones
 
-- Enterprise AI Assistant (Sprints 3+ — Knowledge Base, Website Crawling, Agents UI, Evaluation Dashboard, Admin Interface)
+- Enterprise AI Assistant (Sprints 4+ — Website Crawling, Agents UI, Evaluation Dashboard, Admin Interface)
 - Production Infrastructure (Docker, PostgreSQL, pgvector, Terraform, AWS, CI/CD) — not yet started, picked up after Module 10 or sooner if priorities change
 
 **Evaluation & Observability (Module 9) — deliberately deferred, not on the near-term path.** Scoped to a concrete Sprint 1 plan, then explicitly not built: cost tracking, latency monitoring, model comparison, and prompt versioning only have real value against ongoing real traffic or an automated decision acting on the data — neither exists yet. A standalone `ClaudeProvider` was built alongside this discussion (proving the Provider Pattern generalizes) but isn't wired into any service. Revisit once there's real production traffic (likely post-Module 8) or provider selection becomes a genuine runtime decision.

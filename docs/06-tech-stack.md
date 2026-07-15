@@ -289,7 +289,9 @@ Status
 
 Introduced in Module 10, Sprint 1. Requires `CORSMiddleware` on the backend (`app/core/application.py`) plus a `FRONTEND_URL` setting — an explicit allowed origin, not `*` — since this is the first client in the project ever served from a different origin than the backend. Live-verified in a real headless Chromium browser via an ad hoc Playwright driver script.
 
-Extended in Sprint 2 with `chat.html`/`js/chat.js` — a real streaming chat interface wired to `POST /chat/stream`, chosen over `POST /agents/chat` to get live token-by-token streaming (accepting no cross-turn memory as the trade-off). `js/api.js` gained a second helper, `apiPostStream()`, reading the response body via `getReader()` since a streamed body isn't `response.json()`-shaped. Later sprints continue adding one HTML page + one JS file per feature (knowledge base, agents, evaluation, admin) rather than a component tree.
+Extended in Sprint 2 with `chat.html`/`js/chat.js` — a real streaming chat interface wired to `POST /chat/stream`, chosen over `POST /agents/chat` to get live token-by-token streaming (accepting no cross-turn memory as the trade-off). `js/api.js` gained a second helper, `apiPostStream()`, reading the response body via `getReader()` since a streamed body isn't `response.json()`-shaped.
+
+Extended again in Sprint 3 with `kb.html`/`js/kb.js` — a document upload panel (`POST /documents/upload`) and semantic search panel (`POST /documents/search`) on one page. `js/api.js` gained a third helper, `apiPostForm()`, sending `FormData` with no manually-set `Content-Type` — three genuinely different request shapes (JSON, streamed text, multipart form) now each get their own narrow function. Live-verified with a real, hand-crafted minimal PDF fixture (no PDF library or fixture file existed yet, so one was generated the same way `tests/conftest.py`'s `write_minimal_pdf()` does for backend tests). Later sprints continue adding one HTML page + one JS file per feature (agents, evaluation, admin) rather than a component tree.
 
 ---
 
