@@ -34,9 +34,9 @@ This project follows real software engineering practices including:
 | Item | Value |
 |------|-------|
 | Current Module | Module 10 – Enterprise AI Assistant (taken up out of order) |
-| Current Sprint | Sprint 2 – Enterprise Chat UI (not yet scoped) |
+| Current Sprint | Sprint 3 – Knowledge Base UI (not yet scoped) |
 | Current Increment | Not yet defined |
-| Status | Module 7 (MCP) Complete — all 3 sprints. Module 8 not yet started; Module 9 scoped then deliberately deferred (see below). Module 10, Sprint 1 (Frontend Foundations) complete — 107/107 backend tests passing, frontend live-verified in a real headless browser |
+| Status | Module 7 (MCP) Complete — all 3 sprints. Module 8 not yet started; Module 9 scoped then deliberately deferred (see below). Module 10, Sprint 1 (Frontend Foundations) and Sprint 2 (Enterprise Chat UI) complete — 107/107 backend tests passing, both pages live-verified in a real headless browser |
 
 ---
 
@@ -249,10 +249,11 @@ Taken up next at the user's direction, ahead of Module 8 (Production Infrastruct
 Completed Sprints
 
 - **Sprint 1 – Frontend Foundations:** stack decision first — standalone static frontend, plain HTML/CSS/JS, no framework (React/Vue/Svelte considered, declined), consistent with this project's "understand before framework" thread; `CORSMiddleware` added to `create_app()` — the first client in this project ever served from a different origin than the backend; `FRONTEND_URL` setting (explicit allowed origin, not `*`); `frontend/index.html`/`css/styles.css`/`js/api.js` (shared `fetch()` wrapper)/`js/main.js` — calls `GET /health` on load and renders the result
+- **Sprint 2 – Enterprise Chat UI:** scoping decision first — wired to `POST /chat` + `POST /chat/stream` (live token-by-token streaming) rather than `POST /agents/chat` (real `conversation_id` memory, no streaming variant yet); `frontend/chat.html`/`js/chat.js` — message bubbles, a send form streaming the assistant's reply in chunk by chunk; `js/api.js` gained `apiPostStream()`; both pages gained a small top-bar nav
 
-Live-verified in a real headless Chromium browser via an ad hoc Playwright driver script (`chromium-cli` and a project run-skill both didn't exist yet): real CORS negotiation, zero console errors, screenshot confirmed correct rendering. Also surfaced a real operational dependency — three processes must start in order (`app.mcp.run_http_server`, then the backend, then the frontend server).
+Live-verified in a real headless Chromium browser via an ad hoc Playwright driver script (`chromium-cli` and a project run-skill both didn't exist yet): real CORS negotiation, zero console errors, screenshot confirmed correct rendering. Also surfaced a real operational dependency — three processes must start in order (`app.mcp.run_http_server`, then the backend, then the frontend server). Sprint 2 re-verified the same way: a sent message streamed a real assistant reply into the page.
 
-Not yet scoped: Sprint 2 (Enterprise Chat UI) onward.
+Not yet scoped: Sprint 3 (Knowledge Base UI) onward.
 
 Status
 
@@ -352,13 +353,13 @@ The goal is to understand AI engineering patterns rather than becoming dependent
 
 Module 10 – Enterprise AI Assistant (taken up out of the original roadmap order, at the user's direction)
 
-Sprint 1 (Frontend Foundations) complete. Next step: a concept walkthrough and concrete increment plan for Sprint 2 (Enterprise Chat UI) — wiring `/chat`, `/chat/stream`, and `/agents/chat` into an actual chat interface.
+Sprint 1 (Frontend Foundations) and Sprint 2 (Enterprise Chat UI) complete. Next step: a concept walkthrough and concrete increment plan for Sprint 3 (Knowledge Base UI) — wiring document upload/search into an actual UI.
 
 ---
 
 # Next Milestones
 
-- Enterprise AI Assistant (Sprints 2+ — Enterprise Chat, Knowledge Base, Website Crawling, Agents UI, Evaluation Dashboard, Admin Interface)
+- Enterprise AI Assistant (Sprints 3+ — Knowledge Base, Website Crawling, Agents UI, Evaluation Dashboard, Admin Interface)
 - Production Infrastructure (Docker, PostgreSQL, pgvector, Terraform, AWS, CI/CD) — not yet started, picked up after Module 10 or sooner if priorities change
 
 **Evaluation & Observability (Module 9) — deliberately deferred, not on the near-term path.** Scoped to a concrete Sprint 1 plan, then explicitly not built: cost tracking, latency monitoring, model comparison, and prompt versioning only have real value against ongoing real traffic or an automated decision acting on the data — neither exists yet. A standalone `ClaudeProvider` was built alongside this discussion (proving the Provider Pattern generalizes) but isn't wired into any service. Revisit once there's real production traffic (likely post-Module 8) or provider selection becomes a genuine runtime decision.

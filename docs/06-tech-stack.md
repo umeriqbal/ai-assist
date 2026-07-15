@@ -287,7 +287,9 @@ React/Vue/Svelte were considered and declined (Decision recorded in [01-roadmap.
 
 Status
 
-Introduced in Module 10, Sprint 1. Requires `CORSMiddleware` on the backend (`app/core/application.py`) plus a `FRONTEND_URL` setting — an explicit allowed origin, not `*` — since this is the first client in the project ever served from a different origin than the backend. Live-verified in a real headless Chromium browser via an ad hoc Playwright driver script. Later sprints add one HTML page + one JS file per feature (chat, knowledge base, agents, evaluation, admin) rather than a component tree.
+Introduced in Module 10, Sprint 1. Requires `CORSMiddleware` on the backend (`app/core/application.py`) plus a `FRONTEND_URL` setting — an explicit allowed origin, not `*` — since this is the first client in the project ever served from a different origin than the backend. Live-verified in a real headless Chromium browser via an ad hoc Playwright driver script.
+
+Extended in Sprint 2 with `chat.html`/`js/chat.js` — a real streaming chat interface wired to `POST /chat/stream`, chosen over `POST /agents/chat` to get live token-by-token streaming (accepting no cross-turn memory as the trade-off). `js/api.js` gained a second helper, `apiPostStream()`, reading the response body via `getReader()` since a streamed body isn't `response.json()`-shaped. Later sprints continue adding one HTML page + one JS file per feature (knowledge base, agents, evaluation, admin) rather than a component tree.
 
 ---
 

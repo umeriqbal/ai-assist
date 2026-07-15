@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat — Enterprise AI Assistant</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <span class="topbar-title">Enterprise AI Assistant</span>
+    <div class="topbar-right">
+      <nav class="topbar-nav">
+        <a href="index.html" class="topbar-link">Status</a>
+        <a href="chat.html" class="topbar-link topbar-link-active">Chat</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="chat-page">
+    <div id="chat-messages" class="chat-messages"></div>
+
+    <form id="chat-form" class="chat-input-row">
+      <textarea
+        id="chat-input"
+        class="chat-input"
+        placeholder="Message the assistant…"
+        rows="1"
+        autofocus
+      ></textarea>
+      <button id="chat-send" type="submit" class="chat-send">Send</button>
+    </form>
+  </main>
+
+  <script type="module" src="js/chat.js"></script>
+</body>
+</html>

@@ -23,11 +23,11 @@ Module 10 – Enterprise AI Assistant
 
 Current Sprint:
 
-Sprint 2 – Enterprise Chat UI (not yet scoped into increments)
+Sprint 3 – Knowledge Base UI (not yet scoped into increments)
 
 Status:
 
-Module 7 (MCP) is complete: all 3 sprints delivered (MCP Server Foundations, MCP Client + Tool Discovery, Remote Execution/Agent Integration), unit-tested, and live-verified across genuine process boundaries — 107/107 tests passing, including a real two-process HTTP round trip in Sprint 3. Module 10 was taken up next, out of the original roadmap order, at the user's direction — Module 8 (Production Infrastructure) has not started, and Module 9 (Evaluation & Observability) was scoped down to a concrete Sprint 1 plan and then deliberately deferred, not built (see the Module 9 section below for the full reasoning). A standalone `ClaudeProvider` was built alongside that discussion (proving the Provider Pattern generalizes to a second vendor) but isn't wired into any active service. Module 10, Sprint 1 (Frontend Foundations) is complete — a standalone static frontend (plain HTML/CSS/JS, no framework), CORS enabled on the backend, connectivity live-verified in a real headless browser.
+Module 7 (MCP) is complete: all 3 sprints delivered (MCP Server Foundations, MCP Client + Tool Discovery, Remote Execution/Agent Integration), unit-tested, and live-verified across genuine process boundaries — 107/107 tests passing, including a real two-process HTTP round trip in Sprint 3. Module 10 was taken up next, out of the original roadmap order, at the user's direction — Module 8 (Production Infrastructure) has not started, and Module 9 (Evaluation & Observability) was scoped down to a concrete Sprint 1 plan and then deliberately deferred, not built (see the Module 9 section below for the full reasoning). A standalone `ClaudeProvider` was built alongside that discussion (proving the Provider Pattern generalizes to a second vendor) but isn't wired into any active service. Module 10, Sprint 1 (Frontend Foundations) and Sprint 2 (Enterprise Chat UI) are complete — a standalone static frontend (plain HTML/CSS/JS, no framework), CORS enabled on the backend, and a real streaming chat interface wired to `POST /chat/stream`, all connectivity live-verified in a real headless browser.
 
 ---
 
@@ -358,6 +358,14 @@ Frontend Foundations (Module 10, Sprint 1 — taken up out of the original roadm
 - Live-verified in a real headless Chromium browser via an ad hoc Playwright driver script (no `chromium-cli`/project run-skill existed yet): real CORS negotiation, zero console errors, screenshot confirmed correct rendering
 - Surfaced a real operational dependency: exercising the full stack needs three processes started in order — `app.mcp.run_http_server`, then the FastAPI app, then the `frontend/` static server
 
+Enterprise Chat UI (Module 10, Sprint 2)
+
+- Scoping decision made before any code: wire to `POST /chat` + `POST /chat/stream` (live token-by-token streaming) rather than `POST /agents/chat` (real `conversation_id` memory, no streaming variant yet) — chose streaming, accepted no cross-turn memory
+- `frontend/chat.html` + `js/chat.js` — user/assistant message bubbles, a send form that renders the user's message immediately and streams the assistant's reply in chunk by chunk
+- `js/api.js` gained `apiPostStream(path, body, onChunk)` — reads `response.body.getReader()` directly, since a streamed body can't reuse the existing `response.json()`-based helper
+- Both pages gained a small top-bar nav (`Status`/`Chat`), plain `<a href>`, no router
+- Live-verified in a real headless browser: sent a message, watched the assistant bubble fill in as chunks arrived, zero real console errors, screenshot confirmed both pages render correctly
+
 ---
 
 # Design Decisions
@@ -384,7 +392,7 @@ No framework-specific code inside routers.
 
 Continue Module 10 – Enterprise AI Assistant (taken up out of the original roadmap order, at the user's direction).
 
-Sprint 1 (Frontend Foundations) is complete. Next step: scope Sprint 2 (Enterprise Chat UI) the same way every prior sprint was — `/chat`, `/chat/stream`, and `/agents/chat` wired into an actual chat interface.
+Sprint 1 (Frontend Foundations) and Sprint 2 (Enterprise Chat UI) are complete. Next step: scope Sprint 3 (Knowledge Base UI) the same way every prior sprint was — document upload/search wired into an actual UI via the existing `/documents/*` endpoints.
 
 Module 8 (Production Infrastructure) remains not-yet-started; Module 9 (Evaluation & Observability) was scoped then deliberately deferred. Not yet decided: whether to close out the remaining Medium Priority backlog (DOCX/HTML/Markdown loaders) at some point.
 
@@ -440,11 +448,11 @@ Scoped to a concrete Sprint 1 plan (`CostTracker` as an injected recorder, a new
 
 **Revisit when:** there's real production traffic worth watching (likely post-Module 8), or provider selection becomes a genuine runtime decision. `ClaudeProvider` already exists for exactly that reason — built and tested, not wired in, so switching later is a config change away rather than a rewrite.
 
-## Module 10 (Current — Sprint 1 complete, taken up out of order)
+## Module 10 (Current — Sprints 1–2 complete, taken up out of order)
 
 - ~~Frontend Foundations~~ ✅ (Sprint 1 — not itself a roadmap feature, but the prerequisite for all of them)
-- Enterprise Chat (Sprint 2, not yet scoped)
-- Knowledge Base (not yet scoped)
+- ~~Enterprise Chat~~ ✅ (Sprint 2 — `chat.html`, wired to `POST /chat/stream`; no cross-turn memory, a deliberate trade-off for live streaming)
+- Knowledge Base (Sprint 3, not yet scoped)
 - PDF Search (not yet scoped)
 - Website Crawling — the one genuinely new backend capability in this module (not yet scoped)
 - Agents / Tool Calling / MCP UI (not yet scoped)

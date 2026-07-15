@@ -22,9 +22,20 @@ Taken up out of the original roadmap order, at the user's direction — Module 8
 - Surfaced a real operational dependency along the way: `create_app()`'s `lifespan` (Module 7, Sprint 3) requires the MCP HTTP server already running, so exercising the full stack needs **three processes in order** — `app.mcp.run_http_server`, then the FastAPI app, then the `frontend/` static server. No single command starts all three yet
 - Recommended follow-up, not yet done: generate a project run-skill (`/run-skill-generator`) capturing this three-process startup order and the Playwright driver pattern, before Module 10 has many more UI sprints to verify the same way repeatedly
 
+### Added — Sprint 2: Enterprise Chat UI (Complete)
+
+- Scoping decision, made before any code: wire the chat page to `POST /chat` + `POST /chat/stream` (`ChatService`/`StreamingService`, Module 4) rather than `POST /agents/chat` (Module 6's `AgentService`, which has real multi-turn memory via `conversation_id` but no streaming variant today). Chose live token-by-token streaming over cross-turn memory — each send is still an independent call, matching what the streaming endpoint already supports without new backend work.
+- `frontend/chat.html` — a new page (kept separate from `index.html`, one HTML page per feature, per the plan in [04-folder-structure.md](04-folder-structure.md)): a scrolling message list plus a textarea/send-button input row.
+- `frontend/js/chat.js` — on send, renders the user's message immediately, then streams the assistant's reply into its own bubble chunk by chunk as `/chat/stream`'s response body arrives.
+- `frontend/js/api.js` gained `apiPostStream(path, body, onChunk)` — reads `response.body.getReader()` directly, since streaming raw text can't reuse the existing `request()` helper's `response.json()` call.
+- `frontend/css/styles.css` gained message-bubble styling (user vs. assistant, visually distinct), a scrolling chat container, and the input row; `index.html`/`chat.html` both gained a small top-bar nav (`Status` / `Chat`) linking between the two pages — no router, plain `<a href>`.
+- Live-verified in a real headless browser: sent a message, watched the assistant bubble fill in as chunks arrived, confirmed zero real console errors (only the expected `favicon.ico` 404 any static site gets) and a screenshot of both pages rendering correctly.
+- Confirmed working end to end on the user's own machine, all three processes run manually. Surfaced two real environment issues along the way (both now in [07-development-guide.md](07-development-guide.md)'s Common Issues): a bare `uvicorn` command resolving to a global Python 3.10 install instead of the project's `.venv` (fixed by running `python -m uvicorn` instead, which always uses the active interpreter), and `python -m http.server` returning a correct-but-confusing 404 when launched from the repo root instead of `frontend/` (the server's web root is whatever directory it was started from).
+
 ### Not Included
 
-- Enterprise Chat UI, Knowledge Base UI, Website Crawling, Agents UI, Evaluation Dashboard, Admin Interface (Sprints 2+, not yet scoped)
+- Knowledge Base UI, Website Crawling, Agents UI, Evaluation Dashboard, Admin Interface (Sprints 3+, not yet scoped)
+- Cross-turn conversation memory in the chat UI (would require a streaming variant of `AgentService`, a backend change — deliberately deferred, see the scoping decision above)
 
 ---
 

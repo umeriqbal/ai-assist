@@ -273,7 +273,7 @@ frontend/
 
 Responsibilities
 
-- Everything a user or admin directly sees and interacts with: chat UI, knowledge base management, agent screens, evaluation dashboard
+- Everything a user or admin directly sees and interacts with: chat UI (Sprint 2, live), knowledge base management, agent screens, evaluation dashboard (later sprints)
 - Calls the backend exclusively over HTTP (`fetch()`), same as any external API consumer — no shared code, no shared process, no privileged access
 
 Plain HTML/CSS/JS, no framework, no build tooling — a deliberate Module 10 decision (React/Vue/Svelte all considered), consistent with this project's habit of understanding a layer by hand before reaching for a framework. Talks to the backend across a real origin boundary, enforced by `CORSMiddleware` naming the frontend's exact origin — the first place in this project where that boundary exists at all.
@@ -821,6 +821,33 @@ This is the first client in the entire project that isn't same-origin with the b
 **Verification note:** no browser automation tool was available at first (`chromium-cli` doesn't exist in this environment, and no project run-skill covered launching this app yet). Playwright was already cached locally, so Sprint 1's verification used an ad hoc driver script — real headless Chromium, real `fetch()`, real CORS negotiation — rather than a curl-only simulation, which can only prove the server's headers are correct, not that a browser actually accepts them.
 
 **Operational dependency worth naming:** getting this flow running requires three processes started in a specific order — `app.mcp.run_http_server` (Module 7's dependency, since `create_app()`'s `lifespan` requires it), then the FastAPI app, then the `frontend/` static server. No single command starts all three yet.
+
+---
+
+# Current Chat Flow (Module 10, Sprint 2)
+
+```
+frontend/chat.html
+    user types a prompt, submits the form
+
+        js/chat.js
+            renders the user's message immediately (own bubble)
+            → apiPostStream("/chat/stream", {prompt}, onChunk)   (js/api.js)
+            → fetch(..., {method: "POST", body: JSON.stringify({prompt})})
+            ← response.body.getReader()  — read in a loop, not response.json()
+
+Backend (uvicorn, port 8000)
+    POST /chat/stream  (app/api/routers/chat.py)
+        → StreamingService.stream(prompt)   ── same service Module 4 built ──
+        → StreamingResponse(event_stream(), media_type="text/plain")
+        ← chunks flow back over the same HTTP response as they're generated
+
+        js/chat.js appends each chunk into the assistant's bubble as it arrives
+```
+
+Deliberately wired to `POST /chat/stream` (Module 4's `ChatService`/`StreamingService`), not `POST /agents/chat` (Module 6's `AgentService`) — the scoping trade-off made before writing any code: live token-by-token streaming, at the cost of cross-turn memory. `/chat/stream` takes only `{prompt}` — no `conversation_id`, no history — so a follow-up message gets zero context from the previous one. `/agents/chat` has real memory via `conversation_id` but no streaming variant today; adding one would be a backend change, out of scope for a frontend sprint. Nothing here required a backend change — the endpoint already existed, unmodified, since Module 4.
+
+**Verification note:** live-verified the same way as Sprint 1 — a real headless browser, not a curl simulation — since curl can confirm the endpoint streams correctly but says nothing about whether `chat.js` actually renders the chunks into the right DOM node as they arrive.
 
 ---
 

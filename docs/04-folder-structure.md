@@ -419,16 +419,20 @@ Infrastructure as Code.
 frontend/
 │
 ├── index.html
+├── chat.html
 ├── css/
 │   └── styles.css
 └── js/
     ├── api.js
-    └── main.js
+    ├── main.js
+    └── chat.js
 ```
 
 Introduced in Module 10, Sprint 1. No `package.json`, no `src/`/`public/` split, no build step — plain HTML/CSS/JS was chosen deliberately over React/Vue/Svelte (see [01-roadmap.md](01-roadmap.md)'s Module 10 section), so there's no npm dependency tree to scaffold. `js/api.js` is the shared `fetch()` wrapper every page reuses; served independently from the backend (e.g. `python -m http.server 5500`), calling it over CORS.
 
-Later sprints add one HTML page + one JS file per feature (chat, knowledge base, agents, evaluation, admin) rather than a component tree — consistent with the no-framework decision.
+Sprint 2 (Enterprise Chat UI) added `chat.html` + `js/chat.js` — one HTML page + one JS file per feature, exactly as planned, rather than a component tree. `api.js` gained a second export, `apiPostStream()`, alongside `apiGet`/`apiPost` — needed because streaming a raw response body can't reuse the `response.json()`-based helper the other two share. Both pages now share a small top-bar nav linking between them (plain `<a href>`, no router).
+
+Later sprints continue the same one-page-per-feature pattern (knowledge base, agents, evaluation, admin).
 
 ---
 

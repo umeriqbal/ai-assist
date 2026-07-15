@@ -788,6 +788,22 @@ The client itself. A JSON API's real client is "any HTTP caller" — a `curl` re
 
 ---
 
+## Q64. This project has two endpoints that can both power a "chat" feature — `POST /chat/stream` and `POST /agents/chat`. Why aren't they interchangeable, and which did the chat UI use?
+
+### Answer
+
+They optimize for different things. `POST /chat/stream` (Module 4's `ChatService`/`StreamingService`) streams tokens live as they generate, but is stateless — no `conversation_id`, so a follow-up message carries zero context from the previous one. `POST /agents/chat` (Module 6's `AgentService`) has real cross-turn memory via `conversation_id`, but returns its answer all at once — there's no streaming variant of the agent loop yet. The Sprint 2 chat UI wired to `/chat/stream`, trading away conversation memory for the more visibly important property at this stage: text appearing live as the model generates it. Adding memory to the streaming path later would mean a backend change (a streaming `AgentService` variant), not a frontend one.
+
+---
+
+## Q65. Why did adding `apiPostStream()` to `js/api.js` require a new function instead of extending the existing `request()`/`apiPost()` helper?
+
+### Answer
+
+Because the response shapes are fundamentally different, not just different call sites. `apiGet`/`apiPost` both call `response.json()` — the entire body is buffered by `fetch()` internally and parsed as one JSON value once the response completes. A streamed `text/plain` body has no single JSON value to parse; it needs `response.body.getReader()`, read in a loop, with each chunk handed to a callback as it arrives — the whole point is *not* waiting for the full response. Retrofitting `request()` to handle both would mean branching internally on whether the caller wants a parsed JSON object or a stream of raw chunks — two different contracts pretending to be one function. A second, explicit function keeps each helper's contract simple and matches what it's actually doing.
+
+---
+
 # Practical Questions
 
 You should be able to explain the architecture you built during this bootcamp, including:

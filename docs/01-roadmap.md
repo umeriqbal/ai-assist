@@ -447,6 +447,16 @@ Standalone static frontend — plain HTML/CSS/JS, no build tooling, no framework
 
 **Status:** ✅ Complete
 
+### Sprint 2 — Enterprise Chat UI
+
+- Scoping decision: wire the chat page to `POST /chat` + `POST /chat/stream` (Module 4's `ChatService`/`StreamingService`) for live token-by-token streaming, rather than `POST /agents/chat` (Module 6's `AgentService`, which has real `conversation_id` memory but no streaming variant yet) — chose streaming over cross-turn memory rather than expand scope with a backend change
+- `frontend/chat.html` + `js/chat.js` — a new page (one page per feature, not a component tree), user/assistant message bubbles, a send form wired to the streaming endpoint
+- `js/api.js` gained `apiPostStream()` — reads the response body as a stream (`getReader()`), since JSON parsing doesn't apply to a streamed `text/plain` body
+- Small top-bar nav added to both pages (`Status` / `Chat`), plain `<a href>`, no router
+- Live-verified in a real headless browser — sent a message, watched the reply stream in, zero real console errors, screenshot confirmed both pages render correctly
+
+**Status:** ✅ Complete
+
 ### Outcome
 
 A production-quality Enterprise AI Assistant suitable for portfolio demonstrations and real-world deployment.
@@ -476,14 +486,14 @@ A production-quality Enterprise AI Assistant suitable for portfolio demonstratio
 
 Current Sprint:
 
-**Sprint 2 – Enterprise Chat UI** *(not yet scoped)*
+**Sprint 3 – Knowledge Base UI** *(not yet scoped)*
 
 Last Completed Sprint:
 
-**Sprint 1 – Frontend Foundations** — `CORSMiddleware` added to `create_app()` (the first client in this project ever served from a different origin), `frontend/` static site skeleton (plain HTML/CSS/JS, no build step), `js/api.js` shared fetch wrapper, a health-check page proving the whole pipe. Live-verified in a real headless browser via Playwright — real CORS negotiation, zero console errors, screenshot confirmed.
+**Sprint 2 – Enterprise Chat UI** — `frontend/chat.html` + `js/chat.js` wired to `POST /chat/stream`, chosen over `POST /agents/chat` to get live token-by-token streaming (at the cost of cross-turn memory, deliberately deferred). `js/api.js` gained `apiPostStream()`. Live-verified in a real headless browser — a sent message streamed a real assistant reply into the page, zero real console errors, screenshot confirmed.
 
 Next milestone:
 
-**Scope Sprint 2 (Enterprise Chat UI) into increments before writing any code.**
+**Scope Sprint 3 (Knowledge Base UI) into increments before writing any code.**
 
 Module 8 (Production Infrastructure) and Module 9 (deferred — see its own section above) remain open, taken up out of the original order at the user's direction.

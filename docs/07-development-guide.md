@@ -226,7 +226,7 @@ Known limitation: the two processes hold separate in-memory vector stores. A doc
 
 ---
 
-# Frontend (Module 10, Sprint 1)
+# Frontend (Module 10)
 
 The frontend (`frontend/`) is a standalone static site — it is never served by FastAPI (no Jinja2, no `StaticFiles` mount for it). It is its own process, calling the backend over CORS. This means a full local run is **three processes**, and they must start in this order from the repository root:
 
@@ -241,7 +241,7 @@ cd backend && python -m uvicorn app.main:app --reload
 cd frontend && python -m http.server 5500
 ```
 
-Then open `http://127.0.0.1:5500` in a browser.
+Then open `http://127.0.0.1:5500` in a browser. `index.html` is the backend status page (Sprint 1); `chat.html` (Sprint 2) is a live chat interface wired to `POST /chat/stream` — both link to each other via the top-bar nav.
 
 If Terminal 3's origin doesn't match `FRONTEND_URL` in `backend/.env` exactly (scheme, host, and port), the browser will block the request with a CORS error visible only in the browser console — `curl` against the same endpoint will succeed, because CORS is enforced by the browser, not the server. When debugging a "frontend can't reach backend" report, check the browser console first, not the backend logs.
 
@@ -548,6 +548,24 @@ Expected
 ```
 backend/.venv/bin/python
 ```
+
+If `which python` prints something else (e.g. `/Library/Frameworks/Python.framework/Versions/3.10/bin/python`), `source .venv/bin/activate` either wasn't run in that terminal or didn't take — re-run it from inside `backend/` and check again before starting the app.
+
+---
+
+## `uvicorn` Resolves to the Wrong Install
+
+Running the bare `uvicorn app.main:app --reload` command can silently pick up a **different, global** `uvicorn` from `PATH` (a different Python version, missing this project's dependencies) even when the venv looks active — symptom: `ModuleNotFoundError: No module named 'app'` with a traceback pointing outside `backend/.venv`. Run it as a module instead, which always uses the active interpreter regardless of `PATH`:
+
+```bash
+python -m uvicorn app.main:app --reload
+```
+
+---
+
+## Frontend Returns 404 for `chat.html` / `index.html`
+
+`python -m http.server` serves whatever directory it was launched from as the web root — running it from the repository root instead of `frontend/` means `chat.html` would only be reachable at `/frontend/chat.html`, not `/chat.html`. Fix: stop the server, `cd frontend` first, confirm with `pwd`, then restart it.
 
 ---
 

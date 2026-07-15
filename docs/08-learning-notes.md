@@ -849,6 +849,25 @@ This is easy to treat as a documentation footnote, but it's a real architectural
 
 ---
 
+## Two Endpoints Can Both Be "The Chat Endpoint," and Not Be Interchangeable
+
+By Sprint 2, this project had two endpoints that both answer "send a chat message, get a reply": `POST /chat` (stateless, and its streaming sibling `POST /chat/stream`) and `POST /agents/chat` (stateful, via `conversation_id`). They look interchangeable from a UI's point of view — same shape of request, same shape of intent — but they're built for different things, and each is missing what the other has: `/chat/stream` streams tokens live but forgets everything between calls; `/agents/chat` remembers the whole conversation but returns its answer all at once.
+
+Wiring a UI to "the chat endpoint" without naming which one, and why, would have silently picked a trade-off no one decided on. Making the choice explicit — streaming over memory, because the UI's most visible behavior (does text appear live?) mattered more here than a capability (follow-up context) the UI wasn't yet built to use anyway — is the same discipline as picking `FastMCP` vs. the low-level `Server` API in Module 7: two options that both "work," where the right one depends on which property the moment actually needs, not which sounds more complete.
+
+---
+
+## Two Real Operational Gotchas, From an Actual Local Run
+
+Getting Sprint 2 running end to end on the user's own machine (not just the Playwright-driven verification) surfaced two failure modes worth naming, because both look like application bugs and are actually environment/process mistakes:
+
+- **A "venv active" prompt doesn't guarantee the right binary resolves.** Running the bare `uvicorn app.main:app --reload` command picked up a *global* `uvicorn` (a different Python install entirely) instead of the project's `.venv` one, producing `ModuleNotFoundError: No module named 'app'` — an error that looks like a broken import, not a `PATH` issue. `python -m uvicorn ...` sidesteps this: it always uses whichever `python` is currently active, rather than trusting `PATH` to have resolved `uvicorn` to the matching install.
+- **A static file server's "root" is whatever directory launched it, not the project's frontend folder.** Running `python -m http.server 5500` from the repo root instead of `frontend/` produced a real, correct 404 for `/chat.html` — the file existed, just not where the server was looking. `cd` into the target directory and confirm with `pwd` before starting a static server; don't assume the working directory from where a terminal happens to be.
+
+Neither is specific to this project — both are the general class of "the error message describes a symptom one layer removed from the actual cause" (PATH resolution, cwd-relative serving), which is exactly why matching the debugging strategy to where the failure actually originates (check `which python`; check `pwd`) resolves them in seconds instead of guessing at application logic.
+
+---
+
 # Evaluation
 
 A production AI system must be measured.
